@@ -1,11 +1,7 @@
 // ===========================================
 // Файл: prisma/seed.ts
-// Путь:  linguamethod-admin/prisma/seed.ts
-//
-// Описание:
-//   Заполняет базу начальными данными:
-//   админ-пользователь, демо-курс, модуль, урок, карточки слов.
-//   Запуск: npm run db:seed
+// Описание: Начальные данные с блочной архитектурой.
+// Запуск: npm run db:seed
 // ===========================================
 
 import "dotenv/config";
@@ -17,100 +13,181 @@ const prisma = new PrismaClient();
 async function main() {
   console.log("Начинаем заполнение базы...\n");
 
-  const passwordHash = await hash("admin123", 12);
-
-  const admin = await prisma.user.upsert({
+  // Админ
+  const pw = await hash("admin123", 12);
+  await prisma.user.upsert({
     where: { email: "ksenia@linguamethod.com" },
     update: {},
-    create: {
-      email: "ksenia@linguamethod.com",
-      name: "Ксения",
-      passwordHash,
-      role: "SUPER_ADMIN",
-    },
+    create: { email: "ksenia@linguamethod.com", name: "Ксения", passwordHash: pw, role: "SUPER_ADMIN" },
   });
-  console.log("Админ создан:", admin.email);
+  console.log("Админ: ksenia@linguamethod.com / admin123");
 
-  const course = await prisma.course.upsert({
-    where: { id: "sample-course-zh" },
-    update: {},
-    create: {
-      id: "sample-course-zh",
+  // Курс
+  const course = await prisma.course.create({
+    data: {
       title: "Mandarin for English Speakers — Beginner",
-      language: "zh",
-      targetLanguage: "en",
-      level: "beginner",
+      language: "zh", targetLanguage: "en", level: "beginner",
       description: "Курс китайского (мандаринский) для англоговорящих. HSK 1-2.",
-      order: 0,
     },
   });
-  console.log("Курс создан:", course.title);
 
-  const mod = await prisma.module.upsert({
-    where: { id: "sample-module-1" },
-    update: {},
-    create: {
-      id: "sample-module-1",
-      courseId: course.id,
-      title: "Модуль 1: Приветствия и знакомство (打招呼)",
-      description: "Основы приветствий, представление себя",
-      order: 0, wordCount: 45, characterCount: 30,
-    },
+  // Модуль
+  const mod = await prisma.module.create({
+    data: { courseId: course.id, title: "Модуль 1: Приветствия и знакомство (打招呼)", order: 0 },
   });
-  console.log("Модуль создан:", mod.title);
 
-  const lesson = await prisma.lesson.upsert({
-    where: { id: "sample-lesson-1-1" },
-    update: {},
-    create: {
-      id: "sample-lesson-1-1",
-      moduleId: mod.id,
-      title: "Урок 1.1: Привет! (你好!)",
-      description: "你好, 我, 你, 是, 叫",
-      order: 0, estimatedHours: 3,
-    },
+  // Урок
+  const lesson = await prisma.lesson.create({
+    data: { moduleId: mod.id, title: "Урок 1.1: Привет! (你好!)", order: 0 },
   });
-  console.log("Урок создан:", lesson.title);
 
-  const sections = [
-    { id: "s-vocab-1-1", type: "VOCABULARY" as const, title: "Лексика (词汇)", order: 0 },
-    { id: "s-phon-1-1",  type: "PHONETICS" as const,  title: "Фонетика и тоны (声调)", order: 1 },
-    { id: "s-gram-1-1",  type: "GRAMMAR" as const,    title: "Грамматика (语法)", order: 2 },
-    { id: "s-dial-1-1",  type: "DIALOGUE" as const,   title: "Диалог (对话)", order: 3 },
-    { id: "s-read-1-1",  type: "READING" as const,    title: "Чтение (阅读)", order: 4 },
-    { id: "s-cult-1-1",  type: "CULTURE" as const,    title: "Культурная заметка (文化)", order: 5 },
-  ];
-  for (const s of sections) {
-    await prisma.section.upsert({
-      where: { id: s.id }, update: {},
-      create: { id: s.id, lessonId: lesson.id, type: s.type, title: s.title, order: s.order },
-    });
-  }
-  console.log("Разделы созданы:", sections.length);
+  // ---- РАЗДЕЛ 1: Новые слова ----
+  const sec1 = await prisma.section.create({
+    data: { lessonId: lesson.id, title: "Новые слова", order: 0 },
+  });
 
-  const words = [
-    { hanzi:"你好", pinyin:"nǐ hǎo", translation:"hello", tonePattern:[3,3], hskLevel:1, partOfSpeech:"phrase",
-      exampleHanzi:"你好！我叫小明。", examplePinyin:"Nǐ hǎo! Wǒ jiào Xiǎo Míng.", exampleTranslation:"Hello! My name is Xiao Ming." },
-    { hanzi:"我", pinyin:"wǒ", translation:"I, me", tonePattern:[3], hskLevel:1, partOfSpeech:"pronoun",
-      exampleHanzi:"我是学生。", examplePinyin:"Wǒ shì xuéshēng.", exampleTranslation:"I am a student." },
-    { hanzi:"你", pinyin:"nǐ", translation:"you", tonePattern:[3], hskLevel:1, partOfSpeech:"pronoun",
-      exampleHanzi:"你叫什么名字？", examplePinyin:"Nǐ jiào shénme míngzì?", exampleTranslation:"What is your name?" },
-    { hanzi:"是", pinyin:"shì", translation:"to be", tonePattern:[4], hskLevel:1, partOfSpeech:"verb",
-      exampleHanzi:"我是老师。", examplePinyin:"Wǒ shì lǎoshī.", exampleTranslation:"I am a teacher." },
-    { hanzi:"叫", pinyin:"jiào", translation:"to be called", tonePattern:[4], hskLevel:1, partOfSpeech:"verb",
-      exampleHanzi:"我叫大卫。", examplePinyin:"Wǒ jiào Dàwèi.", exampleTranslation:"My name is David." },
-  ];
-  for (let i = 0; i < words.length; i++) {
-    await prisma.vocabularyCard.upsert({
-      where: { id: `vc-1-1-${i}` }, update: {},
-      create: { id: `vc-1-1-${i}`, sectionId: "s-vocab-1-1", order: i, ...words[i] },
-    });
-  }
-  console.log("Карточки слов:", words.length);
+  // Блоки в разделе "Новые слова"
+  await prisma.contentBlock.createMany({
+    data: [
+      {
+        sectionId: sec1.id, type: "TEXT", order: 0,
+        contentJson: {
+          html: "<p>В этом уроке вы выучите 5 основных слов для приветствия и знакомства на китайском языке.</p>"
+        },
+      },
+      {
+        sectionId: sec1.id, type: "VOCAB_CARD", order: 1,
+        contentJson: {
+          hanzi: "你好", pinyin: "nǐ hǎo", translation: "hello",
+          partOfSpeech: "phrase", hskLevel: 1, tonePattern: [3, 3],
+          exampleHanzi: "你好！我叫小明。",
+          examplePinyin: "Nǐ hǎo! Wǒ jiào Xiǎo Míng.",
+          exampleTranslation: "Hello! My name is Xiao Ming.",
+        },
+      },
+      {
+        sectionId: sec1.id, type: "VOCAB_CARD", order: 2,
+        contentJson: {
+          hanzi: "我", pinyin: "wǒ", translation: "I, me",
+          partOfSpeech: "pronoun", hskLevel: 1, tonePattern: [3],
+          exampleHanzi: "我是学生。",
+          examplePinyin: "Wǒ shì xuéshēng.",
+          exampleTranslation: "I am a student.",
+        },
+      },
+      {
+        sectionId: sec1.id, type: "VOCAB_CARD", order: 3,
+        contentJson: {
+          hanzi: "你", pinyin: "nǐ", translation: "you",
+          partOfSpeech: "pronoun", hskLevel: 1, tonePattern: [3],
+          exampleHanzi: "你叫什么名字？",
+          examplePinyin: "Nǐ jiào shénme míngzì?",
+          exampleTranslation: "What is your name?",
+        },
+      },
+      {
+        sectionId: sec1.id, type: "VOCAB_CARD", order: 4,
+        contentJson: {
+          hanzi: "是", pinyin: "shì", translation: "to be",
+          partOfSpeech: "verb", hskLevel: 1, tonePattern: [4],
+          exampleHanzi: "我是老师。",
+          examplePinyin: "Wǒ shì lǎoshī.",
+          exampleTranslation: "I am a teacher.",
+        },
+      },
+      {
+        sectionId: sec1.id, type: "VOCAB_CARD", order: 5,
+        contentJson: {
+          hanzi: "叫", pinyin: "jiào", translation: "to be called",
+          partOfSpeech: "verb", hskLevel: 1, tonePattern: [4],
+          exampleHanzi: "我叫大卫。",
+          examplePinyin: "Wǒ jiào Dàwèi.",
+          exampleTranslation: "My name is David.",
+        },
+      },
+    ],
+  });
 
-  console.log("\nГотово!");
-  console.log("Email:  ksenia@linguamethod.com");
-  console.log("Пароль: admin123");
+  // ---- РАЗДЕЛ 2: Грамматика ----
+  const sec2 = await prisma.section.create({
+    data: { lessonId: lesson.id, title: "Грамматика", order: 1 },
+  });
+
+  await prisma.contentBlock.createMany({
+    data: [
+      {
+        sectionId: sec2.id, type: "GRAMMAR_RULE", order: 0,
+        contentJson: {
+          title: "Представление себя: 我叫...",
+          formula: "S + 叫 + Имя",
+          explanationHtml: "<p>Используется чтобы назвать своё имя. Буквально: \"Я зовусь...\"</p>",
+          examples: [
+            { hanzi: "我叫大卫。", pinyin: "Wǒ jiào Dàwèi.", translation: "My name is David." },
+            { hanzi: "你叫什么名字？", pinyin: "Nǐ jiào shénme míngzì?", translation: "What is your name?" },
+          ],
+          commonMistakes: [
+            { error: "我是大卫", correction: "我叫大卫", explanation: "我是 = я являюсь, 我叫 = меня зовут. Для имени используем 叫." },
+          ],
+        },
+      },
+      {
+        sectionId: sec2.id, type: "TEXT", order: 1,
+        contentJson: {
+          html: "<p>Обратите внимание: в китайском языке <b>фамилия идёт первой</b>, а имя — вторым. Например: 李明 (Lǐ Míng) — Ли это фамилия, Мин это имя.</p>"
+        },
+      },
+    ],
+  });
+
+  // ---- РАЗДЕЛ 3: Диалог ----
+  const sec3 = await prisma.section.create({
+    data: { lessonId: lesson.id, title: "Диалог: Первая встреча", order: 2 },
+  });
+
+  await prisma.contentBlock.createMany({
+    data: [
+      {
+        sectionId: sec3.id, type: "TEXT", order: 0,
+        contentJson: { html: "<p>Послушайте диалог и попробуйте понять, о чём говорят Ли Мин и Дэвид.</p>" },
+      },
+      {
+        sectionId: sec3.id, type: "DIALOGUE", order: 1,
+        contentJson: {
+          situationTitle: "Первая встреча",
+          speakers: ["Ли Мин", "Дэвид"],
+          lines: [
+            { speakerIndex: 0, hanzi: "你好！我叫李明。", pinyin: "Nǐ hǎo! Wǒ jiào Lǐ Míng.", translation: "Hello! My name is Li Ming." },
+            { speakerIndex: 1, hanzi: "你好！我叫大卫。", pinyin: "Nǐ hǎo! Wǒ jiào Dàwèi.", translation: "Hello! My name is David." },
+            { speakerIndex: 0, hanzi: "你是学生吗？", pinyin: "Nǐ shì xuéshēng ma?", translation: "Are you a student?" },
+            { speakerIndex: 1, hanzi: "是，我是学生。你呢？", pinyin: "Shì, wǒ shì xuéshēng. Nǐ ne?", translation: "Yes, I am a student. And you?" },
+            { speakerIndex: 0, hanzi: "我也是学生。", pinyin: "Wǒ yě shì xuéshēng.", translation: "I am also a student." },
+          ],
+        },
+      },
+    ],
+  });
+
+  // ---- РАЗДЕЛ 4: Культура ----
+  const sec4 = await prisma.section.create({
+    data: { lessonId: lesson.id, title: "Культурная заметка", order: 3 },
+  });
+
+  await prisma.contentBlock.createMany({
+    data: [
+      {
+        sectionId: sec4.id, type: "TEXT", order: 0,
+        contentJson: {
+          html: "<h3>Как здороваются в Китае</h3><p>你好 (nǐ hǎo) — универсальное приветствие. Однако в повседневной жизни китайцы чаще используют <b>你吃了吗？</b> (Nǐ chī le ma? — \"Ты поел?\") как неформальное приветствие. Это не приглашение к еде, а просто способ сказать \"привет\".</p><p>При знакомстве принято обмениваться визитками, держа их двумя руками.</p>"
+        },
+      },
+    ],
+  });
+
+  console.log("\nСоздано:");
+  console.log("  1 курс, 1 модуль, 1 урок");
+  console.log("  4 раздела (свободные названия)");
+  console.log("  10 блоков контента (TEXT, VOCAB_CARD, GRAMMAR_RULE, DIALOGUE)");
+  console.log("\nГотово! Логин: ksenia@linguamethod.com / admin123");
 }
 
 main()

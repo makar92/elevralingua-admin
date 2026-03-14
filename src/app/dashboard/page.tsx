@@ -1,14 +1,15 @@
 // ===========================================
 // Файл: src/app/dashboard/page.tsx
-// Путь:  linguamethod-admin/src/app/dashboard/page.tsx
 //
-// Описание:
-//   Главная страница админки. Показывает статистику
-//   (сколько курсов, модулей, уроков, упражнений)
-//   и быстрые действия.
+// Описание: Главная страница. Статистика + быстрые действия.
+// ПРАВИЛО: text-primary НЕ используется для текста.
+// Заголовки = text-foreground. Подписи = text-muted-foreground.
+// Числа статистики = text-primary (это ок, это акцент).
 // ===========================================
 
 import { prisma } from "@/lib/prisma";
+import Link from "next/link";
+import { Card, CardContent } from "@/components/ui/card";
 
 export default async function DashboardPage() {
   const [courseCount, moduleCount, lessonCount, exerciseCount] = await Promise.all([
@@ -19,40 +20,52 @@ export default async function DashboardPage() {
   ]);
 
   const stats = [
-    { label: "Курсы", value: courseCount, color: "bg-indigo-50 text-indigo-600" },
-    { label: "Модули", value: moduleCount, color: "bg-teal-50 text-teal-600" },
-    { label: "Уроки", value: lessonCount, color: "bg-amber-50 text-amber-600" },
-    { label: "Упражнения", value: exerciseCount, color: "bg-rose-50 text-rose-600" },
+    { label: "Курсы",      value: courseCount },
+    { label: "Модули",     value: moduleCount },
+    { label: "Уроки",      value: lessonCount },
+    { label: "Упражнения", value: exerciseCount },
+  ];
+
+  const actions = [
+    { icon: "📚", title: "Создать курс",         desc: "Новый курс иностранного языка",  href: "/dashboard/courses/new" },
+    { icon: "✏️", title: "Редактировать контент", desc: "Уроки, лексика, упражнения",      href: "/dashboard/courses" },
+    { icon: "📝", title: "Банк упражнений",       desc: "Все упражнения по категориям",    href: "/dashboard/exercises" },
   ];
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Панель управления</h1>
+      {/* Заголовок — белый текст */}
+      <h1 className="text-2xl font-bold text-foreground mb-6">Панель управления</h1>
+
+      {/* Статистика */}
       <div className="grid grid-cols-4 gap-4 mb-8">
         {stats.map((s) => (
-          <div key={s.label} className="bg-white rounded-xl border border-gray-200 p-5">
-            <p className="text-sm text-gray-500">{s.label}</p>
-            <p className={`text-3xl font-bold mt-1 ${s.color}`}>{s.value}</p>
-          </div>
+          <Card key={s.label}>
+            <CardContent className="pt-5">
+              <p className="text-sm text-muted-foreground">{s.label}</p>
+              {/* Числа — акцентный голубой (единственное место где primary ок для текста) */}
+              <p className="text-3xl font-bold text-primary mt-1">{s.value}</p>
+            </CardContent>
+          </Card>
         ))}
       </div>
-      <h2 className="text-lg font-semibold text-gray-800 mb-4">Быстрые действия</h2>
+
+      {/* Быстрые действия — заголовок белый */}
+      <h2 className="text-lg font-semibold text-foreground mb-4">Быстрые действия</h2>
       <div className="grid grid-cols-3 gap-4">
-        <a href="/dashboard/courses/new" className="bg-white rounded-xl border border-gray-200 p-5 hover:border-indigo-300 hover:shadow-sm transition-all group">
-          <span className="text-2xl">📚</span>
-          <p className="font-medium text-gray-700 mt-2 group-hover:text-indigo-600">Создать курс</p>
-          <p className="text-sm text-gray-400 mt-1">Новый курс иностранного языка</p>
-        </a>
-        <a href="/dashboard/courses" className="bg-white rounded-xl border border-gray-200 p-5 hover:border-indigo-300 hover:shadow-sm transition-all group">
-          <span className="text-2xl">✏️</span>
-          <p className="font-medium text-gray-700 mt-2 group-hover:text-indigo-600">Редактировать контент</p>
-          <p className="text-sm text-gray-400 mt-1">Уроки, лексика, упражнения</p>
-        </a>
-        <a href="/dashboard/exercises" className="bg-white rounded-xl border border-gray-200 p-5 hover:border-indigo-300 hover:shadow-sm transition-all group">
-          <span className="text-2xl">📝</span>
-          <p className="font-medium text-gray-700 mt-2 group-hover:text-indigo-600">Банк упражнений</p>
-          <p className="text-sm text-gray-400 mt-1">Все упражнения по категориям</p>
-        </a>
+        {actions.map((a) => (
+          <Link key={a.href} href={a.href}>
+            <Card className="hover:border-primary/50 hover:shadow-sm transition-all cursor-pointer h-full">
+              <CardContent className="pt-5">
+                <span className="text-2xl">{a.icon}</span>
+                {/* Название действия — белый */}
+                <p className="font-medium text-foreground mt-2">{a.title}</p>
+                {/* Описание — серый */}
+                <p className="text-sm text-muted-foreground mt-1">{a.desc}</p>
+              </CardContent>
+            </Card>
+          </Link>
+        ))}
       </div>
     </div>
   );

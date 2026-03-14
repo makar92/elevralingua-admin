@@ -1,6 +1,11 @@
 // ===========================================
 // Файл: prisma/schema.prisma
 // Путь:  linguamethod-admin/prisma/schema.prisma
+//
+// Описание:
+//   БЛОЧНАЯ АРХИТЕКТУРА v2.
+//   Свободные разделы + универсальные блоки-кирпичики.
+//   Вместо 6 таблиц контента — одна ContentBlock.
 // ===========================================
 
 generator client {
@@ -12,7 +17,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ==================== ПОЛЬЗОВАТЕЛИ АДМИНКИ ====================
+// ==================== ПОЛЬЗОВАТЕЛИ ====================
 
 model User {
   id            String    @id @default(cuid())
@@ -54,8 +59,6 @@ model Module {
   title          String
   description    String?  @db.Text
   order          Int      @default(0)
-  wordCount      Int      @default(0)
-  characterCount Int      @default(0)
   isPublished    Boolean  @default(false)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
@@ -84,164 +87,72 @@ model Lesson {
   @@index([moduleId])
 }
 
+// Раздел — СВОБОДНЫЙ. Любое название, любой порядок.
 model Section {
-  id        String      @id @default(cuid())
+  id        String   @id @default(cuid())
   lessonId  String
-  type      SectionType
-  title     String
-  order     Int         @default(0)
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
+  title     String   // Свободное: "Новые слова", "О культуре", что угодно
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  lesson          Lesson           @relation(fields: [lessonId], references: [id], onDelete: Cascade)
-  vocabularyCards VocabularyCard[]
-  toneBlocks      ToneBlock[]
-  grammarBlocks   GrammarBlock[]
-  dialogueBlocks  DialogueBlock[]
-  readingBlocks   ReadingBlock[]
-  cultureBlocks   CultureBlock[]
-  exercises       Exercise[]
+  lesson    Lesson         @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  blocks    ContentBlock[] // Блоки-кирпичики внутри раздела
+  exercises Exercise[]
 
   @@index([lessonId])
 }
 
-enum SectionType {
-  VOCABULARY
-  PHONETICS
-  GRAMMAR
-  DIALOGUE
-  READING
-  CULTURE
-}
+// ==================== БЛОКИ КОНТЕНТА (кирпичики) ====================
 
-// ==================== КОНТЕНТ УЧЕБНИКА ====================
-
-model VocabularyCard {
-  id                 String   @id @default(cuid())
-  sectionId          String
-  order              Int      @default(0)
-  hanzi              String
-  pinyin             String
-  translation        String
-  partOfSpeech       String?
-  exampleHanzi       String?
-  examplePinyin      String?
-  exampleTranslation String?
-  audioWordUrl       String?
-  audioExampleUrl    String?
-  hskLevel           Int?
-  tonePattern        Int[]
-  strokeCount        Int?
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-
-  section     Section       @relation(fields: [sectionId], references: [id], onDelete: Cascade)
-  teacherNote TeacherNote?
-
-  @@index([sectionId])
-}
-
-model ToneBlock {
-  id              String   @id @default(cuid())
-  sectionId       String
-  order           Int      @default(0)
-  syllable        String
-  tone            Int
-  audioUrl        String?
-  minimalPairs    Json?
-  toneChangeRule  String?  @db.Text
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  section Section @relation(fields: [sectionId], references: [id], onDelete: Cascade)
-
-  @@index([sectionId])
-}
-
-model GrammarBlock {
-  id                    String   @id @default(cuid())
-  sectionId             String
-  order                 Int      @default(0)
-  title                 String
-  formula               String?
-  explanationHtml       String?  @db.Text
-  examples              Json?
-  englishComparisonHtml String?  @db.Text
-  commonMistakes        Json?
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-
-  section     Section       @relation(fields: [sectionId], references: [id], onDelete: Cascade)
-  teacherNote TeacherNote?
-
-  @@index([sectionId])
-}
-
-model DialogueBlock {
-  id             String   @id @default(cuid())
-  sectionId      String
-  situationTitle String
-  speakers       String[]
-  lines          Json
-  fullAudioUrl   String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-
-  section     Section       @relation(fields: [sectionId], references: [id], onDelete: Cascade)
-  teacherNote TeacherNote?
-
-  @@index([sectionId])
-}
-
-model ReadingBlock {
-  id              String   @id @default(cuid())
-  sectionId       String
-  textHanziHtml   String   @db.Text
-  textPinyinHtml  String?  @db.Text
-  translationHtml String?  @db.Text
-  questions       Json?
-  audioUrl        String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  section Section @relation(fields: [sectionId], references: [id], onDelete: Cascade)
-
-  @@index([sectionId])
-}
-
-model CultureBlock {
-  id          String   @id @default(cuid())
+// Универсальный блок. Один тип таблицы для всего контента.
+// Тип блока определяет структуру contentJson.
+model ContentBlock {
+  id          String           @id @default(cuid())
   sectionId   String
-  title       String
-  contentHtml String   @db.Text
-  imageUrl    String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  type        ContentBlockType // Какой это блок (текст, картинка, карточка слова...)
+  order       Int              @default(0) // Порядок в разделе (для перемещения)
+  contentJson Json             // Содержимое — структура зависит от type
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
 
-  section Section @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  section     Section      @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  teacherNote TeacherNote? // Методическая заметка (только для учителя)
 
   @@index([sectionId])
+}
+
+// 10 типов блоков
+enum ContentBlockType {
+  // Базовые
+  TEXT           // Форматированный текст (Tiptap)
+  IMAGE          // Картинка с подписью
+  AUDIO          // Аудио-файл с плеером
+  YOUTUBE        // Видео с YouTube
+  DIVIDER        // Разделитель (горизонтальная линия)
+  HTML_EMBED     // Кастомный HTML/iframe код
+
+  // Специализированные для языков
+  VOCAB_CARD     // Карточка слова (иероглиф + пиньинь + перевод + аудио + пример)
+  GRAMMAR_RULE   // Грамматическое правило (формула + объяснение + примеры)
+  DIALOGUE       // Диалог (участники + реплики + аудио)
+  TONE_BLOCK     // Тоновый блок (слог + тон + аудио + минимальные пары)
 }
 
 // ==================== СЛОЙ УЧИТЕЛЯ ====================
 
+// Методическая заметка — привязывается к ЛЮБОМУ блоку
 model TeacherNote {
-  id                   String   @id @default(cuid())
-  vocabularyCardId     String?  @unique
-  grammarBlockId       String?  @unique
-  dialogueBlockId      String?  @unique
-  pronunciationTipHtml String?  @db.Text
-  commonErrorsHtml     String?  @db.Text
-  mnemonic             String?
-  culturalContextHtml  String?  @db.Text
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
+  id             String   @id @default(cuid())
+  contentBlockId String   @unique
+  noteHtml       String   @db.Text // Текст заметки
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  vocabularyCard VocabularyCard? @relation(fields: [vocabularyCardId], references: [id], onDelete: Cascade)
-  grammarBlock   GrammarBlock?   @relation(fields: [grammarBlockId], references: [id], onDelete: Cascade)
-  dialogueBlock  DialogueBlock?  @relation(fields: [dialogueBlockId], references: [id], onDelete: Cascade)
+  contentBlock ContentBlock @relation(fields: [contentBlockId], references: [id], onDelete: Cascade)
 }
 
+// План урока
 model LessonPlan {
   id              String   @id @default(cuid())
   lessonId        String   @unique
@@ -255,7 +166,7 @@ model LessonPlan {
   lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
 }
 
-// ==================== УПРАЖНЕНИЯ ====================
+// ==================== УПРАЖНЕНИЯ (ТЕТРАДЬ + БАНК) ====================
 
 model Exercise {
   id                  String       @id @default(cuid())
@@ -281,7 +192,6 @@ model Exercise {
 
   @@index([sectionId])
   @@index([exerciseType])
-  @@index([isBankExercise])
 }
 
 enum ExerciseType {
@@ -329,7 +239,6 @@ model ExerciseAnswer {
   exercise Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
 
   @@index([exerciseId])
-  @@index([studentId])
 }
 
 enum AnswerStatus {

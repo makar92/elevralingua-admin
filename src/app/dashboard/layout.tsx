@@ -1,17 +1,21 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { Sidebar } from "@/components/sidebar";
+import { TopNav } from "@/components/top-nav";
 
-export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default async function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const session = await auth();
   if (!session) redirect("/login");
 
   return (
-    <div className="flex h-screen">
-      <Sidebar user={session.user} />
-      <main className="flex-1 overflow-auto bg-gray-50">
-        <div className="p-6">{children}</div>
+    <div className="h-screen flex flex-col overflow-hidden bg-background">
+      <TopNav user={session.user} />
+      <main className="flex-1 overflow-hidden p-6">
+        {children}
       </main>
-    </div>
+    </div> 
   );
 }

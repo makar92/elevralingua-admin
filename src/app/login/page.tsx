@@ -1,8 +1,17 @@
+// ===========================================
+// Файл: src/app/login/page.tsx
+// Описание: Страница входа. Все цвета для тёмной темы.
+// ===========================================
+
 "use client";
 
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -15,44 +24,42 @@ export default function LoginPage() {
     e.preventDefault();
     setError("");
     setLoading(true);
-
     const result = await signIn("credentials", { email, password, redirect: false });
     setLoading(false);
-
-    if (result?.error) {
-      setError("Неверный email или пароль");
-    } else {
-      router.push("/dashboard");
-    }
+    if (result?.error) { setError("Неверный email или пароль"); }
+    else { router.push("/dashboard"); }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="min-h-screen flex items-center justify-center">
       <div className="w-full max-w-md">
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
-          <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-indigo-600">LinguaMethod</h1>
-            <p className="text-sm text-gray-500 mt-1">Панель управления контентом</p>
-          </div>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                placeholder="admin@linguamethod.com" required />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Пароль</label>
-              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" required />
-            </div>
-            {error && <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
-            <button type="submit" disabled={loading}
-              className="w-full py-2.5 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50">
-              {loading ? "Вход..." : "Войти"}
-            </button>
-          </form>
-        </div>
+        <Card>
+          <CardHeader className="text-center">
+            {/* Логотип — голубой акцент (ок для логотипа) */}
+            <CardTitle className="text-2xl text-primary">LinguaMethod</CardTitle>
+            {/* Подпись — серый */}
+            <CardDescription>Панель управления контентом</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-foreground">Email</Label>
+                <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+                  placeholder="admin@linguamethod.com" required />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-foreground">Пароль</Label>
+                <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+              </div>
+              {error && (
+                <div className="text-sm text-red-400 bg-red-400/10 px-3 py-2 rounded-lg">{error}</div>
+              )}
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? "Вход..." : "Войти"}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
