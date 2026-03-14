@@ -44,3 +44,4 @@ npm run dev
 
 **Логин:** ksenia@linguamethod.com
 **Пароль:** admin123
+# elevralingua-admin
