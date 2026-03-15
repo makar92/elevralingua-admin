@@ -3,9 +3,12 @@
 // Путь:  linguamethod-admin/prisma/schema.prisma
 //
 // Описание:
-//   БЛОЧНАЯ АРХИТЕКТУРА v2.
+//   БЛОЧНАЯ АРХИТЕКТУРА v3.
 //   Свободные разделы + универсальные блоки-кирпичики.
-//   Вместо 6 таблиц контента — одна ContentBlock.
+//   Банк упражнений (11 типов) привязан к урокам.
+//   Рабочая тетрадь = упражнения с isDefaultInWorkbook=true.
+//   ContentBlock — одна таблица для 10 типов контента.
+//   Exercise — одна таблица для 11 типов упражнений.
 // ===========================================
 
 generator client {
@@ -98,7 +101,7 @@ model Section {
 
   lesson    Lesson         @relation(fields: [lessonId], references: [id], onDelete: Cascade)
   blocks    ContentBlock[] // Блоки-кирпичики внутри раздела
-  exercises Exercise[]
+  exercises Exercise[]     // Упражнения к разделу
 
   @@index([lessonId])
 }
@@ -166,71 +169,72 @@ model LessonPlan {
   lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
 }
 
-// ==================== УПРАЖНЕНИЯ (ТЕТРАДЬ + БАНК) ====================
+// ==================== БАНК УПРАЖНЕНИЙ ====================
+// Все упражнения хранятся в банке, привязаны к разделу (Section).
+// Банк курса = все упражнения всех разделов всех уроков курса.
+// Рабочая тетрадь = упражнения с isDefaultInWorkbook=true.
+// В будущем: учитель сможет персонализировать набор для ученика.
 
 model Exercise {
   id                  String       @id @default(cuid())
-  sectionId           String
-  exerciseType        ExerciseType
-  order               Int          @default(0)
-  instructionText     String       @db.Text
-  difficulty          Int          @default(1)
-  contentJson         Json
-  gradingType         GradingType  @default(AUTO)
-  correctAnswers      String[]
-  strictnessConfig    Json?
-  referenceAnswer     String?      @db.Text
-  gradingCriteria     String?      @db.Text
-  isBankExercise      Boolean      @default(false)
-  isDefaultInWorkbook Boolean      @default(true)
-  isPublished         Boolean      @default(false)
+  sectionId           String                           // Привязка к разделу
+  exerciseType        ExerciseType                     // Тип упражнения (11 типов)
+  order               Int          @default(0)         // Порядок в разделе
+  title               String       @default("")        // Короткое название для банка
+  instructionText     String       @db.Text             // Задание для ученика
+  difficulty          Int          @default(1)          // Сложность 1-5
+  contentJson         Json                              // Содержимое — структура зависит от exerciseType
+  gradingType         GradingType  @default(AUTO)       // AUTO = автопроверка, TEACHER = ручная
+  correctAnswers      String[]                          // Эталонные ответы (для автопроверки)
+  referenceAnswer     String?      @db.Text             // Образцовый ответ (для ручной проверки)
+  gradingCriteria     String?      @db.Text             // Критерии оценивания (для учителя)
+  isDefaultInWorkbook Boolean      @default(true)       // Входит в тетрадь по умолчанию
+  isPublished         Boolean      @default(false)      // Опубликовано ли
   createdAt           DateTime     @default(now())
   updatedAt           DateTime     @updatedAt
 
   section  Section           @relation(fields: [sectionId], references: [id], onDelete: Cascade)
-  answers  ExerciseAnswer[]
+  answers  ExerciseAnswer[]  // Ответы учеников (будущее)
 
   @@index([sectionId])
   @@index([exerciseType])
 }
 
+// 11 типов упражнений для MVP (китайский язык)
 enum ExerciseType {
-  MATCHING
-  MULTIPLE_CHOICE
-  FILL_BLANK
-  TONE_PLACEMENT
-  TONE_LISTENING
-  MINIMAL_PAIRS
-  PINYIN_ASSEMBLY
-  STROKE_ORDER_DEMO
-  CHARACTER_TRACING
-  CHARACTER_FROM_MEMORY
-  WORD_ORDER
-  SENTENCE_TRANSFORM
-  GRAMMAR_CHOICE
-  LISTEN_AND_CHOOSE
-  DIALOGUE_FILL_BLANKS
-  DICTATION
-  TRANSLATE_TO_CHINESE
-  TRANSLATE_TO_ENGLISH
-  DESCRIBE_IMAGE
+  // === Автопроверка (8 типов) ===
+  MATCHING              // Соединить пары (иероглиф↔перевод, пиньинь↔иероглиф)
+  MULTIPLE_CHOICE       // Выбрать правильный ответ из вариантов
+  FILL_BLANK            // Вписать слово в пропуск в предложении
+  TONE_PLACEMENT        // Расставить тоны над пиньинь
+  WORD_ORDER            // Составить предложение из перемешанных слов
+  GRAMMAR_CHOICE        // Выбрать грамматически верный вариант
+  TRANSLATE_TO_CHINESE  // Перевести на китайский
+  TRANSLATE_TO_ENGLISH  // Перевести на английский
+
+  // === Ручная проверка учителем (3 типа) ===
+  DICTATION             // Диктант: слушай аудио → пиши иероглифы
+  DESCRIBE_IMAGE        // Опиши картинку на китайском
+  FREE_WRITING          // Свободное письменное задание
 }
 
 enum GradingType {
-  AUTO
-  TEACHER
+  AUTO      // Автоматическая проверка (сравнение с эталоном)
+  TEACHER   // Ручная проверка учителем
 }
+
+// ==================== ОТВЕТЫ УЧЕНИКОВ (будущее) ====================
 
 model ExerciseAnswer {
   id              String        @id @default(cuid())
   exerciseId      String
-  studentId       String?
-  answersJson     Json
-  score           Int?
-  status          AnswerStatus  @default(PENDING)
-  teacherComment  String?       @db.Text
-  gradedBy        String?
-  attemptNumber   Int           @default(1)
+  studentId       String?                              // ID ученика (будущее)
+  answersJson     Json                                 // Ответ ученика
+  score           Int?                                 // Балл
+  status          AnswerStatus  @default(PENDING)      // Статус проверки
+  teacherComment  String?       @db.Text               // Комментарий учителя
+  gradedBy        String?                              // Кто проверил
+  attemptNumber   Int           @default(1)            // Номер попытки
   startedAt       DateTime?
   completedAt     DateTime?
   createdAt       DateTime      @default(now())
@@ -242,7 +246,7 @@ model ExerciseAnswer {
 }
 
 enum AnswerStatus {
-  PENDING
-  GRADED
-  AUTO_GRADED
+  PENDING      // Ожидает проверки
+  GRADED       // Проверено учителем
+  AUTO_GRADED  // Проверено автоматически
 }
