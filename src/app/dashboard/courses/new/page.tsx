@@ -104,7 +104,7 @@ export default function NewCoursePage() {
           </CardContent>
         </Card>
         {error && (
-          <div className="text-sm text-red-400 bg-red-400/10 px-4 py-2 rounded-lg">{error}</div>
+          <div className="text-sm text-red-600 bg-red-500/10 px-4 py-2 rounded-lg">{error}</div>
         )}
         <div className="flex gap-3">
           <Button type="submit" disabled={loading}>

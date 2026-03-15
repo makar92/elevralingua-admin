@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ru" className={cn("dark font-sans", figtree.variable)}>
+    <html lang="ru" className={cn("font-sans", figtree.variable)}>
       <body className="bg-background text-foreground antialiased">{children}</body>
     </html>
   );

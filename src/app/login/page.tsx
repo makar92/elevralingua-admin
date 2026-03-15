@@ -52,7 +52,7 @@ export default function LoginPage() {
                 <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
               </div>
               {error && (
-                <div className="text-sm text-red-400 bg-red-400/10 px-3 py-2 rounded-lg">{error}</div>
+                <div className="text-sm text-red-600 bg-red-500/10 px-3 py-2 rounded-lg">{error}</div>
               )}
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? "Вход..." : "Войти"}

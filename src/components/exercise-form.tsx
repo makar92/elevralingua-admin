@@ -315,7 +315,7 @@ function MultipleChoiceForm({ content, setContent, setCorrectAnswers }: any) {
           <button onClick={() => setCorrect(i)}
             className={`w-7 h-7 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
               content.correctIndex === i
-                ? "border-green-500 bg-green-500/20 text-green-400"
+                ? "border-green-600 bg-green-600/20 text-green-600"
                 : "border-border text-transparent hover:border-muted-foreground"
             }`}>✓</button>
           <Input value={opt} onChange={(e) => updateOption(i, e.target.value)}
@@ -466,7 +466,7 @@ function GrammarChoiceForm({ content, setContent, setCorrectAnswers }: any) {
           <button onClick={() => setCorrect(i)}
             className={`w-7 h-7 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
               content.correctIndex === i
-                ? "border-green-500 bg-green-500/20 text-green-400"
+                ? "border-green-600 bg-green-600/20 text-green-600"
                 : "border-border text-transparent hover:border-muted-foreground"
             }`}>✓</button>
           <Input value={opt} onChange={(e) => updateOption(i, e.target.value)}

@@ -282,7 +282,7 @@ export function SectionEditor({ section }: { section: Section }) {
         <div className="grid grid-cols-2 gap-3">
           {EXERCISE_TYPES.filter((t) => t.grading === "TEACHER").map((t) => (
             <button key={t.type} onClick={() => { setSelectedExType(t.type); setEditingExercise(null); setExMode("form"); }}
-              className="flex items-center gap-4 p-4 rounded-lg border border-amber-400/20 bg-amber-400/5 hover:bg-amber-400/10 hover:border-amber-400/30 transition-colors text-left">
+              className="flex items-center gap-4 p-4 rounded-lg border border-amber-500/20 bg-amber-500/5 hover:bg-amber-500/10 hover:border-amber-500/30 transition-colors text-left">
               <span className="text-3xl">{t.icon}</span>
               <div><p className="text-base font-medium text-foreground">{t.name}</p><p className="text-sm text-muted-foreground">{t.desc}</p></div>
             </button>
@@ -473,7 +473,7 @@ function ExerciseCard({ ex, idx, onToggle, onEdit, onDelete, showToggle }: {
         {showToggle && (
           <button onClick={() => onToggle(ex)} title={ex.isDefaultInWorkbook ? "Убрать из тетради" : "Добавить в тетрадь"}
             className={`w-8 h-8 flex items-center justify-center rounded transition-colors text-sm ${
-              ex.isDefaultInWorkbook ? "text-green-400 hover:bg-green-400/10" : "text-muted-foreground hover:bg-accent"
+              ex.isDefaultInWorkbook ? "text-green-600 hover:bg-green-500/10" : "text-muted-foreground hover:bg-accent"
             }`}>📓</button>
         )}
         {onEdit && (
@@ -497,7 +497,7 @@ function ExerciseCard({ ex, idx, onToggle, onEdit, onDelete, showToggle }: {
               <Badge variant={ex.gradingType === "AUTO" ? "default" : "secondary"} className="text-xs">
                 {ex.gradingType === "AUTO" ? "⚡ Авто" : "👩‍🏫 Учитель"}
               </Badge>
-              {ex.isDefaultInWorkbook && <Badge variant="outline" className="text-xs text-green-400 border-green-400/30">📓 В тетради</Badge>}
+              {ex.isDefaultInWorkbook && <Badge variant="outline" className="text-xs text-green-600 border-green-500/30">📓 В тетради</Badge>}
               <span className="text-xs text-muted-foreground">{"⭐".repeat(Math.min(ex.difficulty, 5))}</span>
             </div>
             <p className="text-sm text-muted-foreground mt-1 truncate">{ex.instructionText}</p>

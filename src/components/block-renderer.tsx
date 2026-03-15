@@ -21,7 +21,7 @@ export function BlockRenderer({ block }: { block: ContentBlock }) {
   switch (block.type) {
     case "TEXT":
       return (
-        <div className="prose prose-invert max-w-none text-foreground text-base leading-relaxed"
+        <div className="prose max-w-none text-foreground text-base leading-relaxed"
           dangerouslySetInnerHTML={{ __html: c.html || "<p>Пустой текст</p>" }} />
       );
 

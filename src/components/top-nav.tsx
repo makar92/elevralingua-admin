@@ -68,7 +68,7 @@ export function TopNav({ user }: { user: { name?: string | null; email?: string 
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => signOut({ callbackUrl: "/login" })}
-              className="text-red-400 focus:text-red-400 cursor-pointer">
+              className="text-red-600 focus:text-red-600 cursor-pointer">
               Выйти
             </DropdownMenuItem>
           </DropdownMenuContent>

@@ -76,8 +76,8 @@ export function BlockForm({ type, initialData, onSave, onCancel }: Props) {
       {type !== "DIVIDER" && (
         <>
           <Separator />
-          <div className="bg-amber-400/5 border border-amber-400/20 rounded-lg p-4">
-            <Label className="text-base text-amber-400 font-medium">
+          <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg p-4">
+            <Label className="text-base text-amber-600 font-medium">
               👩‍🏫 Заметка для учителя (необязательно)
             </Label>
             <p className="text-sm text-muted-foreground mb-2">
@@ -370,7 +370,7 @@ function DialogueForm({ data, set }: { data: any; set: any }) {
   const speakerColors = [
     { bg: "bg-sky-500/10", border: "border-sky-500/30", text: "text-sky-400", dot: "bg-sky-400" },
     { bg: "bg-rose-500/10", border: "border-rose-500/30", text: "text-rose-400", dot: "bg-rose-400" },
-    { bg: "bg-amber-500/10", border: "border-amber-500/30", text: "text-amber-400", dot: "bg-amber-400" },
+    { bg: "bg-amber-500/10", border: "border-amber-500/30", text: "text-amber-600", dot: "bg-amber-500" },
     { bg: "bg-emerald-500/10", border: "border-emerald-500/30", text: "text-emerald-400", dot: "bg-emerald-400" },
   ];
 
