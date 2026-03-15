@@ -1,14 +1,12 @@
 // ===========================================
 // Файл: src/app/api/upload/route.ts
 // Описание: POST — загрузка файлов (картинки, аудио).
-//   Сохраняет в public/uploads, возвращает URL.
+//   Vercel Blob для продакшена, локальная ФС для dev.
 // ===========================================
 
 import { NextRequest } from "next/server";
 import { auth } from "@/lib/auth";
 import { apiSuccess, apiError, withErrorHandling } from "@/lib/api-helpers";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
 
 export async function POST(request: NextRequest) {
   return withErrorHandling(async () => {
@@ -34,22 +32,36 @@ export async function POST(request: NextRequest) {
       return apiError("Файл слишком большой (макс 10MB)");
     }
 
-    // Создаём папку uploads если нет
-    const uploadDir = path.join(process.cwd(), "public", "uploads");
-    await mkdir(uploadDir, { recursive: true });
+    // Vercel Blob для продакшена, локальная ФС для dev
+    if (process.env.BLOB_READ_WRITE_TOKEN) {
+      // === Vercel Blob ===
+      const { put } = await import("@vercel/blob");
+      const ext = file.name.split(".").pop() || "bin";
+      const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
-    // Генерируем уникальное имя файла
-    const ext = file.name.split(".").pop() || "bin";
-    const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-    const filepath = path.join(uploadDir, filename);
+      const blob = await put(filename, file, {
+        access: "public",
+        contentType: file.type,
+      });
 
-    // Сохраняем файл
-    const buffer = Buffer.from(await file.arrayBuffer());
-    await writeFile(filepath, buffer);
+      return apiSuccess({ url: blob.url, filename, type: file.type, size: file.size });
+    } else {
+      // === Локальная ФС (dev) ===
+      const { writeFile, mkdir } = await import("fs/promises");
+      const path = await import("path");
 
-    // Возвращаем URL для доступа
-    const url = `/uploads/${filename}`;
+      const uploadDir = path.join(process.cwd(), "public", "uploads");
+      await mkdir(uploadDir, { recursive: true });
 
-    return apiSuccess({ url, filename, type: file.type, size: file.size });
+      const ext = file.name.split(".").pop() || "bin";
+      const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const filepath = path.join(uploadDir, filename);
+
+      const buffer = Buffer.from(await file.arrayBuffer());
+      await writeFile(filepath, buffer);
+
+      const url = `/uploads/${filename}`;
+      return apiSuccess({ url, filename, type: file.type, size: file.size });
+    }
   });
 }
