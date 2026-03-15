@@ -13,6 +13,7 @@
 
 import { AudioPlayer } from "@/components/audio-player";
 import { KatexFormula } from "@/components/katex-formula";
+import { AVATAR_MAP, SCENE_MAP } from "@/lib/dialogue-assets";
 
 interface ContentBlock {
   id: string; type: string; contentJson: any;
@@ -202,36 +203,57 @@ function GrammarPreview({ c }: { c: any }) {
   );
 }
 
-// ===== Диалог =====
+// ===== Диалог — с аватарками и фоном =====
 function DialoguePreview({ c }: { c: any }) {
+  const speakerAvatars: string[] = c.speakerAvatars || [];
+  const scene = SCENE_MAP[c.sceneId] || SCENE_MAP["none"];
+  const hasScene = c.sceneId && c.sceneId !== "none" && scene;
+
   const colors = [
     { bg: "bg-sky-500/12", border: "border-sky-400/25", name: "text-sky-300" },
     { bg: "bg-rose-500/12", border: "border-rose-400/25", name: "text-rose-300" },
     { bg: "bg-amber-500/12", border: "border-amber-400/25", name: "text-amber-300" },
+    { bg: "bg-emerald-500/12", border: "border-emerald-400/25", name: "text-emerald-300" },
   ];
 
   return (
-    <div className="rounded-2xl overflow-hidden bg-gradient-to-br from-[oklch(0.22_0.012_250)] to-[oklch(0.26_0.01_265)] border border-white/8 shadow-xl">
+    <div className={`rounded-2xl overflow-hidden border border-white/8 shadow-xl relative ${
+      hasScene ? `bg-gradient-to-br ${scene.gradient}` : "bg-gradient-to-br from-[oklch(0.22_0.012_250)] to-[oklch(0.26_0.01_265)]"
+    }`}>
+
+      {/* Заголовок */}
       {c.situationTitle && (
-        <div className="px-7 pt-6 pb-4">
+        <div className="px-7 pt-6 pb-2 relative">
           <h3 className="text-xl font-bold text-white">{c.situationTitle}</h3>
         </div>
       )}
 
-      <div className="px-7 pb-7 space-y-5">
+      {/* Реплики */}
+      <div className="px-7 pb-7 pt-4 space-y-6 relative">
         {(c.lines || []).map((line: any, i: number) => {
-          const col = colors[line.speakerIndex % colors.length];
-          const isLeft = line.speakerIndex % 2 === 0;
+          const spkIdx = line.speakerIndex || 0;
+          const col = colors[spkIdx % colors.length];
+          const isLeft = spkIdx % 2 === 0;
+          const avatarId = speakerAvatars[spkIdx] || "man";
+          const avatar = AVATAR_MAP[avatarId];
+          const speakerName = c.speakers?.[spkIdx] || "";
           return (
-            <div key={i} className={`flex ${isLeft ? "justify-start" : "justify-end"}`}>
-              <div className={`max-w-[80%] rounded-2xl ${col.bg} border ${col.border} px-6 py-4 ${
-                isLeft ? "rounded-tl-md" : "rounded-tr-md"
+            <div key={i} className={`flex items-end gap-4 ${isLeft ? "" : "flex-row-reverse"}`}>
+              {/* Аватарка — крупная */}
+              <div className="flex flex-col items-center gap-1 flex-shrink-0">
+                <div className={`w-14 h-14 rounded-2xl ${col.bg} border-2 ${col.border} flex items-center justify-center text-3xl`}>
+                  {avatar?.emoji || "👤"}
+                </div>
+                {speakerName && (
+                  <span className={`text-sm font-semibold ${col.name} max-w-[80px] truncate`}>{speakerName}</span>
+                )}
+              </div>
+              {/* Реплика */}
+              <div className={`max-w-[75%] rounded-2xl ${col.bg} border ${col.border} px-5 py-4 ${
+                isLeft ? "rounded-bl-md" : "rounded-br-md"
               }`}>
-                <p className={`text-xs font-bold ${col.name} uppercase tracking-wide mb-2`}>
-                  {c.speakers?.[line.speakerIndex] || "???"}
-                </p>
                 <p className="text-xl text-white leading-relaxed">{line.hanzi}</p>
-                <p className="text-base text-emerald-400/70 mt-1">{line.pinyin}</p>
+                <p className="text-base text-emerald-400/70 mt-1.5">{line.pinyin}</p>
                 <p className="text-sm text-white/40 mt-1">{line.translation}</p>
               </div>
             </div>

@@ -17,6 +17,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { TiptapEditor } from "@/components/tiptap-editor";
+import { AVATAR_OPTIONS, AVATAR_CATEGORIES, AVATAR_MAP, SCENE_OPTIONS, SCENE_MAP } from "@/lib/dialogue-assets";
 
 interface Props {
   type: string;
@@ -302,27 +303,248 @@ function GrammarForm({ data, set }: { data: any; set: any }) {
   );
 }
 
-// ===== ДИАЛОГ =====
+// ===== ДИАЛОГ — визуальный конструктор с аватарками и фонами =====
 function DialogueForm({ data, set }: { data: any; set: any }) {
+  const speakers: any[] = data.speakers || [];
+  const lines: any[] = data.lines || [];
+  const speakerAvatars: string[] = data.speakerAvatars || [];
+  const sceneId: string = data.sceneId || "none";
+
+  // Попап выбора аватарки: индекс участника или null
+  const [avatarPickerFor, setAvatarPickerFor] = useState<number | null>(null);
+  // Попап выбора фона
+  const [scenePickerOpen, setScenePickerOpen] = useState(false);
+
+  // --- Участники ---
+  const addSpeaker = () => {
+    set("speakers", [...speakers, ""]);
+    set("speakerAvatars", [...speakerAvatars, "man"]);
+  };
+
+  const updateSpeaker = (index: number, name: string) => {
+    const updated = [...speakers];
+    updated[index] = name;
+    set("speakers", updated);
+  };
+
+  const updateAvatar = (index: number, avatarId: string) => {
+    const updated = [...speakerAvatars];
+    updated[index] = avatarId;
+    set("speakerAvatars", updated);
+    setAvatarPickerFor(null);
+  };
+
+  const removeSpeaker = (index: number) => {
+    if (speakers.length <= 1) return;
+    set("speakers", speakers.filter((_: any, i: number) => i !== index));
+    set("speakerAvatars", speakerAvatars.filter((_: any, i: number) => i !== index));
+    // Удаляем реплики, корректируем индексы
+    set("lines", lines
+      .filter((l: any) => l.speakerIndex !== index)
+      .map((l: any) => ({ ...l, speakerIndex: l.speakerIndex > index ? l.speakerIndex - 1 : l.speakerIndex }))
+    );
+  };
+
+  // --- Реплики ---
+  const addLine = (speakerIndex?: number) => {
+    set("lines", [...lines, { speakerIndex: speakerIndex ?? 0, hanzi: "", pinyin: "", translation: "" }]);
+  };
+
+  const updateLine = (index: number, field: string, value: any) => {
+    const updated = [...lines];
+    updated[index] = { ...updated[index], [field]: value };
+    set("lines", updated);
+  };
+
+  const removeLine = (index: number) => set("lines", lines.filter((_: any, i: number) => i !== index));
+
+  const moveLine = (index: number, dir: "up" | "down") => {
+    const swap = dir === "up" ? index - 1 : index + 1;
+    if (swap < 0 || swap >= lines.length) return;
+    const updated = [...lines];
+    [updated[index], updated[swap]] = [updated[swap], updated[index]];
+    set("lines", updated);
+  };
+
+  // Цвета участников
+  const speakerColors = [
+    { bg: "bg-sky-500/10", border: "border-sky-500/30", text: "text-sky-400", dot: "bg-sky-400" },
+    { bg: "bg-rose-500/10", border: "border-rose-500/30", text: "text-rose-400", dot: "bg-rose-400" },
+    { bg: "bg-amber-500/10", border: "border-amber-500/30", text: "text-amber-400", dot: "bg-amber-400" },
+    { bg: "bg-emerald-500/10", border: "border-emerald-500/30", text: "text-emerald-400", dot: "bg-emerald-400" },
+  ];
+
+  // Текущая сцена
+  const currentScene = SCENE_MAP[sceneId] || SCENE_MAP["none"];
+
   return (
-    <div className="space-y-4">
-      <div className="space-y-2">
+    <div className="space-y-5">
+      {/* Ситуация + фон */}
+      <div className="space-y-3">
         <Label className="text-base text-foreground">Ситуация</Label>
         <Input value={data.situationTitle || ""} onChange={(e) => set("situationTitle", e.target.value)}
           placeholder="Первая встреча" className="text-lg h-12" />
+
+        {/* Выбор фона */}
+        <div>
+          <Label className="text-sm text-muted-foreground mb-2 block">Фон ситуации</Label>
+          <button onClick={() => setScenePickerOpen(!scenePickerOpen)}
+            className="flex items-center gap-3 px-4 py-2.5 rounded-xl border border-border bg-card hover:bg-accent transition-colors">
+            <span className="text-2xl">{currentScene.emoji}</span>
+            <span className="text-sm text-foreground">{currentScene.label}</span>
+            <span className="text-xs text-muted-foreground ml-auto">▼</span>
+          </button>
+          {/* Сетка фонов */}
+          {scenePickerOpen && (
+            <div className="mt-2 p-3 rounded-xl border border-border bg-card shadow-xl grid grid-cols-4 gap-2">
+              {SCENE_OPTIONS.map((scene) => (
+                <button key={scene.id} onClick={() => { set("sceneId", scene.id); setScenePickerOpen(false); }}
+                  className={`flex flex-col items-center gap-1 p-3 rounded-lg transition-colors ${
+                    sceneId === scene.id ? "bg-primary/15 border border-primary/30" : "hover:bg-accent border border-transparent"
+                  }`}>
+                  <span className="text-2xl">{scene.emoji}</span>
+                  <span className="text-xs text-muted-foreground">{scene.label}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
+
+      <Separator />
+
+      {/* Участники с аватарками */}
+      <div className="space-y-3">
+        <Label className="text-base text-foreground">Участники</Label>
+        {speakers.map((speaker: string, i: number) => {
+          const color = speakerColors[i % speakerColors.length];
+          const avatarId = speakerAvatars[i] || "man";
+          const avatar = AVATAR_MAP[avatarId];
+          return (
+            <div key={i} className="relative">
+              <div className="flex items-center gap-3">
+                {/* Аватарка — кликабельная */}
+                <button onClick={() => setAvatarPickerFor(avatarPickerFor === i ? null : i)}
+                  className={`w-14 h-14 rounded-xl flex items-center justify-center text-3xl ${color.bg} border ${color.border} hover:opacity-80 transition-opacity flex-shrink-0`}
+                  title="Выбрать аватарку">
+                  {avatar?.emoji || "👤"}
+                </button>
+                {/* Имя */}
+                <Input value={speaker} onChange={(e) => updateSpeaker(i, e.target.value)}
+                  placeholder={i === 0 ? "Ли Мин" : i === 1 ? "Дэвид" : `Участник ${i + 1}`}
+                  className="text-base h-11 flex-1" />
+                {/* Удалить */}
+                {speakers.length > 1 && (
+                  <button onClick={() => removeSpeaker(i)}
+                    className="w-8 h-8 flex items-center justify-center rounded text-red-400 hover:bg-red-400/10 transition-colors text-sm">✕</button>
+                )}
+              </div>
+              {/* Попап выбора аватарки */}
+              {avatarPickerFor === i && (
+                <div className="mt-2 p-3 rounded-xl border border-border bg-card shadow-xl z-20 relative">
+                  {AVATAR_CATEGORIES.map((cat) => (
+                    <div key={cat} className="mb-3">
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1.5">{cat}</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {AVATAR_OPTIONS.filter((a) => a.category === cat).map((a) => (
+                          <button key={a.id} onClick={() => updateAvatar(i, a.id)}
+                            className={`w-10 h-10 rounded-lg flex items-center justify-center text-xl transition-colors ${
+                              avatarId === a.id ? "bg-primary/20 border border-primary/40" : "hover:bg-accent border border-transparent"
+                            }`} title={a.label}>
+                            {a.emoji}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+        <Button variant="outline" size="sm" onClick={addSpeaker}>+ Участник</Button>
+      </div>
+
+      <Separator />
+
+      {/* Реплики */}
       <div className="space-y-2">
-        <Label className="text-base text-foreground">Участники (через запятую)</Label>
-        <Input value={data.speakers?.join(", ") || ""} className="text-base h-11"
-          onChange={(e) => set("speakers", e.target.value.split(",").map((s: string) => s.trim()))}
-          placeholder="Ли Мин, Дэвид" />
+        <Label className="text-base text-foreground">Реплики</Label>
+
+        {lines.length === 0 && (
+          <div className="text-center py-6 bg-muted/30 rounded-lg border border-dashed border-border">
+            <p className="text-muted-foreground">Нет реплик. Добавьте первую.</p>
+          </div>
+        )}
+
+        <div className="space-y-3">
+          {lines.map((line: any, i: number) => {
+            const spkIdx = line.speakerIndex || 0;
+            const color = speakerColors[spkIdx % speakerColors.length];
+            const avatarId = speakerAvatars[spkIdx] || "man";
+            const avatar = AVATAR_MAP[avatarId];
+            return (
+              <div key={i} className={`rounded-xl ${color.bg} border ${color.border} p-4 relative group`}>
+                {/* Кнопки управления */}
+                <div className="absolute top-2 right-2 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button onClick={() => moveLine(i, "up")} disabled={i === 0}
+                    className="w-7 h-7 flex items-center justify-center rounded text-muted-foreground hover:text-foreground hover:bg-accent transition-colors disabled:opacity-30">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 15l-6-6-6 6"/></svg>
+                  </button>
+                  <button onClick={() => moveLine(i, "down")} disabled={i === lines.length - 1}
+                    className="w-7 h-7 flex items-center justify-center rounded text-muted-foreground hover:text-foreground hover:bg-accent transition-colors disabled:opacity-30">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9l6 6 6-6"/></svg>
+                  </button>
+                  <button onClick={() => removeLine(i)}
+                    className="w-7 h-7 flex items-center justify-center rounded text-red-400 hover:bg-red-400/10 transition-colors">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                  </button>
+                </div>
+
+                {/* Аватарка + выбор участника */}
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-xl">{avatar?.emoji || "👤"}</span>
+                  <select value={spkIdx}
+                    onChange={(e) => updateLine(i, "speakerIndex", parseInt(e.target.value))}
+                    className="bg-transparent text-sm font-medium border-none outline-none cursor-pointer text-foreground">
+                    {speakers.map((s: string, si: number) => (
+                      <option key={si} value={si} className="bg-card text-foreground">
+                        {s || `Участник ${si + 1}`}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Поля */}
+                <div className="space-y-2">
+                  <Input value={line.hanzi || ""} onChange={(e) => updateLine(i, "hanzi", e.target.value)}
+                    placeholder="你好！我叫李明。" className="text-xl h-12 bg-transparent border-white/10" />
+                  <Input value={line.pinyin || ""} onChange={(e) => updateLine(i, "pinyin", e.target.value)}
+                    placeholder="Nǐ hǎo! Wǒ jiào Lǐ Míng." className="text-base h-10 bg-transparent border-white/10" />
+                  <Input value={line.translation || ""} onChange={(e) => updateLine(i, "translation", e.target.value)}
+                    placeholder="Hello! My name is Li Ming." className="text-sm h-10 bg-transparent border-white/10 text-muted-foreground" />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Быстрое добавление */}
+        <div className="flex gap-2 flex-wrap pt-1">
+          {speakers.map((s: string, i: number) => {
+            const color = speakerColors[i % speakerColors.length];
+            const avatarId = speakerAvatars[i] || "man";
+            const avatar = AVATAR_MAP[avatarId];
+            return (
+              <button key={i} onClick={() => addLine(i)}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border ${color.border} ${color.bg} text-sm ${color.text} hover:opacity-80 transition-opacity`}>
+                <span>{avatar?.emoji || "👤"}</span>
+                + {s || `Участник ${i + 1}`}
+              </button>
+            );
+          })}
+        </div>
       </div>
-      <p className="text-sm text-muted-foreground">
-        Реплики пока через JSON. Визуальный редактор реплик — следующая итерация.
-      </p>
-      <Textarea value={JSON.stringify(data.lines || [], null, 2)}
-        onChange={(e) => { try { set("lines", JSON.parse(e.target.value)); } catch {} }}
-        rows={10} className="text-sm font-mono" />
     </div>
   );
 }
@@ -375,7 +597,7 @@ function getDefaultData(type: string): any {
     case "HTML_EMBED": return { html: "" };
     case "VOCAB_CARD": return { hanzi: "", pinyin: "", translation: "", partOfSpeech: "", hskLevel: null, tonePattern: [], imageUrl: "", exampleHanzi: "", examplePinyin: "", exampleTranslation: "" };
     case "GRAMMAR_RULE": return { title: "", formula: "", explanationHtml: "", examples: [], commonMistakes: [] };
-    case "DIALOGUE": return { situationTitle: "", speakers: [], lines: [] };
+    case "DIALOGUE": return { situationTitle: "", speakers: ["", ""], speakerAvatars: ["man", "woman"], sceneId: "none", lines: [] };
     case "TONE_BLOCK": return { syllable: "", tone: 1, minimalPairs: [], toneChangeRule: "" };
     default: return {};
   }
