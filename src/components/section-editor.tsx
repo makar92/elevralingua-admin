@@ -283,7 +283,7 @@ export function SectionEditor({ section }: { section: Section }) {
         <div className="grid grid-cols-2 gap-3">
           {EXERCISE_TYPES.filter((t) => t.grading === "TEACHER").map((t) => (
             <button key={t.type} onClick={() => { setSelectedExType(t.type); setEditingExercise(null); setExMode("form"); }}
-              className="flex items-center gap-4 p-4 rounded-lg border border-amber-500/20 bg-amber-500/5 hover:bg-amber-500/10 hover:border-amber-500/30 transition-colors text-left">
+              className="flex items-center gap-4 p-4 rounded-lg border border-border bg-card hover:bg-accent hover:border-primary/30 transition-colors text-left">
               <span className="text-3xl">{t.icon}</span>
               <div><p className="text-base font-medium text-foreground">{t.name}</p><p className="text-sm text-muted-foreground">{t.desc}</p></div>
             </button>
@@ -307,15 +307,15 @@ export function SectionEditor({ section }: { section: Section }) {
           <h2 className="text-2xl font-bold text-foreground">{section.title}</h2>
           <div className="flex items-center gap-2">
             {/* Переключатель роли */}
-            <div className="flex rounded-xl overflow-hidden border border-white/10">
+            <div className="flex rounded-xl overflow-hidden border border-border">
               <button onClick={() => setPreviewRole("student")}
                 className={`px-4 py-2 text-sm font-medium transition-colors ${
-                  previewRole === "student" ? "bg-primary text-primary-foreground" : "bg-transparent text-muted-foreground hover:text-foreground"
-                }`}>👨‍🎓 Student</button>
+                  previewRole === "student" ? "bg-primary text-primary-foreground" : "bg-card text-muted-foreground hover:text-foreground hover:bg-accent"
+                }`}>👨‍🎓 Ученик</button>
               <button onClick={() => setPreviewRole("teacher")}
                 className={`px-4 py-2 text-sm font-medium transition-colors ${
-                  previewRole === "teacher" ? "bg-primary text-primary-foreground" : "bg-transparent text-muted-foreground hover:text-foreground"
-                }`}>👩‍🏫 Teacher</button>
+                  previewRole === "teacher" ? "bg-primary text-primary-foreground" : "bg-card text-muted-foreground hover:text-foreground hover:bg-accent"
+                }`}>👩‍🏫 Учитель</button>
             </div>
             <Button variant="outline" size="sm" onClick={() => setViewMode("editor")}>✏️ Editor</Button>
           </div>
@@ -325,12 +325,12 @@ export function SectionEditor({ section }: { section: Section }) {
         <div className="flex gap-2 mb-8">
           <button onClick={() => setActiveTab("textbook")}
             className={`px-6 py-3 rounded-xl text-base font-medium transition-colors ${
-              previewTab === "textbook" ? "bg-primary text-primary-foreground" : "bg-white/[0.03] text-muted-foreground hover:text-foreground border border-white/5"
-            }`}>📕 Textbook</button>
+              previewTab === "textbook" ? "bg-primary text-primary-foreground" : "bg-card text-muted-foreground hover:text-foreground border border-border"
+            }`}>📕 Учебник</button>
           <button onClick={() => setActiveTab("workbook")}
             className={`px-6 py-3 rounded-xl text-base font-medium transition-colors ${
-              previewTab === "workbook" ? "bg-primary text-primary-foreground" : "bg-white/[0.03] text-muted-foreground hover:text-foreground border border-white/5"
-            }`}>📓 Workbook{workbookExercisesPreview.length > 0 ? ` (${workbookExercisesPreview.length})` : ""}</button>
+              previewTab === "workbook" ? "bg-primary text-primary-foreground" : "bg-card text-muted-foreground hover:text-foreground border border-border"
+            }`}>📓 Тетрадь{workbookExercisesPreview.length > 0 ? ` (${workbookExercisesPreview.length})` : ""}</button>
         </div>
 
         {/* Контент */}

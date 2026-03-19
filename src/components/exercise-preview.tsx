@@ -120,7 +120,8 @@ function MatchingPreview({ content, mode }: { content: any; mode: string }) {
 
   return (
     <div className="space-y-3">
-      <div className="grid grid-cols-2 gap-3">
+      {/* Три колонки: левая — разделитель-стрелки — правая */}
+      <div className="grid gap-2" style={{gridTemplateColumns: "1fr 32px 1fr"}}>
         {/* Левая колонка */}
         <div className="space-y-2">
           {pairs.map((p: any, i: number) => (
@@ -133,6 +134,12 @@ function MatchingPreview({ content, mode }: { content: any; mode: string }) {
               {p.left}
               {i in matched && <span className="ml-2 text-green-600">✓</span>}
             </button>
+          ))}
+        </div>
+        {/* Вертикальный разделитель со стрелками */}
+        <div className="flex flex-col items-center justify-around py-1">
+          {pairs.map((_: any, i: number) => (
+            <span key={i} className="text-muted-foreground text-sm leading-none" style={{height: "48px", display:"flex", alignItems:"center"}}>↔</span>
           ))}
         </div>
         {/* Правая колонка (перемешана) */}
@@ -199,10 +206,17 @@ function MultipleChoicePreview({ content, mode }: { content: any; mode: string }
 }
 
 // ===== 3. FILL_BLANK =====
-// Компактный инпут вровень с текстом — не выбивается из строки
+// Поддержка нескольких пропусков ___ в одном предложении
 function FillBlankPreview({ content, mode }: { content: any; mode: string }) {
-  const [answer, setAnswer] = useState("");
-  const parts = (content.sentence || "").split("___");
+  const sentence = content.sentence || "";
+  // Разбиваем по ___ — получаем N+1 частей для N пропусков
+  const parts = sentence.split("___");
+  const blankCount = parts.length - 1;
+  // Ответы для каждого пропуска: { 0: "", 1: "", ... }
+  const [answers, setAnswers] = useState<Record<number, string>>({});
+
+  const setAnswer = (idx: number, value: string) =>
+    setAnswers((prev) => ({ ...prev, [idx]: value }));
 
   return (
     <div className="space-y-3">
@@ -212,18 +226,23 @@ function FillBlankPreview({ content, mode }: { content: any; mode: string }) {
           {content.sourceSentence}
         </div>
       )}
-      {/* Предложение с компактным инпутом вместо ___ */}
+      {/* Предложение: чередуем части текста и инпуты */}
       <div className="flex items-baseline flex-wrap gap-x-1 text-lg text-foreground leading-loose">
-        <span>{parts[0]}</span>
-        {/* Компактный инпут: без рамки-коробки, только нижняя линия, ширина по слову */}
-        <input
-          value={answer}
-          onChange={(e) => setAnswer(e.target.value)}
-          className="inline-block min-w-[60px] max-w-[180px] text-lg text-foreground bg-transparent border-0 border-b-2 border-primary/40 focus:border-primary outline-none px-1 text-center"
-          style={{ width: Math.max(60, answer.length * 14 + 20) + "px" }}
-          placeholder="···"
-        />
-        <span>{parts[1]}</span>
+        {parts.map((part: string, i: number) => (
+          <span key={i} className="contents">
+            <span>{part}</span>
+            {/* После каждой части кроме последней — инпут */}
+            {i < blankCount && (
+              <input
+                value={answers[i] || ""}
+                onChange={(e) => setAnswer(i, e.target.value)}
+                className="inline-block min-w-[60px] max-w-[160px] text-lg text-foreground bg-transparent border-0 border-b-2 border-primary/40 focus:border-primary outline-none px-1 text-center mx-0.5"
+                style={{ width: Math.max(60, (answers[i]?.length || 0) * 14 + 20) + "px" }}
+                placeholder="···"
+              />
+            )}
+          </span>
+        ))}
       </div>
       <Button variant="outline" size="sm" disabled>Отправить учителю на проверку</Button>
       {mode === "teacher" && content.blankAnswer && (
@@ -448,13 +467,11 @@ function WordOrderPreview({ content, mode }: { content: any; mode: string }) {
   return (
     <div className="space-y-4">
       {content.translation && (
-        <div className="text-sm text-muted-foreground px-3 py-2 bg-muted rounded-lg">{content.translation}</div>
+        <div className="text-sm text-muted-foreground px-3 py-2 bg-muted rounded-lg italic">{content.translation}</div>
       )}
       {/* Зона сборки */}
       <div className="min-h-[52px] px-4 py-3 rounded-xl border-2 border-dashed border-border bg-white flex flex-wrap gap-2 items-center">
-        {selected.length === 0
-          ? <span className="text-muted-foreground text-sm">Нажмите на слова ниже...</span>
-          : selected.map((w, i) => (
+        {selected.map((w, i) => (
               <button key={i} onClick={() => removeWord(i)}
                 className="px-3 py-1.5 rounded-lg text-base font-medium bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors">
                 {w}

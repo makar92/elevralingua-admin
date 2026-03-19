@@ -179,11 +179,11 @@ export function ExerciseForm({ exerciseType, initialData, onSave, onCancel }: Ex
           </Button>
         </div>
 
-        {/* Вид студента */}
+        {/* Вид студента — светло-голубой фон, чтобы элементы не сливались с белым */}
         <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium mb-2">
           Вид для ученика
         </p>
-        <div className="border border-border rounded-xl p-6 bg-white shadow-sm mb-4">
+        <div className="border border-blue-100 rounded-xl p-6 shadow-sm mb-4" style={{background: "oklch(0.97 0.01 230)"}}>
           <ExercisePreview exercise={previewExercise} mode="student" />
         </div>
 
@@ -367,13 +367,6 @@ function MultipleChoiceForm({ content, setContent, setCorrectAnswers }: any) {
         </Label>
         <Input value={content.context || ""} onChange={(e) => setContent("context", e.target.value)}
           placeholder="Слово, предложение или текст к которому задаётся вопрос"
-          className="h-10" />
-      </div>
-      {/* Вопрос */}
-      <div className="space-y-1.5">
-        <Label className="text-sm font-medium text-foreground">Вопрос</Label>
-        <Input value={content.question || ""} onChange={(e) => setContent("question", e.target.value)}
-          placeholder="Что означает это слово? / Выберите правильный вариант"
           className="h-10" />
       </div>
       {/* Варианты */}
@@ -751,7 +744,7 @@ function DictationForm({ content, setContent, upload, uploading }: any) {
 }
 
 // ===== 9. DESCRIBE_IMAGE =====
-// Одно поле задания — убрали дублирующее второе поле
+// Задание для ученика уже есть в общих полях — здесь только картинка
 function DescribeImageForm({ content, setContent, upload, uploading }: any) {
   return (
     <div className="space-y-3">
@@ -765,28 +758,12 @@ function DescribeImageForm({ content, setContent, upload, uploading }: any) {
           <img src={content.imageUrl} alt="" className="max-w-xs rounded-xl mt-2 border border-border" />
         )}
       </div>
-      {/* Одно поле задания — без дублирования */}
-      <div className="space-y-1.5">
-        <Label className="text-sm font-medium text-foreground">
-          Задание <span className="text-muted-foreground font-normal text-xs">(необязательно)</span>
-        </Label>
-        <Textarea value={content.promptText || ""} onChange={(e) => setContent("promptText", e.target.value)}
-          placeholder="Дополнительное задание: что именно описать, какие слова использовать..."
-          rows={2} />
-      </div>
     </div>
   );
 }
 
 // ===== 10. FREE_WRITING =====
-// Одно поле задания — убрали дублирующие «Тема» и «Задание»
+// Задание для ученика уже есть в общих полях — дополнительных полей не нужно
 function FreeWritingForm({ content, setContent }: any) {
-  return (
-    <div className="space-y-1.5">
-      <Label className="text-sm font-medium text-foreground">Задание</Label>
-      <Textarea value={content.promptText || ""} onChange={(e) => setContent("promptText", e.target.value)}
-        placeholder="Опишите задание: тема, что написать, какие слова/конструкции использовать..."
-        rows={4} />
-    </div>
-  );
+  return null;
 }
