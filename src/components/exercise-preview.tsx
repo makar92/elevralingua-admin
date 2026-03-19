@@ -3,27 +3,29 @@
 // Путь:  linguamethod-admin/src/components/exercise-preview.tsx
 //
 // Описание:
-//   Отображение упражнений для ученика и учителя.
-//   👨‍🎓 Ученик — интерактивное выполнение задания.
-//   👩‍🏫 Учитель — то же + правильные ответы, комментарий.
+//   Интерактивный просмотр упражнений.
+//   mode="student" — только задание и интерактив.
+//   mode="teacher" — + правильные ответы и комментарий.
 //
-//   Типы:
-//   MATCHING, MULTIPLE_CHOICE, FILL_BLANK,
-//   TONE_PLACEMENT, WRITE_PINYIN, WORD_ORDER,
-//   TRANSLATION, DICTATION, DESCRIBE_IMAGE, FREE_WRITING
+//   Особенности:
+//   - TONE_PLACEMENT: интерфейс по скриншоту (слоты + 4 кнопки тонов)
+//   - WRITE_PINYIN: кнопка-заглушка → инпут при клике
+//   - FILL_BLANK: компактный инпут вровень с текстом
+//   - Все кнопки-варианты с видимым фоном (белый фон + граница)
 // ===========================================
 
 "use client";
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import { AudioPlayer } from "@/components/audio-player";
-import { DifficultyBadge } from "@/components/exercise-form";
+import { DifficultyBadge, applyTones, getVowelPositions, LANGUAGE_OPTIONS } from "@/components/exercise-form";
 
-// ===== Типы =====
+// ===== Знаки тонов =====
+const TONE_SYMBOLS: Record<string, string> = { "1": "ˉ", "2": "/", "3": "v", "4": "\\" };
+const VOWELS = ["a", "e", "i", "o", "u", "ü"];
+
 interface Exercise {
   id: string; exerciseType: string; title: string;
   instructionText: string; difficulty: number;
@@ -32,11 +34,7 @@ interface Exercise {
   teacherComment: string | null; gradingCriteria: string | null;
   isDefaultInWorkbook: boolean;
 }
-
-interface Props {
-  exercise: Exercise;
-  mode: "student" | "teacher";
-}
+interface Props { exercise: Exercise; mode: "student" | "teacher"; }
 
 // ===== Главный компонент =====
 export function ExercisePreview({ exercise, mode }: Props) {
@@ -45,111 +43,108 @@ export function ExercisePreview({ exercise, mode }: Props) {
 
   return (
     <div className="space-y-4">
-      {/* Заголовок упражнения (показывается всем) */}
-      {exercise.title && (
-        <div className="flex items-center justify-between">
-          <h3 className="text-base font-semibold text-foreground">{exercise.title}</h3>
-          <DifficultyBadge value={exercise.difficulty} />
+      {/* Заголовок: название + сложность */}
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex-1">
+          {exercise.title && (
+            <h3 className="text-base font-semibold text-foreground mb-1">{exercise.title}</h3>
+          )}
+          <p className="text-base text-foreground">{exercise.instructionText}</p>
         </div>
-      )}
+        <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+          <DifficultyBadge value={exercise.difficulty} />
+          {/* Тип проверки — только учителю */}
+          {isTeacher && (
+            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${
+              exercise.gradingType === "AUTO"
+                ? "bg-blue-50 text-blue-700 border-blue-200"
+                : "bg-amber-50 text-amber-700 border-amber-200"
+            }`}>
+              {exercise.gradingType === "AUTO" ? "⚡ Авто" : "👩‍🏫 Вручную"}
+            </span>
+          )}
+        </div>
+      </div>
 
-      {/* Задание */}
-      <p className="text-base text-foreground">{exercise.instructionText}</p>
+      {/* Интерактивная часть */}
+      {exercise.exerciseType === "MATCHING"        && <MatchingPreview        content={c} mode={mode} />}
+      {exercise.exerciseType === "MULTIPLE_CHOICE" && <MultipleChoicePreview  content={c} mode={mode} />}
+      {exercise.exerciseType === "FILL_BLANK"      && <FillBlankPreview       content={c} mode={mode} />}
+      {exercise.exerciseType === "TONE_PLACEMENT"  && <TonePlacementPreview   content={c} mode={mode} exercise={exercise} />}
+      {exercise.exerciseType === "WRITE_PINYIN"    && <WritePinyinPreview     content={c} mode={mode} />}
+      {exercise.exerciseType === "WORD_ORDER"      && <WordOrderPreview       content={c} mode={mode} />}
+      {exercise.exerciseType === "TRANSLATION"     && <TranslationPreview     content={c} mode={mode} exercise={exercise} />}
+      {exercise.exerciseType === "DICTATION"       && <DictationPreview       content={c} mode={mode} exercise={exercise} />}
+      {exercise.exerciseType === "DESCRIBE_IMAGE"  && <DescribeImagePreview   content={c} mode={mode} />}
+      {exercise.exerciseType === "FREE_WRITING"    && <FreeWritingPreview     content={c} mode={mode} />}
 
-      {/* Тип проверки */}
-      <Badge variant={exercise.gradingType === "AUTO" ? "default" : "secondary"} className="text-xs">
-        {exercise.gradingType === "AUTO" ? "⚡ Автопроверка" : "👩‍🏫 Ручная проверка"}
-      </Badge>
-
-      {/* Рендер интерактивной части по типу упражнения */}
-      {exercise.exerciseType === "MATCHING"        && <MatchingPreview content={c} mode={mode} />}
-      {exercise.exerciseType === "MULTIPLE_CHOICE" && <MultipleChoicePreview content={c} mode={mode} />}
-      {exercise.exerciseType === "FILL_BLANK"      && <FillBlankPreview content={c} mode={mode} />}
-      {exercise.exerciseType === "TONE_PLACEMENT"  && <TonePlacementPreview content={c} mode={mode} />}
-      {exercise.exerciseType === "WRITE_PINYIN"    && <WritePinyinPreview content={c} mode={mode} />}
-      {exercise.exerciseType === "WORD_ORDER"      && <WordOrderPreview content={c} mode={mode} />}
-      {exercise.exerciseType === "TRANSLATION"     && <TranslationPreview content={c} mode={mode} exercise={exercise} />}
-      {exercise.exerciseType === "DICTATION"       && <DictationPreview content={c} mode={mode} exercise={exercise} />}
-      {exercise.exerciseType === "DESCRIBE_IMAGE"  && <DescribeImagePreview content={c} mode={mode} />}
-      {exercise.exerciseType === "FREE_WRITING"    && <FreeWritingPreview content={c} mode={mode} />}
-
-      {/* Блок учителя — комментарий */}
+      {/* Комментарий учителя — только учителю */}
       {isTeacher && exercise.teacherComment && (
-        <TeacherBox label="💬 Комментарий для учителя" text={exercise.teacherComment} />
+        <TeacherBox label="💬 Комментарий" text={exercise.teacherComment} />
       )}
     </div>
   );
 }
 
 // =====================================================================
-// ПРЕВЬЮ КАЖДОГО ТИПА
+// ИНТЕРАКТИВНЫЕ ПРЕВЬЮ
 // =====================================================================
 
-// ===== 1. MATCHING — Соединить пары =====
+// ===== 1. MATCHING =====
 function MatchingPreview({ content, mode }: { content: any; mode: string }) {
   const pairs = content.pairs || [];
-  // Перемешиваем правую колонку чтобы ученик не мог угадать по порядку
   const [shuffledRight] = useState(() => [...pairs].sort(() => Math.random() - 0.5));
-  const [selectedLeft, setSelectedLeft] = useState<number | null>(null);
-  const [matched, setMatched] = useState<Record<number, number>>({}); // leftIdx → rightIdx
-  const [wrongRight, setWrongRight] = useState<number | null>(null);
+  const [selectedLeft, setSelectedLeft]   = useState<number | null>(null);
+  const [matched, setMatched]             = useState<Record<number, number>>({});
+  const [wrongRight, setWrongRight]       = useState<number | null>(null);
 
-  // Клик по левой части
   const clickLeft = (i: number) => {
-    if (Object.keys(matched).includes(String(i))) return;
-    setSelectedLeft(i);
+    if (i in matched) return;
+    setSelectedLeft(i === selectedLeft ? null : i);
   };
 
-  // Клик по правой части — проверяем совпадение
   const clickRight = (j: number) => {
     if (Object.values(matched).includes(j)) return;
     if (selectedLeft === null) return;
-
-    const leftPair = pairs[selectedLeft];
-    const rightPair = shuffledRight[j];
-    // Правильное совпадение: одна и та же исходная пара
-    if (leftPair.right === rightPair.right) {
+    const ok = pairs[selectedLeft].right === shuffledRight[j].right;
+    if (ok) {
       setMatched((m) => ({ ...m, [selectedLeft]: j }));
       setSelectedLeft(null);
     } else {
-      // Неправильно — мигаем красным
       setWrongRight(j);
       setTimeout(() => setWrongRight(null), 600);
     }
   };
 
-  const isAllMatched = Object.keys(matched).length === pairs.length;
+  const isAllDone = Object.keys(matched).length === pairs.length && pairs.length > 0;
 
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-2 gap-3">
         {/* Левая колонка */}
         <div className="space-y-2">
-          {pairs.map((p: any, i: number) => {
-            const isMatched = i in matched;
-            return (
-              <button key={i} onClick={() => clickLeft(i)}
-                className={`w-full text-left px-4 py-3 rounded-lg border text-base transition-all ${
-                  isMatched        ? "bg-green-50 border-green-300 text-green-700" :
-                  selectedLeft === i ? "bg-primary/10 border-primary text-foreground" :
-                  "bg-card border-border hover:border-primary/50 text-foreground"
-                }`}>
-                {p.left}
-                {isMatched && <span className="ml-2 text-green-600">✓</span>}
-              </button>
-            );
-          })}
+          {pairs.map((p: any, i: number) => (
+            <button key={i} onClick={() => clickLeft(i)}
+              className={`w-full text-left px-4 py-3 rounded-xl border-2 text-base font-medium transition-all shadow-sm ${
+                i in matched        ? "bg-green-50 border-green-400 text-green-800" :
+                selectedLeft === i  ? "bg-primary/10 border-primary text-foreground" :
+                "bg-white border-border hover:border-primary/60 text-foreground"
+              }`}>
+              {p.left}
+              {i in matched && <span className="ml-2 text-green-600">✓</span>}
+            </button>
+          ))}
         </div>
-        {/* Правая колонка (перемешанная) */}
+        {/* Правая колонка (перемешана) */}
         <div className="space-y-2">
           {shuffledRight.map((p: any, j: number) => {
             const isMatched = Object.values(matched).includes(j);
             return (
               <button key={j} onClick={() => clickRight(j)}
-                className={`w-full text-left px-4 py-3 rounded-lg border text-base transition-all ${
-                  isMatched     ? "bg-green-50 border-green-300 text-green-700" :
-                  wrongRight === j ? "bg-red-50 border-red-300 text-red-600" :
-                  "bg-card border-border hover:border-primary/50 text-foreground"
+                className={`w-full text-left px-4 py-3 rounded-xl border-2 text-base font-medium transition-all shadow-sm ${
+                  isMatched        ? "bg-green-50 border-green-400 text-green-800" :
+                  wrongRight === j ? "bg-red-50 border-red-400 text-red-700" :
+                  "bg-white border-border hover:border-primary/60 text-foreground"
                 }`}>
                 {p.right}
                 {isMatched && <span className="ml-2 text-green-600">✓</span>}
@@ -158,9 +153,7 @@ function MatchingPreview({ content, mode }: { content: any; mode: string }) {
           })}
         </div>
       </div>
-      {isAllMatched && pairs.length > 0 && (
-        <ResultBadge correct={true} message="Все пары найдены!" />
-      )}
+      {isAllDone && <ResultBadge correct message="Все пары найдены!" />}
       {mode === "teacher" && (
         <TeacherBox label="Правильные пары" text={pairs.map((p: any) => `${p.left} ↔ ${p.right}`).join(" · ")} />
       )}
@@ -168,82 +161,71 @@ function MatchingPreview({ content, mode }: { content: any; mode: string }) {
   );
 }
 
-// ===== 2. MULTIPLE_CHOICE — Выбрать правильный ответ =====
+// ===== 2. MULTIPLE_CHOICE =====
 function MultipleChoicePreview({ content, mode }: { content: any; mode: string }) {
   const [selected, setSelected] = useState<number | null>(null);
-  const [checked, setChecked] = useState(false);
+  const [checked,  setChecked]  = useState(false);
   const isCorrect = selected === content.correctIndex;
 
   return (
     <div className="space-y-3">
-      {/* Контекст (если есть) */}
+      {/* Контекст — по центру, жирный, чуть крупнее */}
       {content.context && (
-        <div className="px-4 py-3 bg-muted rounded-lg text-base text-foreground font-medium">
-          {content.context}
+        <div className="text-center py-3 px-4 bg-muted rounded-xl">
+          <p className="text-xl font-bold text-foreground">{content.context}</p>
         </div>
       )}
-      {/* Вопрос */}
-      {content.question && (
-        <p className="text-base text-foreground">{content.question}</p>
-      )}
-      {/* Варианты */}
+      {content.question && <p className="text-base text-foreground">{content.question}</p>}
+      {/* Варианты — без букв A/B/C/D, с видимым фоном */}
       {(content.options || []).map((opt: string, i: number) => (
         <button key={i} onClick={() => { if (!checked) setSelected(i); }}
-          className={`w-full text-left px-4 py-3 rounded-lg border text-base transition-all ${
-            checked && i === content.correctIndex          ? "bg-green-50 border-green-300 text-green-700" :
-            checked && selected === i && !isCorrect       ? "bg-red-50 border-red-300 text-red-600" :
-            selected === i                                 ? "bg-primary/10 border-primary text-foreground" :
-            "bg-card border-border hover:border-primary/50 text-foreground"
+          className={`w-full text-left px-4 py-3 rounded-xl border-2 text-base font-medium transition-all shadow-sm ${
+            checked && i === content.correctIndex        ? "bg-green-50 border-green-400 text-green-800" :
+            checked && selected === i && !isCorrect      ? "bg-red-50 border-red-400 text-red-700" :
+            selected === i                               ? "bg-primary/10 border-primary text-foreground" :
+            "bg-white border-border hover:border-primary/60 text-foreground"
           }`}>
-          <span className="font-semibold mr-2">{String.fromCharCode(65 + i)}.</span>
           {opt}
           {checked && i === content.correctIndex && <span className="ml-2">✓</span>}
         </button>
       ))}
-      {!checked && selected !== null && (
-        <Button size="sm" onClick={() => setChecked(true)}>Проверить</Button>
-      )}
+      {!checked && selected !== null && <Button size="sm" onClick={() => setChecked(true)}>Проверить</Button>}
       {checked && <ResultBadge correct={isCorrect} />}
       {mode === "teacher" && (
-        <TeacherBox
-          label="Правильный ответ"
-          text={`${String.fromCharCode(65 + content.correctIndex)}. ${content.options?.[content.correctIndex]}`}
-        />
+        <TeacherBox label="Правильный ответ" text={content.options?.[content.correctIndex] || ""} />
       )}
     </div>
   );
 }
 
-// ===== 3. FILL_BLANK — Вписать в пропуск (ручная проверка) =====
+// ===== 3. FILL_BLANK =====
+// Компактный инпут вровень с текстом — не выбивается из строки
 function FillBlankPreview({ content, mode }: { content: any; mode: string }) {
   const [answer, setAnswer] = useState("");
-  // Разбиваем предложение по ___
   const parts = (content.sentence || "").split("___");
 
   return (
-    <div className="space-y-4">
-      {/* Исходное предложение (контекст) */}
+    <div className="space-y-3">
+      {/* Исходное предложение */}
       {content.sourceSentence && (
-        <div className="px-4 py-3 bg-muted rounded-lg text-base text-muted-foreground">
+        <div className="px-4 py-2.5 bg-muted rounded-lg text-base text-muted-foreground italic">
           {content.sourceSentence}
         </div>
       )}
-      {/* Предложение с полем ввода вместо ___ */}
-      <div className="flex items-center flex-wrap gap-1 text-lg text-foreground leading-relaxed">
+      {/* Предложение с компактным инпутом вместо ___ */}
+      <div className="flex items-baseline flex-wrap gap-x-1 text-lg text-foreground leading-loose">
         <span>{parts[0]}</span>
-        <Input
+        {/* Компактный инпут: без рамки-коробки, только нижняя линия, ширина по слову */}
+        <input
           value={answer}
           onChange={(e) => setAnswer(e.target.value)}
-          className="inline-block w-36 text-base h-10 text-center mx-1 border-b-2 border-t-0 border-l-0 border-r-0 rounded-none focus:border-primary"
-          placeholder="..."
+          className="inline-block min-w-[60px] max-w-[180px] text-lg text-foreground bg-transparent border-0 border-b-2 border-primary/40 focus:border-primary outline-none px-1 text-center"
+          style={{ width: Math.max(60, answer.length * 14 + 20) + "px" }}
+          placeholder="···"
         />
         <span>{parts[1]}</span>
       </div>
-      {/* Отправить на проверку */}
-      <Button variant="outline" size="sm" disabled>
-        Отправить учителю на проверку
-      </Button>
-      {/* Учитель видит правильный ответ */}
+      <Button variant="outline" size="sm" disabled>Отправить учителю на проверку</Button>
       {mode === "teacher" && content.blankAnswer && (
         <TeacherBox label="Правильный ответ" text={content.blankAnswer} />
       )}
@@ -251,335 +233,293 @@ function FillBlankPreview({ content, mode }: { content: any; mode: string }) {
   );
 }
 
-// ===== 4. TONE_PLACEMENT — Расставить тоны над пиньинем (китайский) =====
-// Ученику дан пиньинь без тонов, нужно выставить тоны над каждой гласной
-function TonePlacementPreview({ content, mode }: { content: any; mode: string }) {
+// ===== 4. TONE_PLACEMENT =====
+// Интерфейс по скриншоту:
+// — Иероглифы с пиньинем сверху (слоты-прямоугольники над гласными)
+// — Внизу 4 кнопки выбора тона
+// — Клик на слот → ставит выбранный тон
+function TonePlacementPreview({ content, mode, exercise }: { content: any; mode: string; exercise: any }) {
   const characters = content.characters || [];
-  const VOWELS = ["a", "e", "i", "o", "u", "ü"];
-  const TONE_MARKS: Record<string, Record<string, string>> = {
-    "a": { "1": "ā", "2": "á", "3": "ǎ", "4": "à" },
-    "e": { "1": "ē", "2": "é", "3": "ě", "4": "è" },
-    "i": { "1": "ī", "2": "í", "3": "ǐ", "4": "ì" },
-    "o": { "1": "ō", "2": "ó", "3": "ǒ", "4": "ò" },
-    "u": { "1": "ū", "2": "ú", "3": "ǔ", "4": "ù" },
-    "ü": { "1": "ǖ", "2": "ǘ", "3": "ǚ", "4": "ǜ" },
+  // Текущий выбранный тон (нажатая кнопка снизу)
+  const [activeTone, setActiveTone] = useState<string | null>(null);
+  // Проставленные тоны ученика: { charIdx_vowelIdx: tone }
+  const [studentTones, setStudentTones] = useState<Record<string, string>>({});
+  const [showResult, setShowResult]     = useState(false);
+
+  // Клик на слот гласной → ставим activeTone
+  const placeToне = (charIdx: number, vowelIdx: number) => {
+    if (!activeTone) return;
+    const key = `${charIdx}_${vowelIdx}`;
+    setStudentTones((prev) => ({ ...prev, [key]: activeTone }));
   };
 
-  // Ответы ученика: { charIdx: { vowelIdx: tone } }
-  const [studentTones, setStudentTones] = useState<Record<number, Record<number, string>>>({});
-  const [showResult, setShowResult] = useState(false);
+  // Проверка
+  const checkAnswers = () => setShowResult(true);
+  const reset = () => { setStudentTones({}); setShowResult(false); setActiveTone(null); };
 
-  const setTone = (charIdx: number, vowelIdx: number, tone: string) => {
-    setStudentTones((prev) => ({
-      ...prev,
-      [charIdx]: { ...(prev[charIdx] || {}), [vowelIdx]: tone },
-    }));
-  };
-
-  // Получить позиции гласных в пиньине
-  const getVowelPositions = (pinyin: string) => {
-    const positions: { char: string; vowelIdx: number }[] = [];
-    let vowelIdx = 0;
-    for (const ch of pinyin) {
-      if (VOWELS.includes(ch)) {
-        positions.push({ char: ch, vowelIdx });
-        vowelIdx++;
-      }
-    }
-    return positions;
-  };
-
-  // Применить тоны к строке
-  const applyTones = (pinyin: string, tones: Record<number, string>) => {
-    let vowelIdx = 0;
-    return pinyin.split("").map((ch) => {
-      if (VOWELS.includes(ch)) {
-        const tone = tones[vowelIdx];
-        vowelIdx++;
-        if (tone && TONE_MARKS[ch]?.[tone]) return TONE_MARKS[ch][tone];
-      }
-      return ch;
-    }).join("");
-  };
-
-  // Проверить правильность
-  const checkAnswers = () => {
-    setShowResult(true);
-  };
+  // Считаем верность
+  const isCorrect = characters.every((char: any, ci: number) => {
+    const vp = getVowelPositions(char.pinyin || "");
+    return vp.every(({ vowelIdx }) => {
+      const key = `${ci}_${vowelIdx}`;
+      return studentTones[key] === (char.tones?.[vowelIdx] || "");
+    });
+  });
 
   return (
     <div className="space-y-6">
-      {characters.map((char: any, charIdx: number) => {
-        const vowelPositions = getVowelPositions(char.pinyin || "");
-        const studentResult = applyTones(char.pinyin || "", studentTones[charIdx] || {});
-        const correctResult = applyTones(char.pinyin || "", char.tones || {});
-        const isCharCorrect = studentResult === correctResult;
+      {/* Блок с иероглифами */}
+      <div className="flex flex-wrap gap-8 justify-center px-4 py-6 bg-muted/40 rounded-2xl border border-border">
+        {characters.map((char: any, charIdx: number) => {
+          const vowelPositions = getVowelPositions(char.pinyin || "");
+          // Строим пиньинь посимвольно — над гласными слоты
+          const pinyinChars = (char.pinyin || "").split("");
+          let vowelCounter = 0;
 
-        return (
-          <div key={charIdx} className="flex flex-col items-center gap-3">
-            {/* Пиньинь с кнопками выбора тона над каждой гласной */}
-            <div className="flex items-end gap-1 flex-wrap justify-center">
-              {char.pinyin?.split("").map((letter: string, letterIdx: number) => {
-                if (!VOWELS.includes(letter)) {
-                  // Обычная буква — просто показываем
+          return (
+            <div key={charIdx} className="flex flex-col items-center gap-2">
+              {/* Пиньинь со слотами */}
+              <div className="flex items-end gap-0.5">
+                {pinyinChars.map((ch: string, letterIdx: number) => {
+                  if (!VOWELS.includes(ch)) {
+                    // Обычная буква
+                    return (
+                      <span key={letterIdx} className="text-lg text-muted-foreground leading-none pb-0.5">{ch}</span>
+                    );
+                  }
+                  // Гласная — слот для тона
+                  const currentVowelIdx = vowelCounter++;
+                  const slotKey = `${charIdx}_${currentVowelIdx}`;
+                  const placed  = studentTones[slotKey];
+                  const correct = char.tones?.[currentVowelIdx];
+                  const isSlotCorrect = placed === correct;
+
                   return (
-                    <span key={letterIdx} className="text-2xl text-muted-foreground pb-0.5">{letter}</span>
-                  );
-                }
-                // Гласная — показываем кнопки выбора тона над ней
-                let vowelIdx = 0;
-                for (let i = 0; i < letterIdx; i++) {
-                  if (VOWELS.includes(char.pinyin[i])) vowelIdx++;
-                }
-                const selectedTone = studentTones[charIdx]?.[vowelIdx];
-                const correctTone = char.tones?.[vowelIdx];
-                const displayChar = selectedTone && TONE_MARKS[letter]?.[selectedTone]
-                  ? TONE_MARKS[letter][selectedTone]
-                  : letter;
-
-                return (
-                  <div key={letterIdx} className="flex flex-col items-center gap-1">
-                    {/* Кнопки тонов 1-4 */}
-                    <div className="flex gap-0.5">
-                      {["1","2","3","4"].map((tone) => (
-                        <button
-                          key={tone}
-                          onClick={() => setTone(charIdx, vowelIdx, tone)}
-                          className={`w-7 h-7 rounded text-xs font-bold border transition-colors ${
-                            showResult
-                              ? selectedTone === tone && tone === correctTone
+                    <div key={letterIdx} className="flex flex-col items-center">
+                      {/* Слот тона над гласной */}
+                      <button
+                        onClick={() => placeToне(charIdx, currentVowelIdx)}
+                        disabled={showResult}
+                        title={activeTone ? `Поставить тон ${TONE_SYMBOLS[activeTone]}` : "Сначала выберите тон снизу"}
+                        className={`w-8 h-7 rounded border-2 text-sm font-bold transition-all mb-0.5 ${
+                          showResult
+                            ? placed
+                              ? isSlotCorrect
                                 ? "bg-green-100 border-green-400 text-green-700"
-                                : selectedTone === tone && tone !== correctTone
-                                  ? "bg-red-100 border-red-400 text-red-700"
-                                  : tone === correctTone
-                                    ? "bg-green-50 border-green-300 text-green-600"
-                                    : "border-border text-muted-foreground"
-                              : selectedTone === tone
-                                ? "bg-primary/20 border-primary text-primary"
-                                : "border-border text-muted-foreground hover:bg-accent"
-                          }`}
-                        >{tone}</button>
-                      ))}
+                                : "bg-red-100 border-red-400 text-red-700"
+                              : "bg-white border-dashed border-muted-foreground text-muted-foreground"
+                            : placed
+                              ? "bg-primary/10 border-primary text-primary"
+                              : activeTone
+                                ? "bg-white border-primary/40 border-dashed text-muted-foreground hover:bg-primary/5 cursor-pointer"
+                                : "bg-white border-border text-transparent"
+                        }`}
+                      >
+                        {placed ? TONE_SYMBOLS[placed] : ""}
+                      </button>
+                      {/* Гласная буква пиньиня */}
+                      <span className={`text-lg font-medium leading-none ${
+                        showResult && placed
+                          ? isSlotCorrect ? "text-green-700" : "text-red-700"
+                          : "text-foreground"
+                      }`}>{ch}</span>
                     </div>
-                    {/* Сама гласная */}
-                    <span className={`text-2xl font-medium ${
-                      showResult
-                        ? isCharCorrect ? "text-green-700" : "text-red-600"
-                        : "text-foreground"
-                    }`}>{displayChar}</span>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
+              {/* Иероглиф */}
+              <span className="text-4xl font-bold text-foreground">{char.hanzi}</span>
+              {/* Правильный ответ учителю */}
+              {mode === "teacher" && char.pinyin && (
+                <span className="text-xs text-amber-600 font-medium">
+                  {applyTones(char.pinyin, char.tones || {})}
+                </span>
+              )}
             </div>
+          );
+        })}
+      </div>
 
-            {/* Иероглиф под пиньинем */}
-            <span className="text-4xl font-bold text-foreground">{char.hanzi}</span>
-
-            {/* Правильный ответ для учителя */}
-            {mode === "teacher" && (
-              <span className="text-sm text-amber-600">{correctResult}</span>
-            )}
-          </div>
-        );
-      })}
-
-      {/* Кнопка проверки */}
+      {/* Кнопки выбора тона внизу */}
       {!showResult && (
-        <Button size="sm" onClick={checkAnswers}>Проверить</Button>
+        <div className="flex justify-center gap-3">
+          {(["1","2","3","4"] as const).map((tone) => (
+            <button key={tone} onClick={() => setActiveTone(tone === activeTone ? null : tone)}
+              className={`w-14 h-12 rounded-xl border-2 text-xl font-bold transition-all shadow-sm ${
+                activeTone === tone
+                  ? "bg-primary text-primary-foreground border-primary shadow-md scale-105"
+                  : "bg-white border-border text-foreground hover:border-primary/60"
+              }`}
+              title={`${tone} тон`}>
+              {TONE_SYMBOLS[tone]}
+            </button>
+          ))}
+        </div>
       )}
-      {showResult && (
-        <ResultBadge
-          correct={characters.every((_: any, ci: number) => {
-            const char = characters[ci];
-            const correct = applyTones(char.pinyin || "", char.tones || {});
-            const student = applyTones(char.pinyin || "", studentTones[ci] || {});
-            return correct === student;
-          })}
-        />
+      {!activeTone && !showResult && (
+        <p className="text-center text-sm text-muted-foreground">
+          Выберите тон, затем нажмите на нужное место в пиньине
+        </p>
       )}
+      {activeTone && !showResult && (
+        <p className="text-center text-sm text-primary font-medium">
+          Тон «{TONE_SYMBOLS[activeTone]}» выбран — нажмите на гласную в пиньине
+        </p>
+      )}
+
+      {/* Кнопки действий */}
+      <div className="flex justify-center gap-3">
+        {!showResult && (
+          <Button size="sm" onClick={checkAnswers}>Проверить</Button>
+        )}
+        {showResult && (
+          <>
+            <ResultBadge correct={isCorrect} />
+            <Button variant="outline" size="sm" onClick={reset}>Попробовать снова</Button>
+          </>
+        )}
+      </div>
     </div>
   );
 }
 
-// ===== 5. WRITE_PINYIN — Написать пиньинь (ручная проверка) =====
+// ===== 5. WRITE_PINYIN =====
+// Кнопка-заглушка над иероглифом → при клике появляется инпут
 function WritePinyinPreview({ content, mode }: { content: any; mode: string }) {
   const characters = content.characters || [];
-  // Ответы ученика для каждого иероглифа
-  const [answers, setAnswers] = useState<Record<number, string>>({});
+  const [answers,  setAnswers]  = useState<Record<number, string>>({});
+  const [editing,  setEditing]  = useState<number | null>(null); // какой инпут открыт
 
-  const setAnswer = (idx: number, value: string) => {
-    setAnswers((prev) => ({ ...prev, [idx]: value }));
-  };
+  const confirmEdit = (idx: number) => setEditing(null);
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap gap-6 justify-center">
+      <div className="flex flex-wrap gap-8 justify-center px-4 py-6 bg-muted/40 rounded-2xl border border-border">
         {characters.map((char: any, idx: number) => (
           <div key={idx} className="flex flex-col items-center gap-2">
-            {/* Поле ввода пиньиня над иероглифом */}
-            <Input
-              value={answers[idx] || ""}
-              onChange={(e) => setAnswer(idx, e.target.value)}
-              placeholder="пиньинь"
-              className="w-24 text-base h-9 text-center"
-            />
+            {/* Область пиньиня над иероглифом */}
+            {editing === idx ? (
+              // Инпут открыт
+              <input
+                autoFocus
+                value={answers[idx] || ""}
+                onChange={(e) => setAnswers((prev) => ({ ...prev, [idx]: e.target.value }))}
+                onBlur={() => confirmEdit(idx)}
+                onKeyDown={(e) => e.key === "Enter" && confirmEdit(idx)}
+                className="w-20 h-8 text-sm text-center border-b-2 border-primary bg-transparent outline-none text-foreground"
+                placeholder="пиньинь"
+              />
+            ) : (
+              // Кнопка-заглушка
+              <button
+                onClick={() => setEditing(idx)}
+                className={`h-8 min-w-[60px] px-2 rounded-lg border-2 border-dashed text-sm transition-all ${
+                  answers[idx]
+                    ? "border-primary/40 text-foreground bg-primary/5"
+                    : "border-border text-muted-foreground hover:border-primary/60 hover:bg-accent"
+                }`}
+              >
+                {answers[idx] || "···"}
+              </button>
+            )}
             {/* Иероглиф */}
             <span className="text-4xl font-bold text-foreground">{char.hanzi}</span>
           </div>
         ))}
       </div>
-      <Button variant="outline" size="sm" disabled>
-        Отправить учителю на проверку
-      </Button>
+      <Button variant="outline" size="sm" disabled>Отправить учителю на проверку</Button>
+      {mode === "teacher" && content.referenceAnswer && (
+        <TeacherBox label="Правильный ответ" text={content.referenceAnswer} />
+      )}
     </div>
   );
 }
 
-// ===== 6. WORD_ORDER — Составить предложение из слов =====
+// ===== 6. WORD_ORDER =====
 function WordOrderPreview({ content, mode }: { content: any; mode: string }) {
   const [available, setAvailable] = useState<string[]>(
     () => [...(content.words || [])].filter(Boolean).sort(() => Math.random() - 0.5)
   );
   const [selected, setSelected] = useState<string[]>([]);
-  const [submitted, setSubmitted] = useState(false);
 
-  // Добавить слово в составляемое предложение
-  const addWord = (word: string, idx: number) => {
-    if (submitted) return;
-    setSelected([...selected, word]);
-    setAvailable(available.filter((_, i) => i !== idx));
-  };
-
-  // Убрать слово обратно
-  const removeWord = (idx: number) => {
-    if (submitted) return;
-    setAvailable([...available, selected[idx]]);
-    setSelected(selected.filter((_, i) => i !== idx));
-  };
+  const addWord    = (w: string, i: number) => { setSelected([...selected, w]); setAvailable(available.filter((_, j) => j !== i)); };
+  const removeWord = (i: number) => { setAvailable([...available, selected[i]]); setSelected(selected.filter((_, j) => j !== i)); };
 
   return (
     <div className="space-y-4">
-      {/* Перевод/подсказка */}
       {content.translation && (
-        <div className="text-sm text-muted-foreground px-3 py-2 bg-muted rounded-lg">
-          {content.translation}
-        </div>
+        <div className="text-sm text-muted-foreground px-3 py-2 bg-muted rounded-lg">{content.translation}</div>
       )}
-
-      {/* Зона сборки предложения */}
-      <div className="min-h-[52px] px-4 py-3 rounded-xl border-2 border-dashed border-border bg-muted/30 flex flex-wrap gap-2 items-center">
-        {selected.length === 0 && (
-          <span className="text-muted-foreground text-sm">Нажмите на слова ниже, чтобы составить предложение...</span>
-        )}
-        {selected.map((w, i) => (
-          <button key={i} onClick={() => removeWord(i)}
-            className="px-3 py-1.5 rounded-lg text-base font-medium bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 transition-colors">
-            {w}
-          </button>
-        ))}
+      {/* Зона сборки */}
+      <div className="min-h-[52px] px-4 py-3 rounded-xl border-2 border-dashed border-border bg-white flex flex-wrap gap-2 items-center">
+        {selected.length === 0
+          ? <span className="text-muted-foreground text-sm">Нажмите на слова ниже...</span>
+          : selected.map((w, i) => (
+              <button key={i} onClick={() => removeWord(i)}
+                className="px-3 py-1.5 rounded-lg text-base font-medium bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors">
+                {w}
+              </button>
+            ))
+        }
       </div>
-
       {/* Слова для выбора */}
       <div className="flex flex-wrap gap-2">
         {available.map((w, i) => (
           <button key={i} onClick={() => addWord(w, i)}
-            className="px-3 py-1.5 rounded-lg text-base border border-border bg-card text-foreground hover:bg-accent transition-colors">
+            className="px-3 py-1.5 rounded-xl border-2 border-border bg-white text-base font-medium text-foreground hover:border-primary/60 shadow-sm transition-colors">
             {w}
           </button>
         ))}
       </div>
-
-      {/* Отправить */}
-      {!submitted && selected.length > 0 && available.length === 0 && (
-        <Button variant="outline" size="sm" disabled>
-          Отправить учителю на проверку
-        </Button>
+      {selected.length > 0 && available.length === 0 && (
+        <Button variant="outline" size="sm" disabled>Отправить учителю на проверку</Button>
       )}
-
-      {/* Учитель видит образцовый ответ */}
       {mode === "teacher" && content.referenceAnswer && (
-        <TeacherBox
-          label="Один из правильных вариантов"
-          text={content.referenceAnswer + " (возможны другие правильные варианты)"}
-        />
+        <TeacherBox label="Один из правильных вариантов" text={content.referenceAnswer + " (возможны другие)"} />
       )}
     </div>
   );
 }
 
-// ===== 7. TRANSLATION — Перевод (ручная проверка) =====
+// ===== 7. TRANSLATION =====
 function TranslationPreview({ content, mode, exercise }: { content: any; mode: string; exercise: any }) {
   const [answer, setAnswer] = useState("");
+  // Отображаем языки по label из LANGUAGE_OPTIONS если есть
+  const srcLabel = LANGUAGE_OPTIONS.find(l => l.value === content.sourceLanguage)?.label || content.sourceLanguage || "";
+  const tgtLabel = LANGUAGE_OPTIONS.find(l => l.value === content.targetLanguage)?.label || content.targetLanguage || "";
 
   return (
     <div className="space-y-4">
-      {/* Языки */}
-      {(content.sourceLanguage || content.targetLanguage) && (
+      {(srcLabel || tgtLabel) && (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <span>{content.sourceLanguage || "?"}</span>
-          <span>→</span>
-          <span>{content.targetLanguage || "?"}</span>
+          <span>{srcLabel}</span><span>→</span><span>{tgtLabel}</span>
         </div>
       )}
-
-      {/* Текст для перевода */}
       <div className="px-4 py-4 bg-muted rounded-xl text-lg text-foreground font-medium leading-relaxed">
         {content.sourceText}
       </div>
-
-      {/* Поле ввода ответа */}
-      <Textarea
-        value={answer}
-        onChange={(e) => setAnswer(e.target.value)}
-        placeholder="Введите перевод..."
-        rows={3}
-        className="text-base"
-      />
-
-      <Button variant="outline" size="sm" disabled>
-        Отправить учителю на проверку
-      </Button>
-
-      {/* Учитель видит эталонные ответы */}
-      {mode === "teacher" && content.acceptableAnswers?.length > 0 && (
-        <TeacherBox
-          label="Эталонные переводы"
-          text={content.acceptableAnswers.join(" / ")}
-        />
+      <Textarea value={answer} onChange={(e) => setAnswer(e.target.value)}
+        placeholder="Введите перевод..." rows={3} className="text-base" />
+      <Button variant="outline" size="sm" disabled>Отправить учителю на проверку</Button>
+      {mode === "teacher" && content.acceptableAnswers?.filter(Boolean).length > 0 && (
+        <TeacherBox label="Эталонные переводы" text={content.acceptableAnswers.filter(Boolean).join(" / ")} />
       )}
     </div>
   );
 }
 
-// ===== 8. DICTATION — Диктант (ручная проверка) =====
+// ===== 8. DICTATION =====
 function DictationPreview({ content, mode, exercise }: { content: any; mode: string; exercise: any }) {
   const [answer, setAnswer] = useState("");
-
   return (
     <div className="space-y-4">
-      {/* Аудио-плеер */}
-      {content.audioUrl ? (
-        <AudioPlayer src={content.audioUrl} title="Прослушайте и запишите" />
-      ) : (
-        <div className="bg-muted rounded-xl p-4 text-center text-muted-foreground border border-dashed border-border">
-          🎧 Аудио не загружено
-        </div>
-      )}
-
-      {/* Поле ввода ответа ученика */}
-      <Textarea
-        value={answer}
-        onChange={(e) => setAnswer(e.target.value)}
-        placeholder="Запишите услышанное..."
-        rows={3}
-        className="text-base"
-      />
-
-      <Button variant="outline" size="sm" disabled>
-        Отправить учителю на проверку
-      </Button>
-
-      {/* Учитель видит правильный текст */}
+      {content.audioUrl
+        ? <AudioPlayer src={content.audioUrl} title="Прослушайте и запишите" />
+        : <div className="bg-muted rounded-xl p-4 text-center text-muted-foreground border border-dashed border-border">🎧 Аудио не загружено</div>
+      }
+      <Textarea value={answer} onChange={(e) => setAnswer(e.target.value)}
+        placeholder="Запишите услышанное..." rows={3} className="text-base" />
+      <Button variant="outline" size="sm" disabled>Отправить учителю на проверку</Button>
       {mode === "teacher" && content.correctText && (
         <TeacherBox label="Правильный текст" text={content.correctText} />
       )}
@@ -587,70 +527,32 @@ function DictationPreview({ content, mode, exercise }: { content: any; mode: str
   );
 }
 
-// ===== 9. DESCRIBE_IMAGE — Описать картинку (ручная проверка) =====
+// ===== 9. DESCRIBE_IMAGE =====
 function DescribeImagePreview({ content, mode }: { content: any; mode: string }) {
   const [answer, setAnswer] = useState("");
-
   return (
     <div className="space-y-4">
-      {/* Картинка */}
-      {content.imageUrl ? (
-        <img src={content.imageUrl} alt="" className="max-w-md rounded-xl border border-border" />
-      ) : (
-        <div className="bg-muted rounded-xl p-8 text-center text-muted-foreground border border-dashed border-border">
-          🖼️ Картинка не загружена
-        </div>
-      )}
-
-      {/* Дополнительное задание */}
-      {content.promptText && (
-        <p className="text-base text-muted-foreground">{content.promptText}</p>
-      )}
-
-      {/* Поле ввода */}
-      <Textarea
-        value={answer}
-        onChange={(e) => setAnswer(e.target.value)}
-        placeholder="Опишите картинку..."
-        rows={4}
-        className="text-base"
-      />
-
-      <Button variant="outline" size="sm" disabled>
-        Отправить учителю на проверку
-      </Button>
+      {content.imageUrl
+        ? <img src={content.imageUrl} alt="" className="max-w-md rounded-xl border border-border" />
+        : <div className="bg-muted rounded-xl p-8 text-center text-muted-foreground border border-dashed border-border">🖼️ Картинка не загружена</div>
+      }
+      {content.promptText && <p className="text-base text-muted-foreground">{content.promptText}</p>}
+      <Textarea value={answer} onChange={(e) => setAnswer(e.target.value)}
+        placeholder="Опишите картинку..." rows={4} className="text-base" />
+      <Button variant="outline" size="sm" disabled>Отправить учителю на проверку</Button>
     </div>
   );
 }
 
-// ===== 10. FREE_WRITING — Свободное письмо (ручная проверка) =====
+// ===== 10. FREE_WRITING =====
 function FreeWritingPreview({ content, mode }: { content: any; mode: string }) {
   const [answer, setAnswer] = useState("");
-
   return (
     <div className="space-y-4">
-      {/* Тема */}
-      {content.topic && (
-        <h4 className="text-lg font-semibold text-foreground">{content.topic}</h4>
-      )}
-
-      {/* Задание */}
-      {content.promptText && (
-        <p className="text-base text-muted-foreground">{content.promptText}</p>
-      )}
-
-      {/* Поле ввода */}
-      <Textarea
-        value={answer}
-        onChange={(e) => setAnswer(e.target.value)}
-        placeholder="Напишите здесь..."
-        rows={5}
-        className="text-base"
-      />
-
-      <Button variant="outline" size="sm" disabled>
-        Отправить учителю на проверку
-      </Button>
+      {content.promptText && <p className="text-base text-muted-foreground">{content.promptText}</p>}
+      <Textarea value={answer} onChange={(e) => setAnswer(e.target.value)}
+        placeholder="Напишите здесь..." rows={5} className="text-base" />
+      <Button variant="outline" size="sm" disabled>Отправить учителю на проверку</Button>
     </div>
   );
 }
@@ -659,25 +561,20 @@ function FreeWritingPreview({ content, mode }: { content: any; mode: string }) {
 // ВСПОМОГАТЕЛЬНЫЕ КОМПОНЕНТЫ
 // =====================================================================
 
-// Бейдж результата
 function ResultBadge({ correct, message }: { correct: boolean; message?: string }) {
   return (
     <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border ${
-      correct
-        ? "bg-green-50 text-green-700 border-green-200"
-        : "bg-red-50 text-red-700 border-red-200"
+      correct ? "bg-green-50 text-green-700 border-green-200" : "bg-red-50 text-red-700 border-red-200"
     }`}>
-      {correct ? "✓ " : "✗ "}
-      {message || (correct ? "Правильно!" : "Попробуйте ещё раз")}
+      {correct ? "✓ " : "✗ "}{message || (correct ? "Правильно!" : "Попробуйте ещё раз")}
     </div>
   );
 }
 
-// Блок для учителя (жёлтый)
 function TeacherBox({ label, text }: { label: string; text: string }) {
   return (
     <div className="px-4 py-3 bg-amber-50 border border-amber-200 rounded-lg text-sm">
-      <p className="text-amber-600 font-medium mb-1">👩‍🏫 {label}</p>
+      <p className="text-amber-600 font-medium mb-1">{label}</p>
       <p className="text-amber-800">{text}</p>
     </div>
   );

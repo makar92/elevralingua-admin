@@ -125,3 +125,10 @@
         @apply font-sans;
     }
 }
+
+/* Плейсхолдеры — светло-серые курсивом, чтобы явно отличались от введённого текста */
+input::placeholder,
+textarea::placeholder {
+    color: oklch(0.65 0.008 265);
+    font-style: italic;
+}
