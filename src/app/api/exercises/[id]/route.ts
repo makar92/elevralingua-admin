@@ -69,6 +69,7 @@ export async function PATCH(
     if (body.correctAnswers !== undefined) data.correctAnswers = body.correctAnswers;
     if (body.referenceAnswer !== undefined) data.referenceAnswer = body.referenceAnswer;
     if (body.gradingCriteria !== undefined) data.gradingCriteria = body.gradingCriteria;
+    if (body.teacherComment !== undefined) data.teacherComment = body.teacherComment;
     if (body.isDefaultInWorkbook !== undefined) data.isDefaultInWorkbook = body.isDefaultInWorkbook;
     if (body.isPublished !== undefined) data.isPublished = body.isPublished;
     if (body.exerciseType !== undefined) data.exerciseType = body.exerciseType;

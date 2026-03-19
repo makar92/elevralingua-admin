@@ -3,12 +3,14 @@
 // Путь:  linguamethod-admin/src/components/exercise-preview.tsx
 //
 // Описание:
-//   Превью упражнений в двух режимах:
-//   👨‍🎓 Ученик — интерактивные формы для ввода ответов,
-//     кнопка «Проверить» для авто-упражнений.
-//   👩‍🏫 Учитель — то же + правильные ответы, заметки,
-//     критерии оценивания. Показаны полупрозрачно.
-//   Используется в section-editor в режиме просмотра.
+//   Отображение упражнений для ученика и учителя.
+//   👨‍🎓 Ученик — интерактивное выполнение задания.
+//   👩‍🏫 Учитель — то же + правильные ответы, комментарий.
+//
+//   Типы:
+//   MATCHING, MULTIPLE_CHOICE, FILL_BLANK,
+//   TONE_PLACEMENT, WRITE_PINYIN, WORD_ORDER,
+//   TRANSLATION, DICTATION, DESCRIBE_IMAGE, FREE_WRITING
 // ===========================================
 
 "use client";
@@ -19,6 +21,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { AudioPlayer } from "@/components/audio-player";
+import { DifficultyBadge } from "@/components/exercise-form";
 
 // ===== Типы =====
 interface Exercise {
@@ -26,12 +29,13 @@ interface Exercise {
   instructionText: string; difficulty: number;
   contentJson: any; gradingType: string;
   correctAnswers: string[]; referenceAnswer: string | null;
-  gradingCriteria: string | null; isDefaultInWorkbook: boolean;
+  teacherComment: string | null; gradingCriteria: string | null;
+  isDefaultInWorkbook: boolean;
 }
 
 interface Props {
   exercise: Exercise;
-  mode: "student" | "teacher"; // Режим просмотра
+  mode: "student" | "teacher";
 }
 
 // ===== Главный компонент =====
@@ -41,35 +45,37 @@ export function ExercisePreview({ exercise, mode }: Props) {
 
   return (
     <div className="space-y-4">
-      {/* Задание */}
-      <p className="text-lg text-foreground font-medium">{exercise.instructionText}</p>
-
-      {/* Рендер по типу */}
-      {exercise.exerciseType === "MATCHING" && <MatchingPreview content={c} mode={mode} />}
-      {exercise.exerciseType === "MULTIPLE_CHOICE" && <MultipleChoicePreview content={c} mode={mode} />}
-      {exercise.exerciseType === "FILL_BLANK" && <FillBlankPreview content={c} mode={mode} />}
-      {exercise.exerciseType === "TONE_PLACEMENT" && <TonePlacementPreview content={c} mode={mode} />}
-      {exercise.exerciseType === "WORD_ORDER" && <WordOrderPreview content={c} mode={mode} />}
-      {exercise.exerciseType === "GRAMMAR_CHOICE" && <GrammarChoicePreview content={c} mode={mode} />}
-      {exercise.exerciseType === "TRANSLATE_TO_CHINESE" && <TranslateToChinesePreview content={c} mode={mode} />}
-      {exercise.exerciseType === "TRANSLATE_TO_ENGLISH" && <TranslateToEnglishPreview content={c} mode={mode} />}
-      {exercise.exerciseType === "DICTATION" && <DictationPreview content={c} mode={mode} />}
-      {exercise.exerciseType === "DESCRIBE_IMAGE" && <DescribeImagePreview content={c} mode={mode} />}
-      {exercise.exerciseType === "FREE_WRITING" && <FreeWritingPreview content={c} mode={mode} />}
-
-      {/* Учитель видит правильные ответы и критерии */}
-      {isTeacher && (exercise.referenceAnswer || exercise.gradingCriteria) && (
-        <div className="mt-4 bg-amber-400/5 border border-amber-400/20 rounded-lg p-4 space-y-2">
-          <p className="text-sm font-medium text-amber-400">👩‍🏫 Только для учителя</p>
-          {exercise.referenceAnswer && (
-            <div><p className="text-xs text-muted-foreground">Образцовый ответ:</p>
-            <p className="text-sm text-foreground">{exercise.referenceAnswer}</p></div>
-          )}
-          {exercise.gradingCriteria && (
-            <div><p className="text-xs text-muted-foreground">Критерии оценивания:</p>
-            <p className="text-sm text-foreground">{exercise.gradingCriteria}</p></div>
-          )}
+      {/* Заголовок упражнения (показывается всем) */}
+      {exercise.title && (
+        <div className="flex items-center justify-between">
+          <h3 className="text-base font-semibold text-foreground">{exercise.title}</h3>
+          <DifficultyBadge value={exercise.difficulty} />
         </div>
+      )}
+
+      {/* Задание */}
+      <p className="text-base text-foreground">{exercise.instructionText}</p>
+
+      {/* Тип проверки */}
+      <Badge variant={exercise.gradingType === "AUTO" ? "default" : "secondary"} className="text-xs">
+        {exercise.gradingType === "AUTO" ? "⚡ Автопроверка" : "👩‍🏫 Ручная проверка"}
+      </Badge>
+
+      {/* Рендер интерактивной части по типу упражнения */}
+      {exercise.exerciseType === "MATCHING"        && <MatchingPreview content={c} mode={mode} />}
+      {exercise.exerciseType === "MULTIPLE_CHOICE" && <MultipleChoicePreview content={c} mode={mode} />}
+      {exercise.exerciseType === "FILL_BLANK"      && <FillBlankPreview content={c} mode={mode} />}
+      {exercise.exerciseType === "TONE_PLACEMENT"  && <TonePlacementPreview content={c} mode={mode} />}
+      {exercise.exerciseType === "WRITE_PINYIN"    && <WritePinyinPreview content={c} mode={mode} />}
+      {exercise.exerciseType === "WORD_ORDER"      && <WordOrderPreview content={c} mode={mode} />}
+      {exercise.exerciseType === "TRANSLATION"     && <TranslationPreview content={c} mode={mode} exercise={exercise} />}
+      {exercise.exerciseType === "DICTATION"       && <DictationPreview content={c} mode={mode} exercise={exercise} />}
+      {exercise.exerciseType === "DESCRIBE_IMAGE"  && <DescribeImagePreview content={c} mode={mode} />}
+      {exercise.exerciseType === "FREE_WRITING"    && <FreeWritingPreview content={c} mode={mode} />}
+
+      {/* Блок учителя — комментарий */}
+      {isTeacher && exercise.teacherComment && (
+        <TeacherBox label="💬 Комментарий для учителя" text={exercise.teacherComment} />
       )}
     </div>
   );
@@ -79,90 +85,90 @@ export function ExercisePreview({ exercise, mode }: Props) {
 // ПРЕВЬЮ КАЖДОГО ТИПА
 // =====================================================================
 
-// ===== 1. MATCHING =====
+// ===== 1. MATCHING — Соединить пары =====
 function MatchingPreview({ content, mode }: { content: any; mode: string }) {
   const pairs = content.pairs || [];
-  // Перемешиваем правую колонку для ученика
+  // Перемешиваем правую колонку чтобы ученик не мог угадать по порядку
   const [shuffledRight] = useState(() => [...pairs].sort(() => Math.random() - 0.5));
-  const [selected, setSelected] = useState<{ left: number | null; right: number | null }>({ left: null, right: null });
-  const [matched, setMatched] = useState<Set<number>>(new Set());
-  const [wrong, setWrong] = useState<number | null>(null);
+  const [selectedLeft, setSelectedLeft] = useState<number | null>(null);
+  const [matched, setMatched] = useState<Record<number, number>>({}); // leftIdx → rightIdx
+  const [wrongRight, setWrongRight] = useState<number | null>(null);
 
-  // Выбрать элемент
-  const selectLeft = (i: number) => {
-    if (matched.has(i)) return;
-    setSelected((s) => {
-      if (s.right !== null) {
-        // Проверяем пару
-        checkMatch(i, s.right);
-        return { left: null, right: null };
-      }
-      return { ...s, left: i };
-    });
+  // Клик по левой части
+  const clickLeft = (i: number) => {
+    if (Object.keys(matched).includes(String(i))) return;
+    setSelectedLeft(i);
   };
 
-  const selectRight = (i: number) => {
-    setSelected((s) => {
-      if (s.left !== null) {
-        checkMatch(s.left, i);
-        return { left: null, right: null };
-      }
-      return { ...s, right: i };
-    });
-  };
+  // Клик по правой части — проверяем совпадение
+  const clickRight = (j: number) => {
+    if (Object.values(matched).includes(j)) return;
+    if (selectedLeft === null) return;
 
-  // Проверить совпадение
-  const checkMatch = (leftIdx: number, rightIdx: number) => {
-    const leftPair = pairs[leftIdx];
-    const rightPair = shuffledRight[rightIdx];
-    if (leftPair.left === rightPair.left && leftPair.right === rightPair.right) {
-      setMatched((s) => new Set(s).add(leftIdx));
+    const leftPair = pairs[selectedLeft];
+    const rightPair = shuffledRight[j];
+    // Правильное совпадение: одна и та же исходная пара
+    if (leftPair.right === rightPair.right) {
+      setMatched((m) => ({ ...m, [selectedLeft]: j }));
+      setSelectedLeft(null);
     } else {
-      setWrong(rightIdx);
-      setTimeout(() => setWrong(null), 600);
+      // Неправильно — мигаем красным
+      setWrongRight(j);
+      setTimeout(() => setWrongRight(null), 600);
     }
   };
 
+  const isAllMatched = Object.keys(matched).length === pairs.length;
+
   return (
-    <div className="grid grid-cols-2 gap-4">
-      {/* Левая колонка */}
-      <div className="space-y-2">
-        {pairs.map((p: any, i: number) => (
-          <button key={i} onClick={() => selectLeft(i)}
-            className={`w-full text-left px-4 py-3 rounded-lg border text-lg transition-all ${
-              matched.has(i) ? "bg-green-500/10 border-green-500/30 text-green-400" :
-              selected.left === i ? "bg-primary/20 border-primary" :
-              "bg-card border-border hover:border-primary/50 text-foreground"
-            }`}>
-            {p.left}
-            {matched.has(i) && <span className="ml-2">✓</span>}
-          </button>
-        ))}
+    <div className="space-y-3">
+      <div className="grid grid-cols-2 gap-3">
+        {/* Левая колонка */}
+        <div className="space-y-2">
+          {pairs.map((p: any, i: number) => {
+            const isMatched = i in matched;
+            return (
+              <button key={i} onClick={() => clickLeft(i)}
+                className={`w-full text-left px-4 py-3 rounded-lg border text-base transition-all ${
+                  isMatched        ? "bg-green-50 border-green-300 text-green-700" :
+                  selectedLeft === i ? "bg-primary/10 border-primary text-foreground" :
+                  "bg-card border-border hover:border-primary/50 text-foreground"
+                }`}>
+                {p.left}
+                {isMatched && <span className="ml-2 text-green-600">✓</span>}
+              </button>
+            );
+          })}
+        </div>
+        {/* Правая колонка (перемешанная) */}
+        <div className="space-y-2">
+          {shuffledRight.map((p: any, j: number) => {
+            const isMatched = Object.values(matched).includes(j);
+            return (
+              <button key={j} onClick={() => clickRight(j)}
+                className={`w-full text-left px-4 py-3 rounded-lg border text-base transition-all ${
+                  isMatched     ? "bg-green-50 border-green-300 text-green-700" :
+                  wrongRight === j ? "bg-red-50 border-red-300 text-red-600" :
+                  "bg-card border-border hover:border-primary/50 text-foreground"
+                }`}>
+                {p.right}
+                {isMatched && <span className="ml-2 text-green-600">✓</span>}
+              </button>
+            );
+          })}
+        </div>
       </div>
-      {/* Правая колонка (перемешанная) */}
-      <div className="space-y-2">
-        {shuffledRight.map((p: any, i: number) => {
-          const isMatched = matched.has(pairs.findIndex((pp: any) => pp.right === p.right));
-          return (
-            <button key={i} onClick={() => selectRight(i)}
-              className={`w-full text-left px-4 py-3 rounded-lg border text-lg transition-all ${
-                isMatched ? "bg-green-500/10 border-green-500/30 text-green-400" :
-                wrong === i ? "bg-red-500/10 border-red-500/30 text-red-400" :
-                selected.right === i ? "bg-primary/20 border-primary" :
-                "bg-card border-border hover:border-primary/50 text-foreground"
-              }`}>
-              {p.right}
-              {isMatched && <span className="ml-2">✓</span>}
-            </button>
-          );
-        })}
-      </div>
-      {mode === "teacher" && <TeacherHint text={`Правильные пары: ${pairs.map((p: any) => `${p.left}↔${p.right}`).join(", ")}`} />}
+      {isAllMatched && pairs.length > 0 && (
+        <ResultBadge correct={true} message="Все пары найдены!" />
+      )}
+      {mode === "teacher" && (
+        <TeacherBox label="Правильные пары" text={pairs.map((p: any) => `${p.left} ↔ ${p.right}`).join(" · ")} />
+      )}
     </div>
   );
 }
 
-// ===== 2. MULTIPLE_CHOICE =====
+// ===== 2. MULTIPLE_CHOICE — Выбрать правильный ответ =====
 function MultipleChoicePreview({ content, mode }: { content: any; mode: string }) {
   const [selected, setSelected] = useState<number | null>(null);
   const [checked, setChecked] = useState(false);
@@ -170,266 +176,509 @@ function MultipleChoicePreview({ content, mode }: { content: any; mode: string }
 
   return (
     <div className="space-y-3">
-      {content.question && <p className="text-xl text-foreground">{content.question}</p>}
+      {/* Контекст (если есть) */}
+      {content.context && (
+        <div className="px-4 py-3 bg-muted rounded-lg text-base text-foreground font-medium">
+          {content.context}
+        </div>
+      )}
+      {/* Вопрос */}
+      {content.question && (
+        <p className="text-base text-foreground">{content.question}</p>
+      )}
+      {/* Варианты */}
       {(content.options || []).map((opt: string, i: number) => (
         <button key={i} onClick={() => { if (!checked) setSelected(i); }}
           className={`w-full text-left px-4 py-3 rounded-lg border text-base transition-all ${
-            checked && i === content.correctIndex ? "bg-green-500/10 border-green-500/30 text-green-400" :
-            checked && selected === i && !isCorrect ? "bg-red-500/10 border-red-500/30 text-red-400" :
-            selected === i ? "bg-primary/20 border-primary text-foreground" :
+            checked && i === content.correctIndex          ? "bg-green-50 border-green-300 text-green-700" :
+            checked && selected === i && !isCorrect       ? "bg-red-50 border-red-300 text-red-600" :
+            selected === i                                 ? "bg-primary/10 border-primary text-foreground" :
             "bg-card border-border hover:border-primary/50 text-foreground"
           }`}>
-          <span className="font-medium mr-3">{String.fromCharCode(65 + i)}.</span>{opt}
+          <span className="font-semibold mr-2">{String.fromCharCode(65 + i)}.</span>
+          {opt}
           {checked && i === content.correctIndex && <span className="ml-2">✓</span>}
         </button>
       ))}
       {!checked && selected !== null && (
-        <Button onClick={() => setChecked(true)} className="mt-2">Проверить</Button>
+        <Button size="sm" onClick={() => setChecked(true)}>Проверить</Button>
       )}
       {checked && <ResultBadge correct={isCorrect} />}
-      {mode === "teacher" && <TeacherHint text={`Правильный: ${String.fromCharCode(65 + content.correctIndex)}. ${content.options?.[content.correctIndex]}`} />}
+      {mode === "teacher" && (
+        <TeacherBox
+          label="Правильный ответ"
+          text={`${String.fromCharCode(65 + content.correctIndex)}. ${content.options?.[content.correctIndex]}`}
+        />
+      )}
     </div>
   );
 }
 
-// ===== 3. FILL_BLANK =====
+// ===== 3. FILL_BLANK — Вписать в пропуск (ручная проверка) =====
 function FillBlankPreview({ content, mode }: { content: any; mode: string }) {
   const [answer, setAnswer] = useState("");
-  const [checked, setChecked] = useState(false);
-  const isCorrect = answer.trim() === content.blankAnswer;
-
-  // Разделяем предложение по ___
+  // Разбиваем предложение по ___
   const parts = (content.sentence || "").split("___");
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center flex-wrap gap-1 text-xl text-foreground">
-        {parts[0]}
-        <Input value={answer} onChange={(e) => { if (!checked) setAnswer(e.target.value); }}
-          className={`inline-block w-32 text-xl h-10 text-center mx-1 ${
-            checked ? (isCorrect ? "border-green-500 text-green-400" : "border-red-500 text-red-400") : ""
-          }`}
-          placeholder="..." />
-        {parts[1]}
+      {/* Исходное предложение (контекст) */}
+      {content.sourceSentence && (
+        <div className="px-4 py-3 bg-muted rounded-lg text-base text-muted-foreground">
+          {content.sourceSentence}
+        </div>
+      )}
+      {/* Предложение с полем ввода вместо ___ */}
+      <div className="flex items-center flex-wrap gap-1 text-lg text-foreground leading-relaxed">
+        <span>{parts[0]}</span>
+        <Input
+          value={answer}
+          onChange={(e) => setAnswer(e.target.value)}
+          className="inline-block w-36 text-base h-10 text-center mx-1 border-b-2 border-t-0 border-l-0 border-r-0 rounded-none focus:border-primary"
+          placeholder="..."
+        />
+        <span>{parts[1]}</span>
       </div>
-      {content.hint && !checked && <p className="text-sm text-muted-foreground">💡 {content.hint}</p>}
-      {!checked && answer.trim() && <Button onClick={() => setChecked(true)}>Проверить</Button>}
-      {checked && <ResultBadge correct={isCorrect} />}
-      {checked && !isCorrect && <p className="text-sm text-muted-foreground">Правильный ответ: <span className="text-foreground font-medium">{content.blankAnswer}</span></p>}
-      {mode === "teacher" && <TeacherHint text={`Ответ: ${content.blankAnswer}`} />}
+      {/* Отправить на проверку */}
+      <Button variant="outline" size="sm" disabled>
+        Отправить учителю на проверку
+      </Button>
+      {/* Учитель видит правильный ответ */}
+      {mode === "teacher" && content.blankAnswer && (
+        <TeacherBox label="Правильный ответ" text={content.blankAnswer} />
+      )}
     </div>
   );
 }
 
-// ===== 4. TONE_PLACEMENT =====
+// ===== 4. TONE_PLACEMENT — Расставить тоны над пиньинем (китайский) =====
+// Ученику дан пиньинь без тонов, нужно выставить тоны над каждой гласной
 function TonePlacementPreview({ content, mode }: { content: any; mode: string }) {
-  const [answer, setAnswer] = useState("");
-  const [checked, setChecked] = useState(false);
-  const isCorrect = answer.trim() === content.correctTones;
+  const characters = content.characters || [];
+  const VOWELS = ["a", "e", "i", "o", "u", "ü"];
+  const TONE_MARKS: Record<string, Record<string, string>> = {
+    "a": { "1": "ā", "2": "á", "3": "ǎ", "4": "à" },
+    "e": { "1": "ē", "2": "é", "3": "ě", "4": "è" },
+    "i": { "1": "ī", "2": "í", "3": "ǐ", "4": "ì" },
+    "o": { "1": "ō", "2": "ó", "3": "ǒ", "4": "ò" },
+    "u": { "1": "ū", "2": "ú", "3": "ǔ", "4": "ù" },
+    "ü": { "1": "ǖ", "2": "ǘ", "3": "ǚ", "4": "ǜ" },
+  };
+
+  // Ответы ученика: { charIdx: { vowelIdx: tone } }
+  const [studentTones, setStudentTones] = useState<Record<number, Record<number, string>>>({});
+  const [showResult, setShowResult] = useState(false);
+
+  const setTone = (charIdx: number, vowelIdx: number, tone: string) => {
+    setStudentTones((prev) => ({
+      ...prev,
+      [charIdx]: { ...(prev[charIdx] || {}), [vowelIdx]: tone },
+    }));
+  };
+
+  // Получить позиции гласных в пиньине
+  const getVowelPositions = (pinyin: string) => {
+    const positions: { char: string; vowelIdx: number }[] = [];
+    let vowelIdx = 0;
+    for (const ch of pinyin) {
+      if (VOWELS.includes(ch)) {
+        positions.push({ char: ch, vowelIdx });
+        vowelIdx++;
+      }
+    }
+    return positions;
+  };
+
+  // Применить тоны к строке
+  const applyTones = (pinyin: string, tones: Record<number, string>) => {
+    let vowelIdx = 0;
+    return pinyin.split("").map((ch) => {
+      if (VOWELS.includes(ch)) {
+        const tone = tones[vowelIdx];
+        vowelIdx++;
+        if (tone && TONE_MARKS[ch]?.[tone]) return TONE_MARKS[ch][tone];
+      }
+      return ch;
+    }).join("");
+  };
+
+  // Проверить правильность
+  const checkAnswers = () => {
+    setShowResult(true);
+  };
+
+  return (
+    <div className="space-y-6">
+      {characters.map((char: any, charIdx: number) => {
+        const vowelPositions = getVowelPositions(char.pinyin || "");
+        const studentResult = applyTones(char.pinyin || "", studentTones[charIdx] || {});
+        const correctResult = applyTones(char.pinyin || "", char.tones || {});
+        const isCharCorrect = studentResult === correctResult;
+
+        return (
+          <div key={charIdx} className="flex flex-col items-center gap-3">
+            {/* Пиньинь с кнопками выбора тона над каждой гласной */}
+            <div className="flex items-end gap-1 flex-wrap justify-center">
+              {char.pinyin?.split("").map((letter: string, letterIdx: number) => {
+                if (!VOWELS.includes(letter)) {
+                  // Обычная буква — просто показываем
+                  return (
+                    <span key={letterIdx} className="text-2xl text-muted-foreground pb-0.5">{letter}</span>
+                  );
+                }
+                // Гласная — показываем кнопки выбора тона над ней
+                let vowelIdx = 0;
+                for (let i = 0; i < letterIdx; i++) {
+                  if (VOWELS.includes(char.pinyin[i])) vowelIdx++;
+                }
+                const selectedTone = studentTones[charIdx]?.[vowelIdx];
+                const correctTone = char.tones?.[vowelIdx];
+                const displayChar = selectedTone && TONE_MARKS[letter]?.[selectedTone]
+                  ? TONE_MARKS[letter][selectedTone]
+                  : letter;
+
+                return (
+                  <div key={letterIdx} className="flex flex-col items-center gap-1">
+                    {/* Кнопки тонов 1-4 */}
+                    <div className="flex gap-0.5">
+                      {["1","2","3","4"].map((tone) => (
+                        <button
+                          key={tone}
+                          onClick={() => setTone(charIdx, vowelIdx, tone)}
+                          className={`w-7 h-7 rounded text-xs font-bold border transition-colors ${
+                            showResult
+                              ? selectedTone === tone && tone === correctTone
+                                ? "bg-green-100 border-green-400 text-green-700"
+                                : selectedTone === tone && tone !== correctTone
+                                  ? "bg-red-100 border-red-400 text-red-700"
+                                  : tone === correctTone
+                                    ? "bg-green-50 border-green-300 text-green-600"
+                                    : "border-border text-muted-foreground"
+                              : selectedTone === tone
+                                ? "bg-primary/20 border-primary text-primary"
+                                : "border-border text-muted-foreground hover:bg-accent"
+                          }`}
+                        >{tone}</button>
+                      ))}
+                    </div>
+                    {/* Сама гласная */}
+                    <span className={`text-2xl font-medium ${
+                      showResult
+                        ? isCharCorrect ? "text-green-700" : "text-red-600"
+                        : "text-foreground"
+                    }`}>{displayChar}</span>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Иероглиф под пиньинем */}
+            <span className="text-4xl font-bold text-foreground">{char.hanzi}</span>
+
+            {/* Правильный ответ для учителя */}
+            {mode === "teacher" && (
+              <span className="text-sm text-amber-600">{correctResult}</span>
+            )}
+          </div>
+        );
+      })}
+
+      {/* Кнопка проверки */}
+      {!showResult && (
+        <Button size="sm" onClick={checkAnswers}>Проверить</Button>
+      )}
+      {showResult && (
+        <ResultBadge
+          correct={characters.every((_: any, ci: number) => {
+            const char = characters[ci];
+            const correct = applyTones(char.pinyin || "", char.tones || {});
+            const student = applyTones(char.pinyin || "", studentTones[ci] || {});
+            return correct === student;
+          })}
+        />
+      )}
+    </div>
+  );
+}
+
+// ===== 5. WRITE_PINYIN — Написать пиньинь (ручная проверка) =====
+function WritePinyinPreview({ content, mode }: { content: any; mode: string }) {
+  const characters = content.characters || [];
+  // Ответы ученика для каждого иероглифа
+  const [answers, setAnswers] = useState<Record<number, string>>({});
+
+  const setAnswer = (idx: number, value: string) => {
+    setAnswers((prev) => ({ ...prev, [idx]: value }));
+  };
 
   return (
     <div className="space-y-4">
-      <div className="text-center">
-        <p className="text-5xl font-bold text-foreground mb-2">{content.hanzi}</p>
-        <p className="text-xl text-muted-foreground">{content.pinyin} (без тонов)</p>
+      <div className="flex flex-wrap gap-6 justify-center">
+        {characters.map((char: any, idx: number) => (
+          <div key={idx} className="flex flex-col items-center gap-2">
+            {/* Поле ввода пиньиня над иероглифом */}
+            <Input
+              value={answers[idx] || ""}
+              onChange={(e) => setAnswer(idx, e.target.value)}
+              placeholder="пиньинь"
+              className="w-24 text-base h-9 text-center"
+            />
+            {/* Иероглиф */}
+            <span className="text-4xl font-bold text-foreground">{char.hanzi}</span>
+          </div>
+        ))}
       </div>
-      <div className="max-w-xs mx-auto">
-        <Input value={answer} onChange={(e) => { if (!checked) setAnswer(e.target.value); }}
-          placeholder="Введите с тонами: nǐ hǎo" className={`text-xl h-12 text-center ${
-            checked ? (isCorrect ? "border-green-500" : "border-red-500") : ""
-          }`} />
-      </div>
-      {!checked && answer.trim() && <div className="text-center"><Button onClick={() => setChecked(true)}>Проверить</Button></div>}
-      {checked && <div className="text-center"><ResultBadge correct={isCorrect} /></div>}
-      {checked && !isCorrect && <p className="text-sm text-muted-foreground text-center">Правильно: <span className="text-foreground font-medium text-xl">{content.correctTones}</span></p>}
-      {mode === "teacher" && <TeacherHint text={`Ответ: ${content.correctTones}`} />}
+      <Button variant="outline" size="sm" disabled>
+        Отправить учителю на проверку
+      </Button>
     </div>
   );
 }
 
-// ===== 5. WORD_ORDER =====
+// ===== 6. WORD_ORDER — Составить предложение из слов =====
 function WordOrderPreview({ content, mode }: { content: any; mode: string }) {
-  const [available, setAvailable] = useState<string[]>(() => [...(content.words || [])].sort(() => Math.random() - 0.5));
+  const [available, setAvailable] = useState<string[]>(
+    () => [...(content.words || [])].filter(Boolean).sort(() => Math.random() - 0.5)
+  );
   const [selected, setSelected] = useState<string[]>([]);
-  const [checked, setChecked] = useState(false);
-  const result = selected.join("");
-  const isCorrect = result === content.correctOrder;
+  const [submitted, setSubmitted] = useState(false);
 
+  // Добавить слово в составляемое предложение
   const addWord = (word: string, idx: number) => {
-    if (checked) return;
+    if (submitted) return;
     setSelected([...selected, word]);
     setAvailable(available.filter((_, i) => i !== idx));
   };
 
+  // Убрать слово обратно
   const removeWord = (idx: number) => {
-    if (checked) return;
+    if (submitted) return;
     setAvailable([...available, selected[idx]]);
     setSelected(selected.filter((_, i) => i !== idx));
   };
 
   return (
     <div className="space-y-4">
-      {content.translation && <p className="text-base text-muted-foreground">💡 {content.translation}</p>}
-      {/* Собранное предложение */}
-      <div className="min-h-[56px] px-4 py-3 rounded-lg border-2 border-dashed border-border bg-muted/30 flex flex-wrap gap-2 items-center">
-        {selected.length === 0 && <span className="text-muted-foreground">Нажмите на слова ниже...</span>}
+      {/* Перевод/подсказка */}
+      {content.translation && (
+        <div className="text-sm text-muted-foreground px-3 py-2 bg-muted rounded-lg">
+          {content.translation}
+        </div>
+      )}
+
+      {/* Зона сборки предложения */}
+      <div className="min-h-[52px] px-4 py-3 rounded-xl border-2 border-dashed border-border bg-muted/30 flex flex-wrap gap-2 items-center">
+        {selected.length === 0 && (
+          <span className="text-muted-foreground text-sm">Нажмите на слова ниже, чтобы составить предложение...</span>
+        )}
         {selected.map((w, i) => (
           <button key={i} onClick={() => removeWord(i)}
-            className={`px-3 py-1.5 rounded-lg text-lg font-medium transition-colors ${
-              checked ? (isCorrect ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400") :
-              "bg-primary/20 text-primary hover:bg-primary/30"
-            }`}>{w}</button>
+            className="px-3 py-1.5 rounded-lg text-base font-medium bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 transition-colors">
+            {w}
+          </button>
         ))}
       </div>
-      {/* Доступные слова */}
+
+      {/* Слова для выбора */}
       <div className="flex flex-wrap gap-2">
         {available.map((w, i) => (
           <button key={i} onClick={() => addWord(w, i)}
-            className="px-3 py-1.5 rounded-lg text-lg border border-border bg-card text-foreground hover:bg-accent transition-colors">{w}</button>
+            className="px-3 py-1.5 rounded-lg text-base border border-border bg-card text-foreground hover:bg-accent transition-colors">
+            {w}
+          </button>
         ))}
       </div>
-      {!checked && selected.length > 0 && available.length === 0 && <Button onClick={() => setChecked(true)}>Проверить</Button>}
-      {checked && <ResultBadge correct={isCorrect} />}
-      {checked && !isCorrect && <p className="text-sm text-muted-foreground">Правильно: <span className="text-foreground font-medium">{content.correctOrder}</span></p>}
-      {mode === "teacher" && <TeacherHint text={`Ответ: ${content.correctOrder}`} />}
+
+      {/* Отправить */}
+      {!submitted && selected.length > 0 && available.length === 0 && (
+        <Button variant="outline" size="sm" disabled>
+          Отправить учителю на проверку
+        </Button>
+      )}
+
+      {/* Учитель видит образцовый ответ */}
+      {mode === "teacher" && content.referenceAnswer && (
+        <TeacherBox
+          label="Один из правильных вариантов"
+          text={content.referenceAnswer + " (возможны другие правильные варианты)"}
+        />
+      )}
     </div>
   );
 }
 
-// ===== 6. GRAMMAR_CHOICE =====
-function GrammarChoicePreview({ content, mode }: { content: any; mode: string }) {
-  const [selected, setSelected] = useState<number | null>(null);
-  const [checked, setChecked] = useState(false);
-  const isCorrect = selected === content.correctIndex;
-
-  return (
-    <div className="space-y-3">
-      <p className="text-xl text-foreground">{content.sentence}</p>
-      {(content.options || []).map((opt: string, i: number) => (
-        <button key={i} onClick={() => { if (!checked) setSelected(i); }}
-          className={`w-full text-left px-4 py-3 rounded-lg border text-lg transition-all ${
-            checked && i === content.correctIndex ? "bg-green-500/10 border-green-500/30 text-green-400" :
-            checked && selected === i && !isCorrect ? "bg-red-500/10 border-red-500/30 text-red-400" :
-            selected === i ? "bg-primary/20 border-primary text-foreground" :
-            "bg-card border-border hover:border-primary/50 text-foreground"
-          }`}>{opt}</button>
-      ))}
-      {!checked && selected !== null && <Button onClick={() => setChecked(true)}>Проверить</Button>}
-      {checked && <ResultBadge correct={isCorrect} />}
-      {checked && content.explanation && <p className="text-sm text-muted-foreground bg-muted p-3 rounded-lg">💡 {content.explanation}</p>}
-      {mode === "teacher" && <TeacherHint text={`Правильный: ${content.options?.[content.correctIndex]}. ${content.explanation || ""}`} />}
-    </div>
-  );
-}
-
-// ===== 7. TRANSLATE_TO_CHINESE =====
-function TranslateToChinesePreview({ content, mode }: { content: any; mode: string }) {
+// ===== 7. TRANSLATION — Перевод (ручная проверка) =====
+function TranslationPreview({ content, mode, exercise }: { content: any; mode: string; exercise: any }) {
   const [answer, setAnswer] = useState("");
-  const [checked, setChecked] = useState(false);
-  const isCorrect = (content.acceptableAnswers || []).includes(answer.trim());
 
   return (
     <div className="space-y-4">
-      <p className="text-xl text-foreground">{content.sourceText}</p>
-      {content.hint && !checked && <p className="text-sm text-muted-foreground">💡 {content.hint}</p>}
-      <Textarea value={answer} onChange={(e) => { if (!checked) setAnswer(e.target.value); }}
-        placeholder="Введите перевод на китайском..." rows={2} className={`text-xl ${checked ? (isCorrect ? "border-green-500" : "border-red-500") : ""}`} />
-      {!checked && answer.trim() && <Button onClick={() => setChecked(true)}>Проверить</Button>}
-      {checked && <ResultBadge correct={isCorrect} />}
-      {checked && !isCorrect && <p className="text-sm text-muted-foreground">Допустимые ответы: <span className="text-foreground">{content.acceptableAnswers?.join(" / ")}</span></p>}
-      {mode === "teacher" && <TeacherHint text={`Ответы: ${content.acceptableAnswers?.join(" / ")}`} />}
-    </div>
-  );
-}
+      {/* Языки */}
+      {(content.sourceLanguage || content.targetLanguage) && (
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <span>{content.sourceLanguage || "?"}</span>
+          <span>→</span>
+          <span>{content.targetLanguage || "?"}</span>
+        </div>
+      )}
 
-// ===== 8. TRANSLATE_TO_ENGLISH =====
-function TranslateToEnglishPreview({ content, mode }: { content: any; mode: string }) {
-  const [answer, setAnswer] = useState("");
-  const [checked, setChecked] = useState(false);
-  const normalized = answer.trim().toLowerCase().replace(/[.,!?]/g, "");
-  const isCorrect = (content.acceptableAnswers || []).some((a: string) => a.toLowerCase().replace(/[.,!?]/g, "") === normalized);
-
-  return (
-    <div className="space-y-4">
-      <div>
-        <p className="text-3xl text-foreground font-bold">{content.hanzi}</p>
-        {content.pinyin && <p className="text-lg text-primary mt-1">{content.pinyin}</p>}
+      {/* Текст для перевода */}
+      <div className="px-4 py-4 bg-muted rounded-xl text-lg text-foreground font-medium leading-relaxed">
+        {content.sourceText}
       </div>
-      <Textarea value={answer} onChange={(e) => { if (!checked) setAnswer(e.target.value); }}
-        placeholder="Enter the English translation..." rows={2} className={`text-base ${checked ? (isCorrect ? "border-green-500" : "border-red-500") : ""}`} />
-      {!checked && answer.trim() && <Button onClick={() => setChecked(true)}>Check</Button>}
-      {checked && <ResultBadge correct={isCorrect} />}
-      {checked && !isCorrect && <p className="text-sm text-muted-foreground">Acceptable: <span className="text-foreground">{content.acceptableAnswers?.join(" / ")}</span></p>}
-      {mode === "teacher" && <TeacherHint text={`Answers: ${content.acceptableAnswers?.join(" / ")}`} />}
+
+      {/* Поле ввода ответа */}
+      <Textarea
+        value={answer}
+        onChange={(e) => setAnswer(e.target.value)}
+        placeholder="Введите перевод..."
+        rows={3}
+        className="text-base"
+      />
+
+      <Button variant="outline" size="sm" disabled>
+        Отправить учителю на проверку
+      </Button>
+
+      {/* Учитель видит эталонные ответы */}
+      {mode === "teacher" && content.acceptableAnswers?.length > 0 && (
+        <TeacherBox
+          label="Эталонные переводы"
+          text={content.acceptableAnswers.join(" / ")}
+        />
+      )}
     </div>
   );
 }
 
-// ===== 9. DICTATION (ручная) =====
-function DictationPreview({ content, mode }: { content: any; mode: string }) {
+// ===== 8. DICTATION — Диктант (ручная проверка) =====
+function DictationPreview({ content, mode, exercise }: { content: any; mode: string; exercise: any }) {
   const [answer, setAnswer] = useState("");
+
   return (
     <div className="space-y-4">
-      {content.audioUrl ? <AudioPlayer src={content.audioUrl} title="Прослушайте и запишите" /> :
-        <div className="bg-muted rounded-lg p-4 text-center text-muted-foreground">🎧 Аудио не загружено</div>}
-      {content.hint && <p className="text-sm text-muted-foreground">💡 {content.hint}</p>}
-      <Textarea value={answer} onChange={(e) => setAnswer(e.target.value)}
-        placeholder="Запишите услышанное иероглифами..." rows={3} className="text-xl" />
-      <Button variant="outline" disabled>Отправить учителю на проверку</Button>
-      {mode === "teacher" && <TeacherHint text={`Правильный текст: ${content.correctText}`} />}
+      {/* Аудио-плеер */}
+      {content.audioUrl ? (
+        <AudioPlayer src={content.audioUrl} title="Прослушайте и запишите" />
+      ) : (
+        <div className="bg-muted rounded-xl p-4 text-center text-muted-foreground border border-dashed border-border">
+          🎧 Аудио не загружено
+        </div>
+      )}
+
+      {/* Поле ввода ответа ученика */}
+      <Textarea
+        value={answer}
+        onChange={(e) => setAnswer(e.target.value)}
+        placeholder="Запишите услышанное..."
+        rows={3}
+        className="text-base"
+      />
+
+      <Button variant="outline" size="sm" disabled>
+        Отправить учителю на проверку
+      </Button>
+
+      {/* Учитель видит правильный текст */}
+      {mode === "teacher" && content.correctText && (
+        <TeacherBox label="Правильный текст" text={content.correctText} />
+      )}
     </div>
   );
 }
 
-// ===== 10. DESCRIBE_IMAGE (ручная) =====
+// ===== 9. DESCRIBE_IMAGE — Описать картинку (ручная проверка) =====
 function DescribeImagePreview({ content, mode }: { content: any; mode: string }) {
   const [answer, setAnswer] = useState("");
+
   return (
     <div className="space-y-4">
-      {content.imageUrl ? <img src={content.imageUrl} alt="" className="max-w-md rounded-lg" /> :
-        <div className="bg-muted rounded-lg p-8 text-center text-muted-foreground">🖼️ Картинка не загружена</div>}
-      {content.promptText && <p className="text-base text-muted-foreground">{content.promptText}</p>}
-      <Textarea value={answer} onChange={(e) => setAnswer(e.target.value)}
-        placeholder="Опишите картинку на китайском..." rows={4} className="text-lg" />
-      <p className="text-xs text-muted-foreground">Минимум слов: {content.minWords || 20}</p>
-      <Button variant="outline" disabled>Отправить учителю на проверку</Button>
+      {/* Картинка */}
+      {content.imageUrl ? (
+        <img src={content.imageUrl} alt="" className="max-w-md rounded-xl border border-border" />
+      ) : (
+        <div className="bg-muted rounded-xl p-8 text-center text-muted-foreground border border-dashed border-border">
+          🖼️ Картинка не загружена
+        </div>
+      )}
+
+      {/* Дополнительное задание */}
+      {content.promptText && (
+        <p className="text-base text-muted-foreground">{content.promptText}</p>
+      )}
+
+      {/* Поле ввода */}
+      <Textarea
+        value={answer}
+        onChange={(e) => setAnswer(e.target.value)}
+        placeholder="Опишите картинку..."
+        rows={4}
+        className="text-base"
+      />
+
+      <Button variant="outline" size="sm" disabled>
+        Отправить учителю на проверку
+      </Button>
     </div>
   );
 }
 
-// ===== 11. FREE_WRITING (ручная) =====
+// ===== 10. FREE_WRITING — Свободное письмо (ручная проверка) =====
 function FreeWritingPreview({ content, mode }: { content: any; mode: string }) {
   const [answer, setAnswer] = useState("");
+
   return (
     <div className="space-y-4">
-      {content.topic && <p className="text-xl font-medium text-foreground">{content.topic}</p>}
-      {content.promptText && <p className="text-base text-muted-foreground">{content.promptText}</p>}
-      <Textarea value={answer} onChange={(e) => setAnswer(e.target.value)}
-        placeholder="Напишите здесь..." rows={5} className="text-lg" />
-      <p className="text-xs text-muted-foreground">Минимум символов: {content.minCharacters || 50} · Написано: {answer.length}</p>
-      <Button variant="outline" disabled>Отправить учителю на проверку</Button>
+      {/* Тема */}
+      {content.topic && (
+        <h4 className="text-lg font-semibold text-foreground">{content.topic}</h4>
+      )}
+
+      {/* Задание */}
+      {content.promptText && (
+        <p className="text-base text-muted-foreground">{content.promptText}</p>
+      )}
+
+      {/* Поле ввода */}
+      <Textarea
+        value={answer}
+        onChange={(e) => setAnswer(e.target.value)}
+        placeholder="Напишите здесь..."
+        rows={5}
+        className="text-base"
+      />
+
+      <Button variant="outline" size="sm" disabled>
+        Отправить учителю на проверку
+      </Button>
     </div>
   );
 }
 
-// ===== Вспомогательные компоненты =====
+// =====================================================================
+// ВСПОМОГАТЕЛЬНЫЕ КОМПОНЕНТЫ
+// =====================================================================
 
-// Бейдж результата проверки
-function ResultBadge({ correct }: { correct: boolean }) {
+// Бейдж результата
+function ResultBadge({ correct, message }: { correct: boolean; message?: string }) {
   return (
-    <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-base font-medium ${
-      correct ? "bg-green-500/10 text-green-400" : "bg-red-500/10 text-red-400"
+    <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border ${
+      correct
+        ? "bg-green-50 text-green-700 border-green-200"
+        : "bg-red-50 text-red-700 border-red-200"
     }`}>
-      {correct ? "✓ Правильно!" : "✗ Неправильно"}
+      {correct ? "✓ " : "✗ "}
+      {message || (correct ? "Правильно!" : "Попробуйте ещё раз")}
     </div>
   );
 }
 
-// Подсказка для учителя
-function TeacherHint({ text }: { text: string }) {
+// Блок для учителя (жёлтый)
+function TeacherBox({ label, text }: { label: string; text: string }) {
   return (
-    <div className="mt-2 px-3 py-2 bg-amber-400/5 border border-amber-400/20 rounded-lg text-sm text-amber-400">
-      👩‍🏫 {text}
+    <div className="px-4 py-3 bg-amber-50 border border-amber-200 rounded-lg text-sm">
+      <p className="text-amber-600 font-medium mb-1">👩‍🏫 {label}</p>
+      <p className="text-amber-800">{text}</p>
     </div>
   );
 }

@@ -49,17 +49,18 @@ const BLOCK_TYPES = [
 
 // ===== Типы упражнений (тетрадь + банк) =====
 const EXERCISE_TYPES = [
-  { type: "MATCHING", icon: "🔗", name: "Соединить пары", desc: "Иероглиф ↔ перевод", grading: "AUTO" },
-  { type: "MULTIPLE_CHOICE", icon: "🔘", name: "Выбор ответа", desc: "Выбрать правильный из вариантов", grading: "AUTO" },
-  { type: "FILL_BLANK", icon: "✏️", name: "Заполнить пропуск", desc: "Вписать слово в предложение", grading: "AUTO" },
-  { type: "TONE_PLACEMENT", icon: "🎵", name: "Расставить тоны", desc: "Расставить тоны над пиньинь", grading: "AUTO" },
-  { type: "WORD_ORDER", icon: "🔀", name: "Порядок слов", desc: "Составить предложение из слов", grading: "AUTO" },
-  { type: "GRAMMAR_CHOICE", icon: "📐", name: "Грамматический выбор", desc: "Выбрать верную форму", grading: "AUTO" },
-  { type: "TRANSLATE_TO_CHINESE", icon: "🇨🇳", name: "Перевод → Китайский", desc: "Перевести на китайский", grading: "AUTO" },
-  { type: "TRANSLATE_TO_ENGLISH", icon: "🇺🇸", name: "Перевод → Английский", desc: "Перевести на английский", grading: "AUTO" },
-  { type: "DICTATION", icon: "🎧", name: "Диктант", desc: "Слушай аудио → пиши иероглифы", grading: "TEACHER" },
-  { type: "DESCRIBE_IMAGE", icon: "🖼️", name: "Описание картинки", desc: "Опиши картинку на китайском", grading: "TEACHER" },
-  { type: "FREE_WRITING", icon: "📝", name: "Свободное письмо", desc: "Письменное задание на тему", grading: "TEACHER" },
+  // Автопроверка
+  { type: "MATCHING",        icon: "🔗", name: "Соединить пары",   desc: "Соединить левую и правую части",        grading: "AUTO" },
+  { type: "MULTIPLE_CHOICE", icon: "🔘", name: "Выбор ответа",     desc: "Выбрать правильный из вариантов",       grading: "AUTO" },
+  { type: "TONE_PLACEMENT",  icon: "🎵", name: "Расставить тоны",  desc: "Расставить тоны над пиньинем",          grading: "AUTO" },
+  { type: "WORD_ORDER",      icon: "🔀", name: "Порядок слов",     desc: "Составить предложение из слов",         grading: "AUTO" },
+  // Ручная проверка
+  { type: "FILL_BLANK",      icon: "✏️", name: "Заполнить пропуск", desc: "Вписать слово в предложение",          grading: "TEACHER" },
+  { type: "TRANSLATION",     icon: "🌐", name: "Перевод",          desc: "Перевести с одного языка на другой",    grading: "TEACHER" },
+  { type: "WRITE_PINYIN",    icon: "📖", name: "Написать пиньинь", desc: "Написать пиньинь и тоны над иероглифами", grading: "TEACHER" },
+  { type: "DICTATION",       icon: "🎧", name: "Диктант",          desc: "Прослушать аудио и записать",           grading: "TEACHER" },
+  { type: "DESCRIBE_IMAGE",  icon: "🖼️", name: "Описание картинки", desc: "Описать что изображено на картинке",   grading: "TEACHER" },
+  { type: "FREE_WRITING",    icon: "📝", name: "Свободное письмо", desc: "Письменное задание на тему",            grading: "TEACHER" },
 ];
 
 // Словари для быстрого доступа

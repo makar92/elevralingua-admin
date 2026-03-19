@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
 
     // Читаем данные из тела запроса
     const body = await request.json();
-    const { sectionId, exerciseType, title, instructionText, difficulty, contentJson, gradingType, correctAnswers, referenceAnswer, gradingCriteria, isDefaultInWorkbook } = body;
+    const { sectionId, exerciseType, title, instructionText, difficulty, contentJson, gradingType, correctAnswers, referenceAnswer, gradingCriteria, teacherComment, isDefaultInWorkbook } = body;
 
     // Валидация обязательных полей
     if (!sectionId) return apiError("Укажите раздел (sectionId)");
@@ -95,6 +95,7 @@ export async function POST(request: NextRequest) {
         correctAnswers: correctAnswers || [],
         referenceAnswer: referenceAnswer || null,
         gradingCriteria: gradingCriteria || null,
+        teacherComment: teacherComment || null,
         isDefaultInWorkbook: isDefaultInWorkbook !== false,
         order: (last?.order ?? -1) + 1,
       },

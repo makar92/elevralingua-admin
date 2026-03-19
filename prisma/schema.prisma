@@ -187,7 +187,8 @@ model Exercise {
   gradingType         GradingType  @default(AUTO)       // AUTO = автопроверка, TEACHER = ручная
   correctAnswers      String[]                          // Эталонные ответы (для автопроверки)
   referenceAnswer     String?      @db.Text             // Образцовый ответ (для ручной проверки)
-  gradingCriteria     String?      @db.Text             // Критерии оценивания (для учителя)
+  gradingCriteria     String?      @db.Text             // Устарело — заменено на teacherComment
+  teacherComment      String?      @db.Text             // Комментарий для учителя: почему этот ответ правильный
   isDefaultInWorkbook Boolean      @default(true)       // Входит в тетрадь по умолчанию
   isPublished         Boolean      @default(false)      // Опубликовано ли
   createdAt           DateTime     @default(now())
@@ -200,21 +201,20 @@ model Exercise {
   @@index([exerciseType])
 }
 
-// 11 типов упражнений для MVP (китайский язык)
+// 11 типов упражнений для MVP
 enum ExerciseType {
-  // === Автопроверка (8 типов) ===
-  MATCHING              // Соединить пары (иероглиф↔перевод, пиньинь↔иероглиф)
+  // === Автопроверка (4 типа) ===
+  MATCHING              // Соединить пары (слово↔перевод, пиньинь↔иероглиф)
   MULTIPLE_CHOICE       // Выбрать правильный ответ из вариантов
-  FILL_BLANK            // Вписать слово в пропуск в предложении
-  TONE_PLACEMENT        // Расставить тоны над пиньинь
+  TONE_PLACEMENT        // Расставить тоны над пиньинь (китайский)
   WORD_ORDER            // Составить предложение из перемешанных слов
-  GRAMMAR_CHOICE        // Выбрать грамматически верный вариант
-  TRANSLATE_TO_CHINESE  // Перевести на китайский
-  TRANSLATE_TO_ENGLISH  // Перевести на английский
 
-  // === Ручная проверка учителем (3 типа) ===
-  DICTATION             // Диктант: слушай аудио → пиши иероглифы
-  DESCRIBE_IMAGE        // Опиши картинку на китайском
+  // === Ручная проверка учителем (7 типов) ===
+  FILL_BLANK            // Вписать слово в пропуск в предложении
+  TRANSLATION           // Перевести с одного языка на другой (универсально)
+  WRITE_PINYIN          // Написать пиньинь над иероглифами (китайский)
+  DICTATION             // Диктант: слушай аудио → пиши
+  DESCRIBE_IMAGE        // Опиши картинку
   FREE_WRITING          // Свободное письменное задание
 }
 
