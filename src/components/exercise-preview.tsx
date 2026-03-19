@@ -94,9 +94,14 @@ export function ExercisePreview({ exercise, mode }: Props) {
 function MatchingPreview({ content, mode }: { content: any; mode: string }) {
   const pairs = content.pairs || [];
   const [shuffledRight] = useState(() => [...pairs].sort(() => Math.random() - 0.5));
-  const [selectedLeft, setSelectedLeft]   = useState<number | null>(null);
-  const [matched, setMatched]             = useState<Record<number, number>>({});
-  const [wrongRight, setWrongRight]       = useState<number | null>(null);
+  const [selectedLeft, setSelectedLeft] = useState<number | null>(null);
+  // matched: { leftIdx → rightIdx } — какие пары соединены
+  const [matched, setMatched]           = useState<Record<number, number>>({});
+  const [wrongRight, setWrongRight]     = useState<number | null>(null);
+  // Рефы кнопок для рисования SVG-линий
+  const leftRefs  = pairs.map(() => useState<HTMLButtonElement | null>(null));
+  const rightRefs = shuffledRight.map(() => useState<HTMLButtonElement | null>(null));
+  const containerRef = useState<HTMLDivElement | null>(null);
 
   const clickLeft = (i: number) => {
     if (i in matched) return;
@@ -118,48 +123,74 @@ function MatchingPreview({ content, mode }: { content: any; mode: string }) {
 
   const isAllDone = Object.keys(matched).length === pairs.length && pairs.length > 0;
 
+  // Высота одной кнопки + gap (примерно 52px кнопка + 8px gap = 60px)
+  const ROW_H = 60;
+  const BTN_H = 52;
+
   return (
     <div className="space-y-3">
-      {/* Три колонки: левая — разделитель-стрелки — правая */}
-      <div className="grid gap-2" style={{gridTemplateColumns: "1fr 32px 1fr"}}>
-        {/* Левая колонка */}
-        <div className="space-y-2">
-          {pairs.map((p: any, i: number) => (
-            <button key={i} onClick={() => clickLeft(i)}
-              className={`w-full text-left px-4 py-3 rounded-xl border-2 text-base font-medium transition-all shadow-sm ${
-                i in matched        ? "bg-green-50 border-green-400 text-green-800" :
-                selectedLeft === i  ? "bg-primary/10 border-primary text-foreground" :
-                "bg-white border-border hover:border-primary/60 text-foreground"
-              }`}>
-              {p.left}
-              {i in matched && <span className="ml-2 text-green-600">✓</span>}
-            </button>
-          ))}
-        </div>
-        {/* Вертикальный разделитель со стрелками */}
-        <div className="flex flex-col items-center justify-around py-1">
-          {pairs.map((_: any, i: number) => (
-            <span key={i} className="text-muted-foreground text-sm leading-none" style={{height: "48px", display:"flex", alignItems:"center"}}>↔</span>
-          ))}
-        </div>
-        {/* Правая колонка (перемешана) */}
-        <div className="space-y-2">
-          {shuffledRight.map((p: any, j: number) => {
-            const isMatched = Object.values(matched).includes(j);
-            return (
-              <button key={j} onClick={() => clickRight(j)}
+      {/* Две колонки + SVG-линии между ними для совпавших пар */}
+      <div className="relative">
+        <div className="grid grid-cols-2 gap-x-16 gap-y-2">
+          {/* Левая колонка */}
+          <div className="space-y-2">
+            {pairs.map((p: any, i: number) => (
+              <button key={i} onClick={() => clickLeft(i)}
                 className={`w-full text-left px-4 py-3 rounded-xl border-2 text-base font-medium transition-all shadow-sm ${
-                  isMatched        ? "bg-green-50 border-green-400 text-green-800" :
-                  wrongRight === j ? "bg-red-50 border-red-400 text-red-700" :
+                  i in matched       ? "bg-green-50 border-green-400 text-green-800" :
+                  selectedLeft === i ? "bg-primary/10 border-primary text-foreground" :
                   "bg-white border-border hover:border-primary/60 text-foreground"
                 }`}>
-                {p.right}
-                {isMatched && <span className="ml-2 text-green-600">✓</span>}
+                {p.left}
               </button>
-            );
-          })}
+            ))}
+          </div>
+          {/* Правая колонка (перемешана) */}
+          <div className="space-y-2">
+            {shuffledRight.map((p: any, j: number) => {
+              const isMatched = Object.values(matched).includes(j);
+              return (
+                <button key={j} onClick={() => clickRight(j)}
+                  className={`w-full text-left px-4 py-3 rounded-xl border-2 text-base font-medium transition-all shadow-sm ${
+                    isMatched        ? "bg-green-50 border-green-400 text-green-800" :
+                    wrongRight === j ? "bg-red-50 border-red-400 text-red-700" :
+                    "bg-white border-border hover:border-primary/60 text-foreground"
+                  }`}>
+                  {p.right}
+                </button>
+              );
+            })}
+          </div>
         </div>
+
+        {/* SVG-линии между совпавшими парами */}
+        {Object.keys(matched).length > 0 && (
+          <svg
+            className="absolute inset-0 pointer-events-none"
+            style={{ width: "100%", height: pairs.length * ROW_H + "px", top: 0, left: 0 }}
+          >
+            {Object.entries(matched).map(([leftIdxStr, rightIdx]) => {
+              const leftIdx = Number(leftIdxStr);
+              // Y-центр левой кнопки
+              const leftY  = leftIdx  * ROW_H + BTN_H / 2;
+              // Y-центр правой кнопки
+              const rightY = (rightIdx as number) * ROW_H + BTN_H / 2;
+              return (
+                <line
+                  key={leftIdx}
+                  x1="50%" y1={leftY}
+                  x2="50%" y2={rightY}
+                  stroke="#22c55e"
+                  strokeWidth="2"
+                  strokeDasharray="4 3"
+                  opacity="0.7"
+                />
+              );
+            })}
+          </svg>
+        )}
       </div>
+
       {isAllDone && <ResultBadge correct message="Все пары найдены!" />}
       {mode === "teacher" && (
         <TeacherBox label="Правильные пары" text={pairs.map((p: any) => `${p.left} ↔ ${p.right}`).join(" · ")} />

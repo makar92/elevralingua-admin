@@ -610,10 +610,10 @@ function WordOrderForm({ content, setContent }: any) {
     <div className="space-y-3">
       <div className="space-y-1.5">
         <Label className="text-sm font-medium text-foreground">
-          Перевод / подсказка <span className="text-muted-foreground font-normal text-xs">(необязательно)</span>
+          Контекст <span className="text-muted-foreground font-normal text-xs">(необязательно)</span>
         </Label>
         <Input value={content.translation || ""} onChange={(e) => setContent("translation", e.target.value)}
-          placeholder="Перевод предложения — поможет ученику понять смысл"
+          placeholder="Дополнительный контекст или перевод для ученика"
           className="h-10" />
       </div>
       <Label className="text-sm font-medium text-foreground">Слова (порядок при вводе не важен)</Label>
