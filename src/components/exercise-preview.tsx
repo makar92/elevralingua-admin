@@ -94,106 +94,202 @@ export function ExercisePreview({ exercise, mode }: Props) {
 function MatchingPreview({ content, mode }: { content: any; mode: string }) {
   const pairs = content.pairs || [];
   const [shuffledRight] = useState(() => [...pairs].sort(() => Math.random() - 0.5));
-  const [selectedLeft, setSelectedLeft] = useState<number | null>(null);
-  // matched: { leftIdx → rightIdx } — какие пары соединены
-  const [matched, setMatched]           = useState<Record<number, number>>({});
-  const [wrongRight, setWrongRight]     = useState<number | null>(null);
-  // Рефы кнопок для рисования SVG-линий
-  const leftRefs  = pairs.map(() => useState<HTMLButtonElement | null>(null));
-  const rightRefs = shuffledRight.map(() => useState<HTMLButtonElement | null>(null));
-  const containerRef = useState<HTMLDivElement | null>(null);
+  // selectedLeft и selectedRight — можно начинать с любой стороны
+  const [selectedLeft,  setSelectedLeft]  = useState<number | null>(null);
+  const [selectedRight, setSelectedRight] = useState<number | null>(null);
 
+  // matched: leftIdx → rightIdx (любая пара, не только правильная)
+  const [matched, setMatched] = useState<Record<number, number>>({});
+
+  // checked: нажата кнопка "Проверить" — только тогда показываем цвета
+  const [checked, setChecked] = useState(false);
+
+  // Рефы для рисования линий
+  const leftBtnRefs  = pairs.map(()         => useState<HTMLButtonElement | null>(null));
+  const rightBtnRefs = shuffledRight.map(() => useState<HTMLButtonElement | null>(null));
+  const wrapRef      = useState<HTMLDivElement | null>(null);
+  const [, forceRender] = useState(0);
+
+  // Соединить пару leftIdx → rightIdx и перерисовать линии
+  const connectPair = (leftIdx: number, rightIdx: number) => {
+    // Освобождаем если левая уже была соединена
+    // Освобождаем если правая уже была занята
+    setMatched((m) => {
+      const next = { ...m };
+      // убираем старую связь этой левой
+      delete next[leftIdx];
+      // убираем старую связь у той левой что была соединена с этой правой
+      const prevLeft = Object.keys(next).find((k) => next[Number(k)] === rightIdx);
+      if (prevLeft !== undefined) delete next[Number(prevLeft)];
+      next[leftIdx] = rightIdx;
+      setTimeout(() => forceRender(n => n + 1), 30);
+      return next;
+    });
+    setSelectedLeft(null);
+    setSelectedRight(null);
+  };
+
+  // Клик по левой карточке
   const clickLeft = (i: number) => {
-    if (i in matched) return;
+    if (checked) return;
+    // Если уже есть выбранная правая — сразу соединяем
+    if (selectedRight !== null) {
+      connectPair(i, selectedRight);
+      return;
+    }
+    // Если уже соединена — разрываем
+    if (i in matched) {
+      setMatched((m) => { const next = { ...m }; delete next[i]; setTimeout(() => forceRender(n => n+1), 30); return next; });
+      return;
+    }
     setSelectedLeft(i === selectedLeft ? null : i);
   };
 
+  // Клик по правой карточке
   const clickRight = (j: number) => {
-    if (Object.values(matched).includes(j)) return;
-    if (selectedLeft === null) return;
-    const ok = pairs[selectedLeft].right === shuffledRight[j].right;
-    if (ok) {
-      setMatched((m) => ({ ...m, [selectedLeft]: j }));
-      setSelectedLeft(null);
-    } else {
-      setWrongRight(j);
-      setTimeout(() => setWrongRight(null), 600);
+    if (checked) return;
+    // Если уже есть выбранная левая — сразу соединяем
+    if (selectedLeft !== null) {
+      connectPair(selectedLeft, j);
+      return;
     }
+    // Если уже соединена — разрываем
+    const existingLeft = Object.keys(matched).find((k) => matched[Number(k)] === j);
+    if (existingLeft !== undefined) {
+      setMatched((m) => { const next = { ...m }; delete next[Number(existingLeft)]; setTimeout(() => forceRender(n => n+1), 30); return next; });
+      return;
+    }
+    setSelectedRight(j === selectedRight ? null : j);
   };
 
-  const isAllDone = Object.keys(matched).length === pairs.length && pairs.length > 0;
+  // Проверяем правильность каждой пары
+  const isCorrectPair = (leftIdx: number, rightIdx: number) =>
+    pairs[leftIdx].right === shuffledRight[rightIdx].right;
 
-  // Высота одной кнопки + gap (примерно 52px кнопка + 8px gap = 60px)
-  const ROW_H = 60;
-  const BTN_H = 52;
+  const allCorrect =
+    Object.keys(matched).length === pairs.length &&
+    Object.entries(matched).every(([l, r]) => isCorrectPair(Number(l), r as number));
+
+  // Вычисляем координаты линии от правого края левой кнопки до левого края правой
+  const getLineCoords = (leftIdx: number, rightIdx: number) => {
+    const wrap = wrapRef[0];
+    const lBtn = leftBtnRefs[leftIdx]?.[0];
+    const rBtn = rightBtnRefs[rightIdx]?.[0];
+    if (!wrap || !lBtn || !rBtn) return null;
+    const wRect = wrap.getBoundingClientRect();
+    const lRect = lBtn.getBoundingClientRect();
+    const rRect = rBtn.getBoundingClientRect();
+    return {
+      x1: lRect.right  - wRect.left,
+      y1: lRect.top    + lRect.height / 2 - wRect.top,
+      x2: rRect.left   - wRect.left,
+      y2: rRect.top    + rRect.height / 2 - wRect.top,
+    };
+  };
+
+  // Цвет карточки слева
+  const leftCardClass = (i: number) => {
+    if (checked && i in matched) {
+      return isCorrectPair(i, matched[i])
+        ? "bg-green-50 border-green-400 text-green-800"
+        : "bg-red-50 border-red-400 text-red-700";
+    }
+    if (selectedLeft === i) return "bg-primary/10 border-primary text-foreground";
+    if (i in matched)       return "bg-blue-50 border-blue-300 text-foreground";
+    return "bg-white border-border hover:border-primary/60 text-foreground";
+  };
+
+  // Цвет карточки справа
+  const rightCardClass = (j: number) => {
+    if (checked) {
+      const leftIdx = Number(Object.keys(matched).find((k) => matched[Number(k)] === j));
+      if (matched[leftIdx] === j) {
+        return isCorrectPair(leftIdx, j)
+          ? "bg-green-50 border-green-400 text-green-800"
+          : "bg-red-50 border-red-400 text-red-700";
+      }
+    }
+    if (selectedRight === j)              return "bg-primary/10 border-primary text-foreground";
+    if (Object.values(matched).includes(j)) return "bg-blue-50 border-blue-300 text-foreground";
+    return "bg-white border-border hover:border-primary/60 text-foreground";
+  };
+
+  // Цвет линии
+  const lineColor = (leftIdx: number, rightIdx: number) => {
+    if (!checked) return "#6366f1"; // синий пока не проверено
+    return isCorrectPair(leftIdx, rightIdx) ? "#22c55e" : "#ef4444";
+  };
+
+  const allPaired = Object.keys(matched).length === pairs.length;
 
   return (
-    <div className="space-y-3">
-      {/* Две колонки + SVG-линии между ними для совпавших пар */}
-      <div className="relative">
-        <div className="grid grid-cols-2 gap-x-16 gap-y-2">
-          {/* Левая колонка */}
-          <div className="space-y-2">
-            {pairs.map((p: any, i: number) => (
-              <button key={i} onClick={() => clickLeft(i)}
-                className={`w-full text-left px-4 py-3 rounded-xl border-2 text-base font-medium transition-all shadow-sm ${
-                  i in matched       ? "bg-green-50 border-green-400 text-green-800" :
-                  selectedLeft === i ? "bg-primary/10 border-primary text-foreground" :
-                  "bg-white border-border hover:border-primary/60 text-foreground"
-                }`}>
-                {p.left}
-              </button>
-            ))}
-          </div>
-          {/* Правая колонка (перемешана) */}
-          <div className="space-y-2">
-            {shuffledRight.map((p: any, j: number) => {
-              const isMatched = Object.values(matched).includes(j);
-              return (
-                <button key={j} onClick={() => clickRight(j)}
-                  className={`w-full text-left px-4 py-3 rounded-xl border-2 text-base font-medium transition-all shadow-sm ${
-                    isMatched        ? "bg-green-50 border-green-400 text-green-800" :
-                    wrongRight === j ? "bg-red-50 border-red-400 text-red-700" :
-                    "bg-white border-border hover:border-primary/60 text-foreground"
-                  }`}>
-                  {p.right}
-                </button>
-              );
-            })}
-          </div>
+    <div className="space-y-4">
+      <div
+        ref={(el) => { wrapRef[1](el); }}
+        className="relative grid grid-cols-2 gap-x-8"
+      >
+        {/* Левая колонка */}
+        <div className="space-y-2">
+          {pairs.map((p: any, i: number) => (
+            <button
+              key={i}
+              ref={(el) => leftBtnRefs[i][1](el)}
+              onClick={() => clickLeft(i)}
+              className={`w-full text-left px-4 py-3 rounded-xl border-2 text-base font-medium transition-all shadow-sm ${leftCardClass(i)}`}
+            >
+              {p.left}
+            </button>
+          ))}
         </div>
 
-        {/* SVG-линии между совпавшими парами */}
-        {Object.keys(matched).length > 0 && (
-          <svg
-            className="absolute inset-0 pointer-events-none"
-            style={{ width: "100%", height: pairs.length * ROW_H + "px", top: 0, left: 0 }}
-          >
-            {Object.entries(matched).map(([leftIdxStr, rightIdx]) => {
-              const leftIdx = Number(leftIdxStr);
-              // Y-центр левой кнопки
-              const leftY  = leftIdx  * ROW_H + BTN_H / 2;
-              // Y-центр правой кнопки
-              const rightY = (rightIdx as number) * ROW_H + BTN_H / 2;
-              return (
-                <line
-                  key={leftIdx}
-                  x1="50%" y1={leftY}
-                  x2="50%" y2={rightY}
-                  stroke="#22c55e"
-                  strokeWidth="2"
-                  strokeDasharray="4 3"
-                  opacity="0.7"
-                />
-              );
-            })}
-          </svg>
-        )}
+        {/* Правая колонка */}
+        <div className="space-y-2">
+          {shuffledRight.map((p: any, j: number) => (
+            <button
+              key={j}
+              ref={(el) => rightBtnRefs[j][1](el)}
+              onClick={() => clickRight(j)}
+              className={`w-full text-left px-4 py-3 rounded-xl border-2 text-base font-medium transition-all shadow-sm ${rightCardClass(j)}`}
+            >
+              {p.right}
+            </button>
+          ))}
+        </div>
+
+        {/* SVG-линии между соединёнными парами */}
+        <svg
+          className="absolute inset-0 pointer-events-none overflow-visible"
+          style={{ width: "100%", height: "100%" }}
+        >
+          {Object.entries(matched).map(([leftIdxStr, rightIdx]) => {
+            const coords = getLineCoords(Number(leftIdxStr), rightIdx as number);
+            if (!coords) return null;
+            return (
+              <line
+                key={leftIdxStr}
+                x1={coords.x1} y1={coords.y1}
+                x2={coords.x2} y2={coords.y2}
+                stroke={lineColor(Number(leftIdxStr), rightIdx as number)}
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              />
+            );
+          })}
+        </svg>
       </div>
 
-      {isAllDone && <ResultBadge correct message="Все пары найдены!" />}
+      {/* Кнопка проверки — только когда все пары соединены */}
+      {!checked && allPaired && (
+        <Button size="sm" onClick={() => setChecked(true)}>Проверить</Button>
+      )}
+
+      {checked && <ResultBadge correct={allCorrect} />}
+
       {mode === "teacher" && (
-        <TeacherBox label="Правильные пары" text={pairs.map((p: any) => `${p.left} ↔ ${p.right}`).join(" · ")} />
+        <TeacherBox
+          label="Правильные пары"
+          text={pairs.map((p: any) => `${p.left} ↔ ${p.right}`).join(" · ")}
+        />
       )}
     </div>
   );

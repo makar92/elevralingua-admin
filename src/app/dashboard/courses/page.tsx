@@ -35,7 +35,7 @@ export default async function CoursesPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-4">
           {courses.map((course) => {
             const lessonCount = course.modules.reduce((sum, m) => sum + m.lessons.length, 0);
             return (
