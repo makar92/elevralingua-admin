@@ -41,15 +41,22 @@ export async function POST(
 
     let newOrder: number;
 
-    if (insertAfterOrder !== undefined && insertAfterOrder !== null) {
-      // Вставка между блоками: сдвигаем все блоки после insertAfterOrder
+    if (insertAfterOrder === -1) {
+      // Вставка в НАЧАЛО: сдвигаем ВСЕ блоки на 1 вперёд
+      await prisma.contentBlock.updateMany({
+        where: { sectionId },
+        data: { order: { increment: 1 } },
+      });
+      newOrder = 0;
+    } else if (insertAfterOrder !== undefined && insertAfterOrder !== null) {
+      // Вставка ПОСЛЕ указанного блока: сдвигаем блоки с order > insertAfterOrder
       await prisma.contentBlock.updateMany({
         where: { sectionId, order: { gt: insertAfterOrder } },
         data: { order: { increment: 1 } },
       });
       newOrder = insertAfterOrder + 1;
     } else {
-      // Вставка в конец
+      // Вставка в КОНЕЦ (по умолчанию)
       const last = await prisma.contentBlock.findFirst({
         where: { sectionId },
         orderBy: { order: "desc" },

@@ -13,7 +13,7 @@
 //   - SPACER: выбор размера отступа (sm/md/lg)
 //   - HTML_EMBED: textarea для HTML/iframe
 //   - VOCAB_CARD: универсальная карточка слова (все языки)
-//   - GRAMMAR_RULE: заголовок + формула (MathLive) + объяснение (Tiptap)
+//   - VOCAB_CARD: универсальная карточка слова (все языки)
 //   - DIALOGUE: визуальный конструктор с аватарками и фонами
 //   Для всех типов (кроме DIVIDER и SPACER) — заметка для учителя.
 // ===========================================
@@ -89,7 +89,6 @@ export function BlockForm({ type, initialData, onSave, onCancel }: Props) {
       {type === "HTML_EMBED" && <HtmlEmbedForm data={data} set={set} />}
       {type === "SPACER" && <SpacerForm data={data} set={set} />}
       {type === "VOCAB_CARD" && <VocabCardForm data={data} set={set} upload={uploadFile} uploading={uploading} />}
-      {type === "GRAMMAR_RULE" && <GrammarForm data={data} set={set} />}
       {type === "DIALOGUE" && <DialogueForm data={data} set={set} />}
 
       {/* Заметка для учителя — для ВСЕХ типов кроме DIVIDER и SPACER */}
@@ -268,26 +267,6 @@ function VocabCardForm({ data, set, upload, uploading }: { data: any; set: any; 
         <p className="text-xs text-muted-foreground">Необязательно. Используйте подходящую систему транскрипции для вашего языка.</p>
       </div>
 
-      {/* Часть речи (опционально) */}
-      <div className="space-y-2">
-        <Label className="text-base text-foreground">Часть речи</Label>
-        <Select value={data.partOfSpeech || ""} onValueChange={(v) => set("partOfSpeech", v)}>
-          <SelectTrigger className="h-11 text-base"><SelectValue placeholder="Не указана" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="noun">noun (существительное)</SelectItem>
-            <SelectItem value="verb">verb (глагол)</SelectItem>
-            <SelectItem value="adjective">adjective (прилагательное)</SelectItem>
-            <SelectItem value="adverb">adverb (наречие)</SelectItem>
-            <SelectItem value="pronoun">pronoun (местоимение)</SelectItem>
-            <SelectItem value="preposition">preposition (предлог)</SelectItem>
-            <SelectItem value="conjunction">conjunction (союз)</SelectItem>
-            <SelectItem value="interjection">interjection (междометие)</SelectItem>
-            <SelectItem value="phrase">phrase (фраза)</SelectItem>
-            <SelectItem value="particle">particle (частица)</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
       {/* Аудио (опционально) */}
       <div className="space-y-2">
         <Label className="text-base text-foreground">Аудио произношения</Label>
@@ -326,94 +305,6 @@ function VocabCardForm({ data, set, upload, uploading }: { data: any; set: any; 
           <Input value={data.exampleTranslation || ""} onChange={(e) => set("exampleTranslation", e.target.value)}
             placeholder="Перевод предложения" className="text-base h-11" />
         </div>
-      </div>
-    </div>
-  );
-}
-
-// ===== ГРАММАТИКА — заголовок + формула (MathLive) + объяснение (Tiptap) =====
-function GrammarForm({ data, set }: { data: any; set: any }) {
-  return (
-    <div className="space-y-4">
-      {/* Название грамматического правила */}
-      <div className="space-y-2">
-        <Label className="text-base text-foreground">Название правила</Label>
-        <Input value={data.title || ""} onChange={(e) => set("title", e.target.value)}
-          placeholder="Например: Выражение желания: 想 + V" className="text-lg h-12" />
-      </div>
-
-      {/* Формула — MathLive визуальный редактор */}
-      <div className="space-y-2">
-        <Label className="text-base text-foreground">Формула (визуальный редактор)</Label>
-        <MathLiveEditor value={data.formula || ""} onChange={(val) => set("formula", val)} />
-        <p className="text-xs text-muted-foreground">
-          Используйте визуальный редактор для ввода формул. Поддерживает дроби, степени, корни, специальные символы.
-          Для простых формул типа «S + 想 + V» можно вводить как обычный текст.
-        </p>
-      </div>
-
-      {/* Объяснение — Tiptap */}
-      <div className="space-y-2">
-        <Label className="text-base text-foreground">Объяснение</Label>
-        <TiptapEditor content={data.explanationHtml || ""} onChange={(html) => set("explanationHtml", html)} />
-      </div>
-    </div>
-  );
-}
-
-// ===== MathLive — визуальный редактор формул =====
-function MathLiveEditor({ value, onChange }: { value: string; onChange: (val: string) => void }) {
-  // MathLive загружается динамически как веб-компонент
-  // При первом рендере добавляем скрипт, затем используем <math-field>
-  const [loaded, setLoaded] = useState(false);
-
-  // Загружаем MathLive если ещё не загружен
-  if (typeof window !== "undefined" && !loaded) {
-    // Проверяем есть ли уже скрипт на странице
-    if (!document.querySelector('script[src*="mathlive"]')) {
-      const script = document.createElement("script");
-      script.src = "https://cdn.jsdelivr.net/npm/mathlive@0.101.0/dist/mathlive.min.js";
-      script.onload = () => setLoaded(true);
-      document.head.appendChild(script);
-    } else {
-      setLoaded(true);
-    }
-  }
-
-  return (
-    <div className="border border-border rounded-lg overflow-hidden bg-card">
-      {loaded ? (
-        // MathLive веб-компонент (визуальный ввод формул)
-        <div
-          dangerouslySetInnerHTML={{
-            __html: `<math-field
-              id="grammar-math-field"
-              style="width:100%;min-height:60px;font-size:20px;padding:12px 16px;border:none;outline:none;background:transparent;"
-            >${value || ""}</math-field>`
-          }}
-          ref={(el) => {
-            if (!el) return;
-            // Подписываемся на изменения через событие input
-            const mf = el.querySelector("math-field");
-            if (mf) {
-              (mf as any).addEventListener("input", () => {
-                onChange((mf as any).value || "");
-              });
-            }
-          }}
-        />
-      ) : (
-        // Пока MathLive загружается — показываем обычный input
-        <Input value={value} onChange={(e) => onChange(e.target.value)}
-          placeholder="Загрузка редактора формул..." className="text-xl h-14 border-0" />
-      )}
-      {/* Фоллбэк: LaTeX-ввод для опытных пользователей */}
-      <div className="px-4 py-2 border-t border-border bg-muted/30">
-        <details>
-          <summary className="text-xs text-muted-foreground cursor-pointer">LaTeX-код (для опытных)</summary>
-          <Input value={value} onChange={(e) => onChange(e.target.value)}
-            placeholder="S + \text{想} + V + O" className="text-sm h-9 mt-2 font-mono" />
-        </details>
       </div>
     </div>
   );
@@ -694,11 +585,9 @@ function getDefaultData(type: string): any {
       // Универсальная карточка: слово + перевод + транскрипция + медиа + пример
       return {
         word: "", translation: "", transcription: "",
-        partOfSpeech: "", audioUrl: "", imageUrl: "",
+        audioUrl: "", imageUrl: "",
         exampleSentence: "", exampleTranslation: "",
       };
-    case "GRAMMAR_RULE":
-      return { title: "", formula: "", explanationHtml: "" };
     case "DIALOGUE":
       return { situationTitle: "", speakers: ["", ""], speakerAvatars: ["man", "woman"], sceneId: "none", lines: [] };
     default:

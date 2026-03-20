@@ -7,7 +7,6 @@
 //   Отображает блоки как в реальном учебнике:
 //   - Стандартный отступ между блоками (1-2 строки)
 //   - Карточки слов — визуально выразительные
-//   - Грамматика — формулы через MathLive (read-only)
 //   - Диалоги — с аватарками и фонами
 //   - Заметки учителя — видны только в режиме учителя
 //   Поддерживает все 10 типов блоков включая SPACER.
@@ -41,7 +40,7 @@ export function PreviewTextbook({ blocks, isTeacher }: Props) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {blocks.map((block) => (
         <div key={block.id}>
           {/* Рендер блока */}
@@ -68,17 +67,18 @@ function PreviewBlock({ block }: { block: ContentBlock }) {
     // --- Форматированный текст ---
     case "TEXT":
       return (
-        <div className="prose prose-lg max-w-none
-          text-foreground leading-[1.85]
-          [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:text-foreground [&_h1]:mt-8 [&_h1]:mb-4
-          [&_h2]:text-xl [&_h2]:font-bold [&_h2]:text-foreground [&_h2]:mt-6 [&_h2]:mb-3
-          [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-foreground [&_h3]:mt-5 [&_h3]:mb-2
-          [&_p]:mb-4 [&_b]:text-foreground [&_strong]:text-foreground
+        <div className="prose prose-base max-w-none
+          text-foreground leading-normal
+          [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:text-foreground [&_h1]:mt-5 [&_h1]:mb-2
+          [&_h2]:text-xl [&_h2]:font-bold [&_h2]:text-foreground [&_h2]:mt-4 [&_h2]:mb-2
+          [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-foreground [&_h3]:mt-3 [&_h3]:mb-1
+          [&_p]:mb-1.5 [&_b]:text-foreground [&_strong]:text-foreground
           [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6
-          [&_li]:mb-1
+          [&_li]:mb-0.5
           [&_blockquote]:border-l-2 [&_blockquote]:border-primary/40 [&_blockquote]:pl-5 [&_blockquote]:italic [&_blockquote]:text-foreground/80
           [&_code]:bg-muted [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-sm
-          [&_pre]:bg-muted [&_pre]:p-4 [&_pre]:rounded-lg [&_pre]:text-sm"
+          [&_pre]:bg-muted [&_pre]:p-4 [&_pre]:rounded-lg [&_pre]:text-sm
+          [&_table]:border-collapse [&_table]:w-full [&_table]:border [&_table]:border-border [&_td]:border [&_td]:border-border [&_td]:p-2 [&_td]:text-sm [&_th]:border [&_th]:border-border [&_th]:p-2 [&_th]:font-semibold [&_th]:bg-muted [&_a]:text-primary [&_a]:underline"
           dangerouslySetInnerHTML={{ __html: c.html || "" }} />
       );
 
@@ -120,8 +120,6 @@ function PreviewBlock({ block }: { block: ContentBlock }) {
 
     // --- Карточка слова (универсальная) ---
     case "VOCAB_CARD": return <VocabCardPreview c={c} />;
-    // --- Грамматическое правило ---
-    case "GRAMMAR_RULE": return <GrammarPreview c={c} />;
     // --- Диалог ---
     case "DIALOGUE": return <DialoguePreview c={c} />;
 
@@ -154,12 +152,6 @@ function VocabCardPreview({ c }: { c: any }) {
           )}
           {/* Перевод */}
           {c.translation && <p className="text-xl text-foreground mt-2">{c.translation}</p>}
-          {/* Часть речи */}
-          {c.partOfSpeech && (
-            <span className="inline-block text-sm px-3 py-1 rounded-full bg-black/5 text-foreground/60 mt-3">
-              {c.partOfSpeech}
-            </span>
-          )}
           {/* Картинка */}
           {c.imageUrl && <img src={c.imageUrl} alt={word} className="max-w-[180px] rounded-xl mt-4" />}
           {/* Аудио */}
@@ -179,37 +171,6 @@ function VocabCardPreview({ c }: { c: any }) {
           )}
           {c.exampleTranslation && <p className="text-base text-foreground/50 mt-1">{c.exampleTranslation}</p>}
         </div>
-      )}
-    </div>
-  );
-}
-
-// ===== Грамматическое правило =====
-function GrammarPreview({ c }: { c: any }) {
-  return (
-    <div className="rounded-2xl overflow-hidden bg-white border border-black/8 shadow-xl">
-      {/* Заголовок */}
-      <div className="px-7 pt-6 pb-3">
-        <div className="flex items-center gap-3">
-          <div className="w-1.5 h-7 rounded-full bg-violet-600" />
-          <h3 className="text-xl font-bold text-foreground">{c.title}</h3>
-        </div>
-      </div>
-      {/* Формула — MathLive (read-only) */}
-      {c.formula && (
-        <div className="mx-7 mb-5 bg-black/[0.04] rounded-xl px-6 py-4">
-          <math-field
-            read-only
-            style={{ fontSize: "20px", border: "none", background: "transparent", pointerEvents: "none" } as any}
-          >{c.formula}</math-field>
-        </div>
-      )}
-      {/* Объяснение (HTML из Tiptap) */}
-      {c.explanationHtml && (
-        <div className="px-7 pb-5 text-lg text-foreground/80 leading-relaxed
-          [&_b]:text-foreground [&_strong]:text-foreground
-          [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5"
-          dangerouslySetInnerHTML={{ __html: c.explanationHtml }} />
       )}
     </div>
   );

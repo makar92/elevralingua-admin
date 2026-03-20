@@ -40,11 +40,11 @@ export default async function CoursesPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-5">
+        <div className="flex flex-col gap-4">
           {courses.map((course) => {
             const lessonCount = course.modules.reduce((sum, m) => sum + m.lessons.length, 0);
             return (
-              <Link key={course.id} href={`/dashboard/courses/${course.id}`}>
+              <Link key={course.id} href={`/dashboard/courses/${course.id}`} className="block">
                 <Card className="hover:border-primary/50 hover:shadow-md transition-all cursor-pointer">
                   <CardContent className="py-5 px-6">
                     <div className="flex items-center justify-between">

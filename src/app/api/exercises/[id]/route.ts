@@ -73,17 +73,24 @@ export async function PATCH(
     if (body.isDefaultInWorkbook !== undefined) data.isDefaultInWorkbook = body.isDefaultInWorkbook;
     if (body.isPublished !== undefined) data.isPublished = body.isPublished;
     if (body.exerciseType !== undefined) data.exerciseType = body.exerciseType;
+    if (body.order !== undefined) data.order = body.order;
 
     // Обновляем упражнение в базе
     const exercise = await prisma.exercise.update({
       where: { id },
       data,
       include: {
-        lesson: {
+        section: {
           select: {
             id: true,
             title: true,
-            module: { select: { id: true, title: true, course: { select: { id: true, title: true } } } },
+            lesson: {
+              select: {
+                id: true,
+                title: true,
+                module: { select: { id: true, title: true, course: { select: { id: true, title: true } } } },
+              },
+            },
           },
         },
       },

@@ -7,9 +7,8 @@
 //   Компактный вид для карточек в редакторе учебника.
 //   Поддерживает все 10 типов блоков:
 //   TEXT, IMAGE, AUDIO, YOUTUBE, DIVIDER, SPACER,
-//   HTML_EMBED, VOCAB_CARD, GRAMMAR_RULE, DIALOGUE.
+//   HTML_EMBED, VOCAB_CARD, DIALOGUE.
 //   Аудио — кастомный плеер (AudioPlayer).
-//   Формулы грамматики — MathLive (рендер через веб-компонент).
 // ===========================================
 
 "use client";
@@ -123,10 +122,6 @@ export function BlockRenderer({ block }: { block: ContentBlock }) {
             )}
             {/* Перевод */}
             {c.translation && <p className="text-lg text-foreground mt-1">{c.translation}</p>}
-            {/* Часть речи */}
-            {c.partOfSpeech && (
-              <span className="inline-block text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground mt-2">{c.partOfSpeech}</span>
-            )}
             {/* Картинка */}
             {c.imageUrl && <img src={c.imageUrl} alt={c.word || ""} className="max-w-[200px] rounded-lg mt-3" />}
             {/* Аудио */}
@@ -146,29 +141,6 @@ export function BlockRenderer({ block }: { block: ContentBlock }) {
               </div>
             )}
           </div>
-        </div>
-      );
-
-    // --- Грамматическое правило ---
-    case "GRAMMAR_RULE":
-      return (
-        <div>
-          {/* Заголовок правила */}
-          <p className="text-lg font-medium text-foreground">{c.title}</p>
-          {/* Формула — рендерим через MathLive (read-only) */}
-          {c.formula && (
-            <div className="bg-muted rounded-lg px-4 py-3 mt-2">
-              <math-field
-                read-only
-                style={{ fontSize: "18px", border: "none", background: "transparent", pointerEvents: "none" } as any}
-              >{c.formula}</math-field>
-            </div>
-          )}
-          {/* Объяснение (HTML из Tiptap) */}
-          {c.explanationHtml && (
-            <div className="mt-3 text-base text-foreground leading-relaxed"
-              dangerouslySetInnerHTML={{ __html: c.explanationHtml }} />
-          )}
         </div>
       );
 

@@ -32,8 +32,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { BlockRenderer } from "@/components/block-renderer";
 import { BlockForm } from "@/components/block-form";
 import { ExerciseForm } from "@/components/exercise-form";
+import { ExercisePreview } from "@/components/exercise-preview";
 import { PreviewTextbook } from "@/components/preview-textbook";
-import { PreviewWorkbook } from "@/components/preview-workbook";
 
 // ===== Типы =====
 interface Section { id: string; title: string; }
@@ -54,7 +54,6 @@ const BLOCK_TYPES = [
   { type: "AUDIO",        icon: "🔊", name: "Аудио",           desc: "Аудио-файл с плеером" },
   { type: "YOUTUBE",      icon: "▶️", name: "YouTube",         desc: "Видео с YouTube" },
   { type: "VOCAB_CARD",   icon: "🃏", name: "Карточка слова",  desc: "Слово + перевод + транскрипция + медиа" },
-  { type: "GRAMMAR_RULE", icon: "📐", name: "Грамматика",      desc: "Правило + формула + объяснение" },
   { type: "DIALOGUE",     icon: "💬", name: "Диалог",          desc: "Участники + реплики" },
   { type: "DIVIDER",      icon: "—",  name: "Разделитель",     desc: "Горизонтальная линия" },
   { type: "SPACER",       icon: "↕️", name: "Отступ",          desc: "Пустая строка (пробел между блоками)" },
@@ -258,9 +257,44 @@ export function SectionEditor({ section }: { section: Section }) {
     }
   };
 
-  // ===== Фильтрация упражнений по вкладке =====
-  const workbookExercises = exercises.filter((e) => e.isDefaultInWorkbook);
-  const bankExercises = exercises.filter((e) => !e.isDefaultInWorkbook);
+  // Переместить упражнение вверх/вниз в тетради (меняем order)
+  const moveExercise = async (exerciseId: string, direction: "up" | "down") => {
+    // Берём отсортированный список упражнений тетради
+    const sorted = [...exercises]
+      .filter((e) => e.isDefaultInWorkbook)
+      .sort((a, b) => a.order - b.order);
+    const idx = sorted.findIndex((e) => e.id === exerciseId);
+    const swapIdx = direction === "up" ? idx - 1 : idx + 1;
+    if (swapIdx < 0 || swapIdx >= sorted.length) return;
+
+    const current = sorted[idx];
+    const swap = sorted[swapIdx];
+
+    // Если order одинаковый — принудительно разводим
+    let newCurrentOrder = swap.order;
+    let newSwapOrder = current.order;
+    if (newCurrentOrder === newSwapOrder) {
+      // Присваиваем по индексу: тот кто выше получает меньший order
+      newCurrentOrder = swapIdx;
+      newSwapOrder = idx;
+    }
+
+    // Отправляем оба PATCH последовательно (чтобы не было race condition)
+    await fetch(`/api/exercises/${current.id}`, {
+      method: "PATCH", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ order: newCurrentOrder }),
+    });
+    await fetch(`/api/exercises/${swap.id}`, {
+      method: "PATCH", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ order: newSwapOrder }),
+    });
+    // Перезагружаем для актуального порядка
+    await loadExercises();
+  };
+
+  // ===== Фильтрация упражнений по вкладке (с сортировкой по order) =====
+  const workbookExercises = exercises.filter((e) => e.isDefaultInWorkbook).sort((a, b) => a.order - b.order);
+  const bankExercises = exercises.filter((e) => !e.isDefaultInWorkbook).sort((a, b) => a.order - b.order);
 
   // ===== РЕНДЕР: Форма блока (учебник) =====
   if (activeTab === "textbook" && editOpen) {
@@ -322,7 +356,8 @@ export function SectionEditor({ section }: { section: Section }) {
         <Card><CardContent className="p-6">
           <ExerciseForm exerciseType={selectedExType} initialData={editingExercise || undefined}
             onSave={editingExercise ? updateExercise : createExercise}
-            onCancel={() => { setExMode(editingExercise ? "list" : "pickType"); setEditingExercise(null); }} />
+            onCancel={() => { setExMode(editingExercise ? "list" : "pickType"); setEditingExercise(null); }}
+            saveLabel={createFromWorkbook ? "Добавить в тетрадь" : "Добавить в банк"} />
         </CardContent></Card>
       </div>
     );
@@ -405,7 +440,21 @@ export function SectionEditor({ section }: { section: Section }) {
 
         {/* Контент просмотра */}
         {previewTab === "textbook" && <PreviewTextbook blocks={blocks} isTeacher={isTeacher} />}
-        {previewTab === "workbook" && <PreviewWorkbook exercises={workbookExercises} isTeacher={isTeacher} />}
+        {previewTab === "workbook" && (
+          <div className="space-y-6">
+            {workbookExercises.length === 0 && (
+              <div className="text-center py-20">
+                <p className="text-xl text-muted-foreground">Тетрадь пуста</p>
+              </div>
+            )}
+            {workbookExercises.map((ex, idx) => (
+              <div key={ex.id} className="border border-border rounded-xl p-5 bg-card">
+                <p className="text-xs text-muted-foreground mb-3">Упражнение {idx + 1}</p>
+                <ExercisePreview exercise={ex} mode={isTeacher ? "teacher" : "student"} />
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     );
   }
@@ -444,7 +493,7 @@ export function SectionEditor({ section }: { section: Section }) {
           {!loadingBlocks && (
             <div>
               {/* Кнопка добавления перед первым блоком */}
-              <AddBlockBtn onClick={() => openAddBlock(null)} />
+              <AddBlockBtn onClick={() => openAddBlock(-1)} />
 
               {/* Список блоков */}
               {blocks.map((block, idx) => (
@@ -532,7 +581,9 @@ export function SectionEditor({ section }: { section: Section }) {
                   onToggle={toggleWorkbook} showToggle
                   onEdit={() => { setEditingExercise(ex); setSelectedExType(ex.exerciseType); setCreateFromWorkbook(true); setExMode("form"); }}
                   onDelete={() => deleteExercise(ex.id)}
-                  toggleLabel="Убрать в банк" />
+                  toggleLabel="Убрать в банк"
+                  onMoveUp={idx > 0 ? () => moveExercise(ex.id, "up") : undefined}
+                  onMoveDown={idx < workbookExercises.length - 1 ? () => moveExercise(ex.id, "down") : undefined} />
               ))}
             </div>
           )}
@@ -586,16 +637,28 @@ export function SectionEditor({ section }: { section: Section }) {
 // =====================================================================
 
 // ===== Карточка упражнения (переиспользуемая) =====
-function ExerciseCard({ ex, idx, onToggle, onEdit, onDelete, showToggle, toggleLabel }: {
+function ExerciseCard({ ex, idx, onToggle, onEdit, onDelete, showToggle, toggleLabel, onMoveUp, onMoveDown }: {
   ex: Exercise; idx: number; onToggle: (ex: Exercise) => void;
   onEdit?: () => void; onDelete?: () => void; showToggle?: boolean;
   toggleLabel?: string;
+  onMoveUp?: () => void; onMoveDown?: () => void;
 }) {
   const info = exTypeMap[ex.exerciseType];
   return (
     <Card className="group relative">
       {/* Кнопки действий (при наведении) */}
       <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10 bg-card/90 backdrop-blur-sm rounded-md border border-border p-0.5">
+        {/* Вверх/Вниз (перемещение в тетради) */}
+        {onMoveUp && (
+          <IconBtn onClick={onMoveUp} title="Вверх">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 15l-6-6-6 6"/></svg>
+          </IconBtn>
+        )}
+        {onMoveDown && (
+          <IconBtn onClick={onMoveDown} title="Вниз">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9l6 6 6-6"/></svg>
+          </IconBtn>
+        )}
         {/* Переключение тетрадь ↔ банк */}
         {showToggle && (
           <button onClick={() => onToggle(ex)}

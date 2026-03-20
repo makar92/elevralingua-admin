@@ -101,9 +101,10 @@ interface ExerciseFormProps {
   initialData?: any;
   onSave: (data: any) => void;
   onCancel: () => void;
+  saveLabel?: string;  // Текст кнопки сохранения (по умолчанию "Добавить в банк")
 }
 
-export function ExerciseForm({ exerciseType, initialData, onSave, onCancel }: ExerciseFormProps) {
+export function ExerciseForm({ exerciseType, initialData, onSave, onCancel, saveLabel }: ExerciseFormProps) {
   // Режим: form | preview
   const [viewMode, setViewMode] = useState<"form" | "preview">("form");
 
@@ -289,7 +290,7 @@ export function ExerciseForm({ exerciseType, initialData, onSave, onCancel }: Ex
       <div className="flex justify-end gap-3 pt-2">
         <Button variant="outline" size="lg" onClick={onCancel}>Отмена</Button>
         <Button size="lg" onClick={handleSave} disabled={!instructionText.trim()}>
-          {initialData ? "Сохранить" : "Добавить в банк"}
+          {initialData ? "Сохранить" : (saveLabel || "Добавить в банк")}
         </Button>
       </div>
     </div>
