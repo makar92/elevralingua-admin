@@ -4,12 +4,11 @@
 //
 // Описание:
 //   БЛОЧНАЯ АРХИТЕКТУРА v4.
-//   Свободные разделы + универсальные блоки-кирпичики.
+//   Иерархия: Course → Unit → Lesson → Section → Blocks.
 //   Банк упражнений (10 типов) привязан к разделам.
 //   Рабочая тетрадь = упражнения с isDefaultInWorkbook=true.
-//   ContentBlock — одна таблица для 10 типов контента.
+//   ContentBlock — одна таблица для 9 типов контента.
 //   Exercise — одна таблица для 10 типов упражнений.
-//   SPACER заменил TONE_BLOCK. Карточка слова — универсальная.
 // ===========================================
 
 generator client {
@@ -39,7 +38,7 @@ enum UserRole {
   LINGUIST
 }
 
-// ==================== ИЕРАРХИЯ: КУРС > МОДУЛЬ > УРОК > РАЗДЕЛ ====================
+// ==================== ИЕРАРХИЯ: КУРС > ЮНИТ > УРОК > РАЗДЕЛ ====================
 
 model Course {
   id             String   @id @default(cuid())
@@ -54,10 +53,10 @@ model Course {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  modules Module[]
+  units Unit[]
 }
 
-model Module {
+model Unit {
   id             String   @id @default(cuid())
   courseId        String
   title          String
@@ -75,7 +74,7 @@ model Module {
 
 model Lesson {
   id             String   @id @default(cuid())
-  moduleId       String
+  unitId         String
   title          String
   description    String?  @db.Text
   order          Int      @default(0)
@@ -84,11 +83,11 @@ model Lesson {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  module     Module      @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  unit       Unit        @relation(fields: [unitId], references: [id], onDelete: Cascade)
   sections   Section[]
   lessonPlan LessonPlan?
 
-  @@index([moduleId])
+  @@index([unitId])
 }
 
 // Раздел — СВОБОДНЫЙ. Любое название, любой порядок.
@@ -126,7 +125,7 @@ model ContentBlock {
   @@index([sectionId])
 }
 
-// 10 типов блоков контента
+// 9 типов блоков контента
 enum ContentBlockType {
   // --- Базовые ---
   TEXT           // Форматированный текст (Tiptap WYSIWYG)
@@ -178,7 +177,7 @@ model LessonPlan {
 model Exercise {
   id                  String       @id @default(cuid())
   sectionId           String                           // Привязка к разделу
-  exerciseType        ExerciseType                     // Тип упражнения (11 типов)
+  exerciseType        ExerciseType                     // Тип упражнения (10 типов)
   order               Int          @default(0)         // Порядок в разделе
   title               String       @default("")        // Короткое название для банка
   instructionText     String       @db.Text             // Задание для ученика
@@ -201,7 +200,7 @@ model Exercise {
   @@index([exerciseType])
 }
 
-// 11 типов упражнений для MVP
+// 10 типов упражнений для MVP
 enum ExerciseType {
   // === Автопроверка (4 типа) ===
   MATCHING              // Соединить пары (слово↔перевод, пиньинь↔иероглиф)
@@ -209,7 +208,7 @@ enum ExerciseType {
   TONE_PLACEMENT        // Расставить тоны над пиньинь (китайский)
   WORD_ORDER            // Составить предложение из перемешанных слов
 
-  // === Ручная проверка учителем (7 типов) ===
+  // === Ручная проверка учителем (6 типов) ===
   FILL_BLANK            // Вписать слово в пропуск в предложении
   TRANSLATION           // Перевести с одного языка на другой (универсально)
   WRITE_PINYIN          // Написать пиньинь над иероглифами (китайский)

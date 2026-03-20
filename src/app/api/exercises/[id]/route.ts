@@ -25,15 +25,21 @@ export async function GET(
 
     const { id } = await params;
 
-    // Загружаем упражнение с информацией об уроке
+    // Загружаем упражнение с информацией о разделе/уроке
     const exercise = await prisma.exercise.findUnique({
       where: { id },
       include: {
-        lesson: {
+        section: {
           select: {
             id: true,
             title: true,
-            module: { select: { id: true, title: true, course: { select: { id: true, title: true } } } },
+            lesson: {
+              select: {
+                id: true,
+                title: true,
+                unit: { select: { id: true, title: true, course: { select: { id: true, title: true } } } },
+              },
+            },
           },
         },
       },
@@ -88,7 +94,7 @@ export async function PATCH(
               select: {
                 id: true,
                 title: true,
-                module: { select: { id: true, title: true, course: { select: { id: true, title: true } } } },
+                unit: { select: { id: true, title: true, course: { select: { id: true, title: true } } } },
               },
             },
           },
@@ -112,7 +118,7 @@ export async function DELETE(
 
     const { id } = await params;
 
-    // Удаляем упражнение (каскадно удалит WorkbookEntry и ExerciseAnswer)
+    // Удаляем упражнение (каскадно удалит ExerciseAnswer)
     await prisma.exercise.delete({ where: { id } });
 
     return apiSuccess({ success: true });

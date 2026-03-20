@@ -4,7 +4,7 @@
 //
 // Описание:
 //   Страница списка курсов.
-//   Показывает все курсы с мета-информацией (язык, уровень, кол-во модулей/уроков).
+//   Показывает все курсы с мета-информацией (язык, уровень, кол-во юнитов/уроков).
 //   Кнопка создания нового курса. Карточки кликабельные — переход в редактор.
 // ===========================================
 
@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui/badge";
 
 export default async function CoursesPage() {
   const courses = await prisma.course.findMany({
-    include: { modules: { include: { lessons: true } } },
+    include: { units: { include: { lessons: true } } },
     orderBy: { order: "asc" },
   });
 
@@ -42,7 +42,7 @@ export default async function CoursesPage() {
       ) : (
         <div className="flex flex-col gap-4">
           {courses.map((course) => {
-            const lessonCount = course.modules.reduce((sum, m) => sum + m.lessons.length, 0);
+            const lessonCount = course.units.reduce((sum, u) => sum + u.lessons.length, 0);
             return (
               <Link key={course.id} href={`/dashboard/courses/${course.id}`} className="block">
                 <Card className="hover:border-primary/50 hover:shadow-md transition-all cursor-pointer">
@@ -60,7 +60,7 @@ export default async function CoursesPage() {
                         <p className="text-sm text-muted-foreground mt-1">
                           {course.language.toUpperCase()} → {course.targetLanguage.toUpperCase()}
                           {" · "}{course.level}
-                          {" · "}{course.modules.length} модулей
+                          {" · "}{course.units.length} юнитов
                           {" · "}{lessonCount} уроков
                         </p>
                       </div>

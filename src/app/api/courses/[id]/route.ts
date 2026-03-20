@@ -18,7 +18,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     const { id } = await params;
     const course = await prisma.course.findUnique({
       where: { id },
-      include: { modules: { include: { lessons: { include: { sections: true }, orderBy: { order: "asc" } } }, orderBy: { order: "asc" } } },
+      include: { units: { include: { lessons: { include: { sections: true }, orderBy: { order: "asc" } } }, orderBy: { order: "asc" } } },
     });
     if (!course) return apiError("Курс не найден", 404);
     return apiSuccess(course);

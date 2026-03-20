@@ -6,7 +6,8 @@
 //   Редактор курса. Дерево слева, контент справа.
 //   При выборе урока — вкладки «Учебник» и «Тетрадь».
 //   Учебник: разделы с блоками контента.
-//   Тетрадь: упражнения из банка (WorkbookEditor).
+//   Тетрадь: упражнения из банка.
+//   Иерархия: Course → Unit → Lesson → Section.
 // ===========================================
 
 "use client";
@@ -22,54 +23,65 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { CourseTree } from "@/components/course-tree";
 import { SectionEditor } from "@/components/section-editor";
 
+// ===== Типы =====
 interface Section { id: string; title: string; order: number; }
 interface Lesson { id: string; title: string; description: string | null; order: number; estimatedHours: number; sections: Section[]; }
-interface Module { id: string; title: string; description: string | null; order: number; lessons: Lesson[]; }
-interface Course { id: string; title: string; language: string; targetLanguage: string; level: string; description: string | null; isPublished: boolean; modules: Module[]; }
-interface SelectedItem { type: "course" | "module" | "lesson" | "section"; id: string; data: any; }
+interface Unit { id: string; title: string; description: string | null; order: number; lessons: Lesson[]; }
+interface Course { id: string; title: string; language: string; targetLanguage: string; level: string; description: string | null; isPublished: boolean; units: Unit[]; }
+interface SelectedItem { type: "course" | "unit" | "lesson" | "section"; id: string; data: any; }
 
+// ===== Главный компонент =====
 export function CourseEditor({ course: initialCourse }: { course: Course }) {
+  // Состояние курса (обновляется при добавлении юнитов/уроков/разделов)
   const [course, setCourse] = useState<Course>(initialCourse);
+  // Выбранный элемент в дереве
   const [selected, setSelected] = useState<SelectedItem>({ type: "course", id: initialCourse.id, data: initialCourse });
 
-  const [addModuleOpen, setAddModuleOpen] = useState(false);
+  // Состояние модалок добавления
+  const [addUnitOpen, setAddUnitOpen] = useState(false);
   const [addLessonOpen, setAddLessonOpen] = useState(false);
   const [addSectionOpen, setAddSectionOpen] = useState(false);
-  const [addLessonModuleId, setAddLessonModuleId] = useState("");
+  const [addLessonUnitId, setAddLessonUnitId] = useState("");
   const [addSectionLessonId, setAddSectionLessonId] = useState("");
   const [newTitle, setNewTitle] = useState("");
   const [saving, setSaving] = useState(false);
 
-  const handleAddModule = async () => {
+  // ===== Добавить юнит =====
+  const handleAddUnit = async () => {
     if (!newTitle.trim()) return;
     setSaving(true);
-    const res = await fetch(`/api/courses/${course.id}/modules`, {
+    // Отправляем запрос на создание юнита
+    const res = await fetch(`/api/courses/${course.id}/units`, {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ title: newTitle }),
     });
     if (res.ok) {
-      const mod = await res.json();
-      setCourse((p) => ({ ...p, modules: [...p.modules, { ...mod, lessons: [] }] }));
-      setAddModuleOpen(false); setNewTitle("");
+      const unit = await res.json();
+      // Обновляем локальное состояние курса
+      setCourse((p) => ({ ...p, units: [...p.units, { ...unit, lessons: [] }] }));
+      setAddUnitOpen(false); setNewTitle("");
     }
     setSaving(false);
   };
 
+  // ===== Добавить урок в юнит =====
   const handleAddLesson = async () => {
-    if (!newTitle.trim() || !addLessonModuleId) return;
+    if (!newTitle.trim() || !addLessonUnitId) return;
     setSaving(true);
-    const res = await fetch(`/api/modules/${addLessonModuleId}/lessons`, {
+    // Отправляем запрос на создание урока
+    const res = await fetch(`/api/units/${addLessonUnitId}/lessons`, {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ title: newTitle }),
     });
     if (res.ok) {
       const lesson = await res.json();
+      // Обновляем локальное состояние — добавляем урок в нужный юнит
       setCourse((p) => ({
         ...p,
-        modules: p.modules.map((m) =>
-          m.id === addLessonModuleId
-            ? { ...m, lessons: [...m.lessons, { ...lesson, sections: lesson.sections || [] }] }
-            : m
+        units: p.units.map((u) =>
+          u.id === addLessonUnitId
+            ? { ...u, lessons: [...u.lessons, { ...lesson, sections: lesson.sections || [] }] }
+            : u
         ),
       }));
       setAddLessonOpen(false); setNewTitle("");
@@ -77,20 +89,23 @@ export function CourseEditor({ course: initialCourse }: { course: Course }) {
     setSaving(false);
   };
 
+  // ===== Добавить раздел в урок =====
   const handleAddSection = async () => {
     if (!newTitle.trim() || !addSectionLessonId) return;
     setSaving(true);
+    // Отправляем запрос на создание раздела
     const res = await fetch(`/api/lessons/${addSectionLessonId}/sections`, {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ title: newTitle }),
     });
     if (res.ok) {
       const section = await res.json();
+      // Обновляем локальное состояние — добавляем раздел в нужный урок
       setCourse((p) => ({
         ...p,
-        modules: p.modules.map((m) => ({
-          ...m,
-          lessons: m.lessons.map((l) =>
+        units: p.units.map((u) => ({
+          ...u,
+          lessons: u.lessons.map((l) =>
             l.id === addSectionLessonId
               ? { ...l, sections: [...l.sections, section] }
               : l
@@ -113,8 +128,8 @@ export function CourseEditor({ course: initialCourse }: { course: Course }) {
             <CardHeader className="pb-3 flex-shrink-0">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-base text-foreground">Структура курса</CardTitle>
-                <Button size="sm" variant="outline" onClick={() => { setNewTitle(""); setAddModuleOpen(true); }}>
-                  + Модуль
+                <Button size="sm" variant="outline" onClick={() => { setNewTitle(""); setAddUnitOpen(true); }}>
+                  + Unit
                 </Button>
               </div>
             </CardHeader>
@@ -124,41 +139,42 @@ export function CourseEditor({ course: initialCourse }: { course: Course }) {
                 course={course}
                 selectedId={selected.id}
                 onSelect={setSelected}
-                onAddLesson={(moduleId) => { setAddLessonModuleId(moduleId); setNewTitle(""); setAddLessonOpen(true); }}
+                onAddLesson={(unitId) => { setAddLessonUnitId(unitId); setNewTitle(""); setAddLessonOpen(true); }}
                 onAddSection={(lessonId) => { setAddSectionLessonId(lessonId); setNewTitle(""); setAddSectionOpen(true); }}
               />
             </CardContent>
           </Card>
         </div>
 
-        {/* Контент — свой скролл, отступ для скроллбара */}
+        {/* Контент — свой скролл */}
         <div className="flex-1 min-w-0 h-full overflow-auto pr-3">
           {selected.type === "course" && <CourseInfo course={course} />}
-          {selected.type === "module" && <ModuleInfo module={selected.data} />}
+          {selected.type === "unit" && <UnitInfo unit={selected.data} />}
           {selected.type === "lesson" && <LessonInfo lesson={selected.data} />}
           {selected.type === "section" && <SectionEditor section={selected.data} />}
         </div>
       </div>
 
-      {/* Модалки */}
-      <Dialog open={addModuleOpen} onOpenChange={setAddModuleOpen}>
+      {/* ===== Модалка: Новый юнит ===== */}
+      <Dialog open={addUnitOpen} onOpenChange={setAddUnitOpen}>
         <DialogContent>
-          <DialogHeader><DialogTitle className="text-xl text-foreground">Новый модуль</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle className="text-xl text-foreground">Новый юнит</DialogTitle></DialogHeader>
           <div className="space-y-2">
             <Label className="text-base text-foreground">Название</Label>
             <Input value={newTitle} onChange={(e) => setNewTitle(e.target.value)}
-              placeholder="Модуль 2: Покупки (购物)" className="text-lg h-12"
-              onKeyDown={(e) => e.key === "Enter" && handleAddModule()} />
+              placeholder="Unit 2: Покупки (购物)" className="text-lg h-12"
+              onKeyDown={(e) => e.key === "Enter" && handleAddUnit()} />
           </div>
           <DialogFooter>
-            <Button variant="outline" size="lg" onClick={() => setAddModuleOpen(false)}>Отмена</Button>
-            <Button size="lg" onClick={handleAddModule} disabled={saving || !newTitle.trim()}>
+            <Button variant="outline" size="lg" onClick={() => setAddUnitOpen(false)}>Отмена</Button>
+            <Button size="lg" onClick={handleAddUnit} disabled={saving || !newTitle.trim()}>
               {saving ? "..." : "Создать"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
+      {/* ===== Модалка: Новый урок ===== */}
       <Dialog open={addLessonOpen} onOpenChange={setAddLessonOpen}>
         <DialogContent>
           <DialogHeader><DialogTitle className="text-xl text-foreground">Новый урок</DialogTitle></DialogHeader>
@@ -177,6 +193,7 @@ export function CourseEditor({ course: initialCourse }: { course: Course }) {
         </DialogContent>
       </Dialog>
 
+      {/* ===== Модалка: Новый раздел ===== */}
       <Dialog open={addSectionOpen} onOpenChange={setAddSectionOpen}>
         <DialogContent>
           <DialogHeader><DialogTitle className="text-xl text-foreground">Новый раздел</DialogTitle></DialogHeader>
@@ -199,8 +216,10 @@ export function CourseEditor({ course: initialCourse }: { course: Course }) {
   );
 }
 
+// ===== Информация о курсе =====
 function CourseInfo({ course }: { course: Course }) {
-  const totalLessons = course.modules.reduce((s, m) => s + m.lessons.length, 0);
+  // Считаем общее количество уроков
+  const totalLessons = course.units.reduce((s, u) => s + u.lessons.length, 0);
   return (
     <Card>
       <CardHeader>
@@ -215,24 +234,26 @@ function CourseInfo({ course }: { course: Course }) {
         <div className="grid grid-cols-3 gap-4">
           <div><p className="text-base text-muted-foreground">Язык</p><p className="text-lg font-medium text-foreground">{course.language.toUpperCase()} → {course.targetLanguage.toUpperCase()}</p></div>
           <div><p className="text-base text-muted-foreground">Уровень</p><p className="text-lg font-medium text-foreground">{course.level}</p></div>
-          <div><p className="text-base text-muted-foreground">Содержимое</p><p className="text-lg font-medium text-foreground">{course.modules.length} модулей · {totalLessons} уроков</p></div>
+          <div><p className="text-base text-muted-foreground">Содержимое</p><p className="text-lg font-medium text-foreground">{course.units.length} юнитов · {totalLessons} уроков</p></div>
         </div>
       </CardContent>
     </Card>
   );
 }
 
-function ModuleInfo({ module: mod }: { module: Module }) {
+// ===== Информация о юните =====
+function UnitInfo({ unit }: { unit: Unit }) {
   return (
     <Card>
-      <CardHeader><CardTitle className="text-xl text-foreground">{mod.title}</CardTitle></CardHeader>
+      <CardHeader><CardTitle className="text-xl text-foreground">{unit.title}</CardTitle></CardHeader>
       <CardContent>
-        <p className="text-base text-muted-foreground">Уроков: <span className="text-foreground font-medium">{mod.lessons.length}</span></p>
+        <p className="text-base text-muted-foreground">Уроков: <span className="text-foreground font-medium">{unit.lessons.length}</span></p>
       </CardContent>
     </Card>
   );
 }
 
+// ===== Информация об уроке =====
 function LessonInfo({ lesson }: { lesson: Lesson }) {
   return (
     <Card>

@@ -12,16 +12,16 @@ import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 
 export default async function DashboardPage() {
-  const [courseCount, moduleCount, lessonCount, exerciseCount] = await Promise.all([
+  const [courseCount, unitCount, lessonCount, exerciseCount] = await Promise.all([
     prisma.course.count(),
-    prisma.module.count(),
+    prisma.unit.count(),
     prisma.lesson.count(),
     prisma.exercise.count(),
   ]);
 
   const stats = [
     { label: "Курсы",      value: courseCount },
-    { label: "Модули",     value: moduleCount },
+    { label: "Юниты",      value: unitCount },
     { label: "Уроки",      value: lessonCount },
     { label: "Упражнения", value: exerciseCount },
   ];

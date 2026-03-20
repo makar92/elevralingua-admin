@@ -4,7 +4,7 @@
 //
 // Описание:
 //   Страница редактирования курса. Загружает курс с сервера
-//   со всеми модулями, уроками и разделами. Передаёт данные
+//   со всеми юнитами, уроками и разделами. Передаёт данные
 //   в клиентский компонент CourseEditor.
 // ===========================================
 
@@ -23,7 +23,7 @@ export default async function CourseDetailPage({ params }: Props) {
   const course = await prisma.course.findUnique({
     where: { id },
     include: {
-      modules: {
+      units: {
         include: {
           lessons: {
             include: {

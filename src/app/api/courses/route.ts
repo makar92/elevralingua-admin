@@ -16,7 +16,7 @@ export async function GET() {
     const session = await auth();
     if (!session) return apiError("Не авторизован", 401);
     const courses = await prisma.course.findMany({
-      include: { modules: { include: { lessons: true }, orderBy: { order: "asc" } } },
+      include: { units: { include: { lessons: true }, orderBy: { order: "asc" } } },
       orderBy: { order: "asc" },
     });
     return apiSuccess(courses);

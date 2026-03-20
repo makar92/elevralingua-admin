@@ -1,7 +1,12 @@
 // ===========================================
 // Файл: prisma/seed.ts
-// Описание: Начальные данные с блочной архитектурой.
-// Запуск: npm run db:seed
+// Путь:  linguamethod-admin/prisma/seed.ts
+//
+// Описание:
+//   Начальные данные с блочной архитектурой.
+//   Иерархия: Course → Unit → Lesson → Section → Blocks.
+//   10 типов упражнений (актуальные ExerciseType).
+//   Запуск: npm run db:seed
 // ===========================================
 
 import "dotenv/config";
@@ -13,7 +18,7 @@ const prisma = new PrismaClient();
 async function main() {
   console.log("Начинаем заполнение базы...\n");
 
-  // Админ
+  // ==================== Админ ====================
   const pw = await hash("admin123", 12);
   await prisma.user.upsert({
     where: { email: "ksenia@linguamethod.com" },
@@ -22,7 +27,7 @@ async function main() {
   });
   console.log("Админ: ksenia@linguamethod.com / admin123");
 
-  // Курс
+  // ==================== Курс ====================
   const course = await prisma.course.create({
     data: {
       title: "Mandarin for English Speakers — Beginner",
@@ -31,14 +36,14 @@ async function main() {
     },
   });
 
-  // Модуль
-  const mod = await prisma.module.create({
-    data: { courseId: course.id, title: "Модуль 1: Приветствия и знакомство (打招呼)", order: 0 },
+  // ==================== Юнит (бывший модуль) ====================
+  const unit = await prisma.unit.create({
+    data: { courseId: course.id, title: "Unit 1: Приветствия и знакомство (打招呼)", order: 0 },
   });
 
-  // Урок
+  // ==================== Урок ====================
   const lesson = await prisma.lesson.create({
-    data: { moduleId: mod.id, title: "Урок 1.1: Привет! (你好!)", order: 0 },
+    data: { unitId: unit.id, title: "Урок 1.1: Привет! (你好!)", order: 0 },
   });
 
   // ---- РАЗДЕЛ 1: Новые слова ----
@@ -113,21 +118,13 @@ async function main() {
     data: { lessonId: lesson.id, title: "Грамматика", order: 1 },
   });
 
+  // Грамматика — через TEXT-блоки (GRAMMAR_RULE удалён из ContentBlockType)
   await prisma.contentBlock.createMany({
     data: [
       {
-        sectionId: sec2.id, type: "GRAMMAR_RULE", order: 0,
+        sectionId: sec2.id, type: "TEXT", order: 0,
         contentJson: {
-          title: "Представление себя: 我叫...",
-          formula: "S + 叫 + Имя",
-          explanationHtml: "<p>Используется чтобы назвать своё имя. Буквально: \"Я зовусь...\"</p>",
-          examples: [
-            { hanzi: "我叫大卫。", pinyin: "Wǒ jiào Dàwèi.", translation: "My name is David." },
-            { hanzi: "你叫什么名字？", pinyin: "Nǐ jiào shénme míngzì?", translation: "What is your name?" },
-          ],
-          commonMistakes: [
-            { error: "我是大卫", correction: "我叫大卫", explanation: "我是 = я являюсь, 我叫 = меня зовут. Для имени используем 叫." },
-          ],
+          html: "<h3>Представление себя: 我叫...</h3><p><b>Формула:</b> S + 叫 + Имя</p><p>Используется чтобы назвать своё имя. Буквально: \"Я зовусь...\"</p><p><b>Примеры:</b></p><ul><li>我叫大卫。(Wǒ jiào Dàwèi.) — My name is David.</li><li>你叫什么名字？(Nǐ jiào shénme míngzì?) — What is your name?</li></ul><p><b>Частая ошибка:</b> 我是大卫 ✗ → 我叫大卫 ✓ (我是 = я являюсь, 我叫 = меня зовут)</p>"
         },
       },
       {
@@ -184,15 +181,15 @@ async function main() {
   });
 
   console.log("\nСоздано:");
-  console.log("  1 курс, 1 модуль, 1 урок");
+  console.log("  1 курс, 1 юнит, 1 урок");
   console.log("  4 раздела (свободные названия)");
-  console.log("  10 блоков контента (TEXT, VOCAB_CARD, GRAMMAR_RULE, DIALOGUE)");
+  console.log("  10 блоков контента (TEXT, VOCAB_CARD, DIALOGUE)");
 
   // ==================== БАНК УПРАЖНЕНИЙ ====================
   console.log("\nСоздаём упражнения...");
 
   // 1. MATCHING — Соединить иероглиф с переводом
-  const ex1 = await prisma.exercise.create({
+  await prisma.exercise.create({
     data: {
       sectionId: sec1.id, exerciseType: "MATCHING", order: 0,
       title: "Соедини иероглиф с переводом",
@@ -213,7 +210,7 @@ async function main() {
   });
 
   // 2. MULTIPLE_CHOICE — Выбор ответа
-  const ex2 = await prisma.exercise.create({
+  await prisma.exercise.create({
     data: {
       sectionId: sec1.id, exerciseType: "MULTIPLE_CHOICE", order: 1,
       title: "Что означает 你好?",
@@ -229,13 +226,15 @@ async function main() {
   });
 
   // 3. FILL_BLANK — Заполнить пропуск
-  const ex3 = await prisma.exercise.create({
+  await prisma.exercise.create({
     data: {
       sectionId: sec1.id, exerciseType: "FILL_BLANK", order: 2,
       title: "Вставь пропущенное слово",
       instructionText: "Fill in the blank with the correct word.",
-      difficulty: 2, gradingType: "AUTO", isDefaultInWorkbook: true,
+      difficulty: 2, gradingType: "TEACHER", isDefaultInWorkbook: true,
       correctAnswers: ["是"],
+      referenceAnswer: "是",
+      teacherComment: "Глагол 是 (shì) = 'to be'. Ученик должен понять, что 我___学生 = 'I ___ a student'.",
       contentJson: {
         sentence: "我___学生。(I ___ a student.)",
         blankAnswer: "是",
@@ -245,7 +244,7 @@ async function main() {
   });
 
   // 4. TONE_PLACEMENT — Расставить тоны
-  const ex4 = await prisma.exercise.create({
+  await prisma.exercise.create({
     data: {
       sectionId: sec1.id, exerciseType: "TONE_PLACEMENT", order: 3,
       title: "Расставь тоны: 你好",
@@ -261,7 +260,7 @@ async function main() {
   });
 
   // 5. WORD_ORDER — Составить предложение
-  const ex5 = await prisma.exercise.create({
+  await prisma.exercise.create({
     data: {
       sectionId: sec1.id, exerciseType: "WORD_ORDER", order: 4,
       title: "Составь предложение",
@@ -276,64 +275,69 @@ async function main() {
     },
   });
 
-  // 6. GRAMMAR_CHOICE — Грамматический выбор
-  const ex6 = await prisma.exercise.create({
+  // 6. MULTIPLE_CHOICE — Грамматический выбор (вместо удалённого GRAMMAR_CHOICE)
+  await prisma.exercise.create({
     data: {
-      sectionId: sec2.id, exerciseType: "GRAMMAR_CHOICE", order: 5,
+      sectionId: sec2.id, exerciseType: "MULTIPLE_CHOICE", order: 5,
       title: "Выбери правильную форму",
       instructionText: "Choose the grammatically correct option.",
       difficulty: 2, gradingType: "AUTO", isDefaultInWorkbook: true,
       correctAnswers: ["我叫大卫"],
       contentJson: {
-        sentence: "How do you say 'My name is David' in Chinese?",
+        question: "How do you say 'My name is David' in Chinese?",
         options: ["我叫大卫", "我是叫大卫", "叫我大卫"],
         correctIndex: 0,
-        explanation: "我叫 + Name is the standard way to introduce yourself. 我是 means 'I am' and is used differently.",
       },
     },
   });
 
-  // 7. TRANSLATE_TO_CHINESE — Перевод на китайский
-  const ex7 = await prisma.exercise.create({
+  // 7. TRANSLATION — Перевод (универсальный, вместо TRANSLATE_TO_CHINESE)
+  await prisma.exercise.create({
     data: {
-      sectionId: sec1.id, exerciseType: "TRANSLATE_TO_CHINESE", order: 6,
+      sectionId: sec1.id, exerciseType: "TRANSLATION", order: 6,
       title: "Переведи на китайский",
       instructionText: "Translate the following sentence into Chinese.",
-      difficulty: 3, gradingType: "AUTO", isDefaultInWorkbook: true,
-      correctAnswers: ["你好！我叫大卫。", "你好！我叫David。"],
+      difficulty: 3, gradingType: "TEACHER", isDefaultInWorkbook: true,
+      referenceAnswer: "你好！我叫大卫。",
+      teacherComment: "Принимается как 你好！我叫大卫。так и 你好！我叫David。Главное — правильное использование 叫.",
       contentJson: {
         sourceText: "Hello! My name is David.",
+        sourceLanguage: "en",
+        targetLanguage: "zh",
         acceptableAnswers: ["你好！我叫大卫。", "你好！我叫David。"],
         hint: "Use 叫 for 'to be called'",
       },
     },
   });
 
-  // 8. TRANSLATE_TO_ENGLISH — Перевод на английский
-  const ex8 = await prisma.exercise.create({
+  // 8. TRANSLATION — Перевод на английский (вместо TRANSLATE_TO_ENGLISH)
+  await prisma.exercise.create({
     data: {
-      sectionId: sec1.id, exerciseType: "TRANSLATE_TO_ENGLISH", order: 7,
+      sectionId: sec1.id, exerciseType: "TRANSLATION", order: 7,
       title: "Переведи на английский",
       instructionText: "Translate the following sentence into English.",
-      difficulty: 2, gradingType: "AUTO", isDefaultInWorkbook: true,
-      correctAnswers: ["I am a student.", "I'm a student."],
+      difficulty: 2, gradingType: "TEACHER", isDefaultInWorkbook: true,
+      referenceAnswer: "I am a student.",
+      teacherComment: "Принимается: 'I am a student' или 'I'm a student'. 是 = 'to be'.",
       contentJson: {
-        hanzi: "我是学生。",
-        pinyin: "Wǒ shì xuéshēng.",
+        sourceText: "我是学生。",
+        sourcePinyin: "Wǒ shì xuéshēng.",
+        sourceLanguage: "zh",
+        targetLanguage: "en",
         acceptableAnswers: ["I am a student.", "I'm a student."],
       },
     },
   });
 
   // 9. DICTATION — Диктант (ручная проверка)
-  const ex9 = await prisma.exercise.create({
+  await prisma.exercise.create({
     data: {
       sectionId: sec3.id, exerciseType: "DICTATION", order: 8,
       title: "Диктант: диалог",
       instructionText: "Listen to the audio and write down what you hear in Chinese characters.",
       difficulty: 3, gradingType: "TEACHER", isDefaultInWorkbook: true,
       referenceAnswer: "你好！我叫李明。你叫什么名字？",
-      gradingCriteria: "Check character accuracy. Minor pinyin-based mistakes are acceptable for beginners. Focus on 你好, 我叫, 什么, 名字.",
+      teacherComment: "Проверяем точность иероглифов. Мелкие ошибки на основе пиньинь допустимы для начинающих. Ключевые слова: 你好, 我叫, 什么, 名字.",
       contentJson: {
         audioUrl: "",
         correctText: "你好！我叫李明。你叫什么名字？",
@@ -342,15 +346,15 @@ async function main() {
     },
   });
 
-  // 10. DESCRIBE_IMAGE — Описание картинки (ручная проверка)
-  const ex10 = await prisma.exercise.create({
+  // 10. DESCRIBE_IMAGE — Описание картинки (ручная проверка, НЕ в тетради)
+  await prisma.exercise.create({
     data: {
       sectionId: sec1.id, exerciseType: "DESCRIBE_IMAGE", order: 9,
       title: "Опиши картинку",
       instructionText: "Look at the image and describe what you see in Chinese. Use at least 3 sentences.",
       difficulty: 4, gradingType: "TEACHER", isDefaultInWorkbook: false,
       referenceAnswer: "这是两个人。他们在说话。一个人说你好。",
-      gradingCriteria: "Evaluate use of vocabulary from the lesson. Grammar accuracy is secondary at this level.",
+      teacherComment: "Оцениваем использование лексики из урока. Грамматическая точность вторична на этом уровне.",
       contentJson: {
         imageUrl: "",
         promptText: "Describe the people in the image. What are they doing? Use words from this lesson.",
@@ -360,14 +364,14 @@ async function main() {
   });
 
   // 11. FREE_WRITING — Свободное письмо (ручная проверка)
-  const ex11 = await prisma.exercise.create({
+  await prisma.exercise.create({
     data: {
       sectionId: sec4.id, exerciseType: "FREE_WRITING", order: 10,
       title: "Представься на китайском",
       instructionText: "Write a short self-introduction in Chinese. Include your name and whether you are a student.",
       difficulty: 3, gradingType: "TEACHER", isDefaultInWorkbook: true,
       referenceAnswer: "你好！我叫[Name]。我是学生。",
-      gradingCriteria: "Must include 你好, 我叫 + name, and 我是 + occupation/status. Tone marks in pinyin not required.",
+      teacherComment: "Должно содержать: 你好, 我叫 + имя, и 我是 + род занятий. Знаки тонов в пиньинь не обязательны.",
       contentJson: {
         topic: "Self-introduction (自我介绍)",
         promptText: "Write a short paragraph introducing yourself in Chinese. Include: greeting, your name, what you do (student, teacher, etc.)",
@@ -376,10 +380,7 @@ async function main() {
     },
   });
 
-  // Тетрадь = упражнения с isDefaultInWorkbook=true (10 из 11)
-  // DESCRIBE_IMAGE имеет isDefaultInWorkbook: false — не в тетради по умолчанию
-
-  console.log("  11 упражнений в банке (8 авто + 3 учительские)");
+  console.log("  11 упражнений в банке (4 авто + 7 учительских)");
   console.log("  10 упражнений в тетради по умолчанию (isDefaultInWorkbook=true)");
   console.log("\nГотово! Логин: ksenia@linguamethod.com / admin123");
 }

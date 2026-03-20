@@ -15,19 +15,20 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
-// Словарь типов упражнений для отображения
+// Словарь типов упражнений для отображения (актуальные 10 типов)
 const EX_TYPE_INFO: Record<string, { icon: string; name: string }> = {
-  MATCHING: { icon: "🔗", name: "Соединить пары" },
+  // Автопроверка (4)
+  MATCHING:        { icon: "🔗", name: "Соединить пары" },
   MULTIPLE_CHOICE: { icon: "🔘", name: "Выбор ответа" },
-  FILL_BLANK: { icon: "✏️", name: "Заполнить пропуск" },
-  TONE_PLACEMENT: { icon: "🎵", name: "Расставить тоны" },
-  WORD_ORDER: { icon: "🔀", name: "Порядок слов" },
-  GRAMMAR_CHOICE: { icon: "📐", name: "Грамматический выбор" },
-  TRANSLATE_TO_CHINESE: { icon: "🇨🇳", name: "Перевод → Китайский" },
-  TRANSLATE_TO_ENGLISH: { icon: "🇺🇸", name: "Перевод → Английский" },
-  DICTATION: { icon: "🎧", name: "Диктант" },
-  DESCRIBE_IMAGE: { icon: "🖼️", name: "Описание картинки" },
-  FREE_WRITING: { icon: "📝", name: "Свободное письмо" },
+  TONE_PLACEMENT:  { icon: "🎵", name: "Расставить тоны" },
+  WORD_ORDER:      { icon: "🔀", name: "Порядок слов" },
+  // Ручная проверка (6)
+  FILL_BLANK:      { icon: "✏️", name: "Заполнить пропуск" },
+  TRANSLATION:     { icon: "🌐", name: "Перевод" },
+  WRITE_PINYIN:    { icon: "📖", name: "Написать транскрипцию" },
+  DICTATION:       { icon: "🎧", name: "Диктант" },
+  DESCRIBE_IMAGE:  { icon: "🖼️", name: "Описание картинки" },
+  FREE_WRITING:    { icon: "📝", name: "Свободное письмо" },
 };
 
 export default async function ExercisesPage() {
@@ -41,7 +42,7 @@ export default async function ExercisesPage() {
           lesson: {
             select: {
               id: true, title: true,
-              module: {
+              unit: {
                 select: {
                   id: true, title: true,
                   course: { select: { id: true, title: true } },
@@ -63,7 +64,7 @@ export default async function ExercisesPage() {
   // Группируем по курсам
   const courseMap = new Map<string, { course: any; exercises: typeof exercises }>();
   for (const ex of exercises) {
-    const course = ex.section.lesson.module.course;
+    const course = ex.section.lesson.unit.course;
     if (!courseMap.has(course.id)) {
       courseMap.set(course.id, { course, exercises: [] });
     }
@@ -137,9 +138,9 @@ export default async function ExercisesPage() {
                           <span className="text-xs text-muted-foreground">{"⭐".repeat(Math.min(ex.difficulty, 5))}</span>
                         </div>
                         <p className="text-sm text-muted-foreground mt-0.5 truncate">{ex.instructionText}</p>
-                        {/* Путь: модуль → урок → раздел */}
+                        {/* Путь: юнит → урок → раздел */}
                         <p className="text-xs text-muted-foreground mt-1">
-                          {lesson.module.title} → {lesson.title} → {section.title}
+                          {lesson.unit.title} → {lesson.title} → {section.title}
                         </p>
                       </div>
                     </div>

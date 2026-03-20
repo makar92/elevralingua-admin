@@ -31,12 +31,12 @@ export async function GET(request: NextRequest) {
     if (sectionId) where.sectionId = sectionId;
     if (exerciseType) where.exerciseType = exerciseType;
     if (gradingType) where.gradingType = gradingType;
-    // Фильтр по курсу — через цепочку section → lesson → module → course
+    // Фильтр по курсу — через цепочку section → lesson → unit → course
     if (courseId) {
-      where.section = { lesson: { module: { courseId } } };
+      where.section = { lesson: { unit: { courseId } } };
     }
 
-    // Загружаем упражнения с информацией о разделе/уроке/модуле
+    // Загружаем упражнения с информацией о разделе/уроке/юните
     const exercises = await prisma.exercise.findMany({
       where,
       orderBy: { order: "asc" },
@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
             lesson: {
               select: {
                 id: true, title: true,
-                module: { select: { id: true, title: true, course: { select: { id: true, title: true } } } },
+                unit: { select: { id: true, title: true, course: { select: { id: true, title: true } } } },
               },
             },
           },
