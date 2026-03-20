@@ -1,3 +1,8 @@
+// ===========================================
+// Файл: src/components/ui/input.tsx
+// Описание: Поле ввода (shadcn/ui).
+// ===========================================
+
 import * as React from "react"
 
 import { cn } from "@/lib/utils"

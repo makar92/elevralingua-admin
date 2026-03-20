@@ -1,3 +1,8 @@
+// ===========================================
+// Файл: src/components/ui/separator.tsx
+// Описание: Разделитель (shadcn/ui).
+// ===========================================
+
 "use client"
 
 import * as React from "react"

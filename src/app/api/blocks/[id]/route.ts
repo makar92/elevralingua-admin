@@ -1,53 +1,10 @@
-// // ===========================================
-// // Файл: src/app/api/blocks/[id]/route.ts
-// // Описание: PATCH — обновить блок. DELETE — удалить блок.
-// // ===========================================
-
-// import { NextRequest } from "next/server";
-// import { prisma } from "@/lib/prisma";
-// import { auth } from "@/lib/auth";
-// import { apiSuccess, apiError, withErrorHandling } from "@/lib/api-helpers";
-
-// // PATCH — обновить содержимое блока
-// export async function PATCH(
-//   request: NextRequest,
-//   { params }: { params: Promise<{ id: string }> }
-// ) {
-//   return withErrorHandling(async () => {
-//     const session = await auth();
-//     if (!session) return apiError("Не авторизован", 401);
-//     const { id } = await params;
-//     const body = await request.json();
-
-//     const block = await prisma.contentBlock.update({
-//       where: { id },
-//       data: {
-//         ...(body.contentJson !== undefined && { contentJson: body.contentJson }),
-//         ...(body.type !== undefined && { type: body.type }),
-//       },
-//       include: { teacherNote: true },
-//     });
-
-//     return apiSuccess(block);
-//   });
-// }
-
-// // DELETE — удалить блок
-// export async function DELETE(
-//   _req: NextRequest,
-//   { params }: { params: Promise<{ id: string }> }
-// ) {
-//   return withErrorHandling(async () => {
-//     const session = await auth();
-//     if (!session) return apiError("Не авторизован", 401);
-//     const { id } = await params;
-//     await prisma.contentBlock.delete({ where: { id } });
-//     return apiSuccess({ success: true });
-//   });
-// }
 // ===========================================
 // Файл: src/app/api/blocks/[id]/route.ts
-// Описание: PATCH — обновить блок. DELETE — удалить блок.
+// Путь:  linguamethod-admin/src/app/api/blocks/[id]/route.ts
+//
+// Описание:
+//   PATCH — обновить содержимое блока (+ очистка старых файлов из Vercel Blob).
+//   DELETE — удалить блок (+ очистка файлов из Vercel Blob).
 // ===========================================
 
 import { NextRequest } from "next/server";
@@ -61,19 +18,23 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   return withErrorHandling(async () => {
+    // Проверяем авторизацию
     const session = await auth();
     if (!session) return apiError("Не авторизован", 401);
+
     const { id } = await params;
     const body = await request.json();
 
     // Если обновляется contentJson — проверяем, не заменился ли файл
     if (body.contentJson && process.env.BLOB_READ_WRITE_TOKEN) {
+      // Получаем старый блок для сравнения
       const oldBlock = await prisma.contentBlock.findUnique({ where: { id } });
       if (oldBlock) {
         const oldJson = oldBlock.contentJson as Record<string, unknown>;
         const newJson = body.contentJson as Record<string, unknown>;
         const removedUrls: string[] = [];
 
+        // Ищем URL файлов, которые были заменены
         for (const [key, oldVal] of Object.entries(oldJson)) {
           if (
             typeof oldVal === "string" &&
@@ -84,6 +45,7 @@ export async function PATCH(
           }
         }
 
+        // Удаляем старые файлы из Vercel Blob
         if (removedUrls.length > 0) {
           try {
             const { del } = await import("@vercel/blob");
@@ -95,6 +57,7 @@ export async function PATCH(
       }
     }
 
+    // Обновляем блок в базе данных
     const block = await prisma.contentBlock.update({
       where: { id },
       data: {
@@ -114,8 +77,10 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   return withErrorHandling(async () => {
+    // Проверяем авторизацию
     const session = await auth();
     if (!session) return apiError("Не авторизован", 401);
+
     const { id } = await params;
 
     // Получаем блок перед удалением, чтобы почистить файлы
@@ -143,6 +108,7 @@ export async function DELETE(
       }
     }
 
+    // Удаляем блок из базы данных
     await prisma.contentBlock.delete({ where: { id } });
     return apiSuccess({ success: true });
   });

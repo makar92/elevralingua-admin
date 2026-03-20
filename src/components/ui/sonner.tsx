@@ -1,3 +1,8 @@
+// ===========================================
+// Файл: src/components/ui/sonner.tsx
+// Описание: Тосты/уведомления (shadcn/ui + sonner).
+// ===========================================
+
 "use client"
 
 import { useTheme } from "next-themes"

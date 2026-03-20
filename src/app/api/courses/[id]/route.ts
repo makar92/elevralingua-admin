@@ -1,3 +1,11 @@
+// ===========================================
+// Файл: src/app/api/courses/[id]/route.ts
+// Путь:  linguamethod-admin/src/app/api/courses/[id]/route.ts
+//
+// Описание:
+//   GET — один курс. PATCH — обновить. DELETE — удалить.
+// ===========================================
+
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";

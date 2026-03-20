@@ -1,3 +1,8 @@
+// ===========================================
+// Файл: src/components/ui/textarea.tsx
+// Описание: Многострочное поле ввода (shadcn/ui).
+// ===========================================
+
 import * as React from "react"
 
 import { cn } from "@/lib/utils"

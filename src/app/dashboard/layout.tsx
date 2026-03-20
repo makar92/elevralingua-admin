@@ -1,3 +1,11 @@
+// ===========================================
+// Файл: src/app/dashboard/layout.tsx
+// Путь:  linguamethod-admin/src/app/dashboard/layout.tsx
+//
+// Описание:
+//   Layout дашборда. Проверка авторизации, TopNav, основной контейнер.
+// ===========================================
+
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { TopNav } from "@/components/top-nav";

@@ -1,8 +1,21 @@
 // ===========================================
 // Файл: src/components/block-form.tsx
-// Описание: Формы для каждого типа блока.
-//   Tiptap для текста, KaTeX для формул,
-//   картинка в карточке слова, заметка учителя.
+// Путь:  linguamethod-admin/src/components/block-form.tsx
+//
+// Описание:
+//   Формы создания/редактирования контент-блоков (10 типов).
+//   Каждый тип блока имеет свою форму:
+//   - TEXT: Tiptap WYSIWYG-редактор
+//   - IMAGE: загрузка картинки + подпись
+//   - AUDIO: загрузка аудио + название
+//   - YOUTUBE: ссылка + название
+//   - DIVIDER: без формы (создаётся мгновенно)
+//   - SPACER: выбор размера отступа (sm/md/lg)
+//   - HTML_EMBED: textarea для HTML/iframe
+//   - VOCAB_CARD: универсальная карточка слова (все языки)
+//   - GRAMMAR_RULE: заголовок + формула (MathLive) + объяснение (Tiptap)
+//   - DIALOGUE: визуальный конструктор с аватарками и фонами
+//   Для всех типов (кроме DIVIDER и SPACER) — заметка для учителя.
 // ===========================================
 
 "use client";
@@ -19,22 +32,27 @@ import {
 import { TiptapEditor } from "@/components/tiptap-editor";
 import { AVATAR_OPTIONS, AVATAR_CATEGORIES, AVATAR_MAP, SCENE_OPTIONS, SCENE_MAP } from "@/lib/dialogue-assets";
 
+// ===== Типы пропсов =====
 interface Props {
-  type: string;
-  initialData?: any;
-  onSave: (data: any) => void;
-  onCancel: () => void;
+  type: string;          // Тип блока (TEXT, IMAGE, VOCAB_CARD и т.д.)
+  initialData?: any;     // Данные для редактирования (null = создание)
+  onSave: (data: any) => void;   // Колбэк сохранения
+  onCancel: () => void;          // Колбэк отмены
 }
 
+// ===== Главный компонент формы =====
 export function BlockForm({ type, initialData, onSave, onCancel }: Props) {
+  // Состояние данных блока
   const [data, setData] = useState(initialData || getDefaultData(type));
+  // Флаг загрузки файлов
   const [uploading, setUploading] = useState(false);
-  // Заметка учителя — отдельное поле
+  // Заметка для учителя — хранится отдельно от данных блока
   const [teacherNote, setTeacherNote] = useState(initialData?._teacherNote || "");
 
+  // Универсальный сеттер: обновляет одно поле в объекте data
   const set = (key: string, value: any) => setData((p: any) => ({ ...p, [key]: value }));
 
-  // Загрузка файла
+  // Загрузка файла на сервер (через /api/upload)
   const uploadFile = async (file: File, field: string) => {
     setUploading(true);
     const fd = new FormData();
@@ -43,6 +61,7 @@ export function BlockForm({ type, initialData, onSave, onCancel }: Props) {
       const res = await fetch("/api/upload", { method: "POST", body: fd });
       if (res.ok) {
         const { url } = await res.json();
+        // Записываем URL файла в соответствующее поле
         set(field, url);
       }
     } catch (e) {
@@ -51,8 +70,8 @@ export function BlockForm({ type, initialData, onSave, onCancel }: Props) {
     setUploading(false);
   };
 
+  // Сохранение блока: добавляем заметку учителя если она есть
   const handleSave = () => {
-    // Добавляем заметку учителя в данные
     const saveData = { ...data };
     if (teacherNote.trim()) {
       saveData._teacherNote = teacherNote;
@@ -62,23 +81,24 @@ export function BlockForm({ type, initialData, onSave, onCancel }: Props) {
 
   return (
     <div className="space-y-5">
+      {/* Рендерим форму в зависимости от типа блока */}
       {type === "TEXT" && <TextForm data={data} set={set} />}
       {type === "IMAGE" && <ImageForm data={data} set={set} upload={uploadFile} uploading={uploading} />}
       {type === "AUDIO" && <AudioForm data={data} set={set} upload={uploadFile} uploading={uploading} />}
       {type === "YOUTUBE" && <YouTubeForm data={data} set={set} />}
       {type === "HTML_EMBED" && <HtmlEmbedForm data={data} set={set} />}
+      {type === "SPACER" && <SpacerForm data={data} set={set} />}
       {type === "VOCAB_CARD" && <VocabCardForm data={data} set={set} upload={uploadFile} uploading={uploading} />}
       {type === "GRAMMAR_RULE" && <GrammarForm data={data} set={set} />}
       {type === "DIALOGUE" && <DialogueForm data={data} set={set} />}
-      {type === "TONE_BLOCK" && <ToneBlockForm data={data} set={set} />}
 
-      {/* Заметка для учителя — для ВСЕХ типов блоков */}
-      {type !== "DIVIDER" && (
+      {/* Заметка для учителя — для ВСЕХ типов кроме DIVIDER и SPACER */}
+      {type !== "DIVIDER" && type !== "SPACER" && (
         <>
           <Separator />
           <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg p-4">
             <Label className="text-base text-amber-600 font-medium">
-              👩‍🏫 Заметка для учителя (необязательно)
+              Заметка для учителя (необязательно)
             </Label>
             <p className="text-sm text-muted-foreground mb-2">
               Видит только учитель. Подсказки, пояснения, методические указания.
@@ -90,6 +110,7 @@ export function BlockForm({ type, initialData, onSave, onCancel }: Props) {
         </>
       )}
 
+      {/* Кнопки сохранения/отмены */}
       <div className="flex justify-end gap-3 pt-3">
         <Button variant="outline" size="lg" onClick={onCancel}>Отмена</Button>
         <Button size="lg" onClick={handleSave}>
@@ -100,7 +121,11 @@ export function BlockForm({ type, initialData, onSave, onCancel }: Props) {
   );
 }
 
-// ===== ТЕКСТ — Tiptap =====
+// =====================================================================
+// ФОРМЫ ДЛЯ КАЖДОГО ТИПА БЛОКА
+// =====================================================================
+
+// ===== ТЕКСТ — полноценный Tiptap WYSIWYG =====
 function TextForm({ data, set }: { data: any; set: any }) {
   return (
     <div className="space-y-2">
@@ -110,18 +135,22 @@ function TextForm({ data, set }: { data: any; set: any }) {
   );
 }
 
-// ===== КАРТИНКА =====
+// ===== КАРТИНКА — загрузка + подпись =====
 function ImageForm({ data, set, upload, uploading }: { data: any; set: any; upload: any; uploading: boolean }) {
   return (
     <div className="space-y-4">
+      {/* Выбор файла */}
       <div className="space-y-2">
         <Label className="text-base text-foreground">Картинка</Label>
         <input type="file" accept="image/*" disabled={uploading}
           onChange={(e) => { const f = e.target.files?.[0]; if (f) upload(f, "url"); }}
           className="block w-full text-base text-foreground file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-primary file:text-primary-foreground file:cursor-pointer" />
+        {/* Индикатор загрузки */}
         {uploading && <p className="text-sm text-muted-foreground">Загрузка...</p>}
+        {/* Превью загруженной картинки */}
         {data.url && <img src={data.url} alt="" className="max-w-xs rounded-lg mt-2" />}
       </div>
+      {/* Подпись */}
       <div className="space-y-2">
         <Label className="text-base text-foreground">Подпись</Label>
         <Input value={data.caption || ""} onChange={(e) => set("caption", e.target.value)}
@@ -131,15 +160,17 @@ function ImageForm({ data, set, upload, uploading }: { data: any; set: any; uplo
   );
 }
 
-// ===== АУДИО =====
+// ===== АУДИО — загрузка + название =====
 function AudioForm({ data, set, upload, uploading }: { data: any; set: any; upload: any; uploading: boolean }) {
   return (
     <div className="space-y-4">
+      {/* Название аудио */}
       <div className="space-y-2">
         <Label className="text-base text-foreground">Название</Label>
         <Input value={data.title || ""} onChange={(e) => set("title", e.target.value)}
           placeholder="Произношение" className="text-base h-11" />
       </div>
+      {/* Выбор аудио-файла */}
       <div className="space-y-2">
         <Label className="text-base text-foreground">Аудио-файл</Label>
         <input type="file" accept="audio/*" disabled={uploading}
@@ -152,7 +183,7 @@ function AudioForm({ data, set, upload, uploading }: { data: any; set: any; uplo
   );
 }
 
-// ===== YOUTUBE =====
+// ===== YOUTUBE — ссылка + название =====
 function YouTubeForm({ data, set }: { data: any; set: any }) {
   return (
     <div className="space-y-4">
@@ -170,7 +201,7 @@ function YouTubeForm({ data, set }: { data: any; set: any }) {
   );
 }
 
-// ===== HTML EMBED =====
+// ===== HTML EMBED — произвольный HTML-код =====
 function HtmlEmbedForm({ data, set }: { data: any; set: any }) {
   return (
     <div className="space-y-2">
@@ -182,79 +213,93 @@ function HtmlEmbedForm({ data, set }: { data: any; set: any }) {
   );
 }
 
-// ===== КАРТОЧКА СЛОВА — с картинкой =====
-function VocabCardForm({ data, set, upload, uploading }: { data: any; set: any; upload: any; uploading: boolean }) {
-  // Тоны: храним как строку при вводе, парсим при сохранении
-  const [toneStr, setToneStr] = useState(
-    Array.isArray(data.tonePattern) ? data.tonePattern.join(", ") : ""
+// ===== SPACER — настраиваемый отступ =====
+function SpacerForm({ data, set }: { data: any; set: any }) {
+  return (
+    <div className="space-y-3">
+      <Label className="text-base text-foreground">Размер отступа</Label>
+      <div className="flex gap-3">
+        {/* Три варианта размера */}
+        {[
+          { value: "sm", label: "Маленький", desc: "1 строка", height: "h-4" },
+          { value: "md", label: "Средний", desc: "2 строки", height: "h-8" },
+          { value: "lg", label: "Большой", desc: "4 строки", height: "h-16" },
+        ].map((opt) => (
+          <button key={opt.value} onClick={() => set("size", opt.value)}
+            className={`flex-1 p-4 rounded-lg border-2 transition-colors text-center ${
+              data.size === opt.value
+                ? "border-primary bg-primary/5"
+                : "border-border hover:border-primary/30"
+            }`}>
+            {/* Визуальное превью размера */}
+            <div className={`${opt.height} bg-muted rounded mb-2 mx-auto w-full max-w-[120px]`} />
+            <p className="text-sm font-medium text-foreground">{opt.label}</p>
+            <p className="text-xs text-muted-foreground">{opt.desc}</p>
+          </button>
+        ))}
+      </div>
+    </div>
   );
+}
 
-  const handleToneChange = (value: string) => {
-    setToneStr(value);
-    // Парсим только числа через запятую
-    const parsed = value.split(",")
-      .map((t) => parseInt(t.trim()))
-      .filter((t) => !isNaN(t));
-    set("tonePattern", parsed);
-  };
-
+// ===== КАРТОЧКА СЛОВА — Универсальная (для всех языков) =====
+function VocabCardForm({ data, set, upload, uploading }: { data: any; set: any; upload: any; uploading: boolean }) {
   return (
     <div className="space-y-5">
-      {/* Основные поля */}
-      <div className="grid grid-cols-3 gap-4">
-        <div className="space-y-2">
-          <Label className="text-base text-foreground">Иероглиф *</Label>
-          <Input value={data.hanzi || ""} onChange={(e) => set("hanzi", e.target.value)}
-            placeholder="菜单" className="text-4xl text-center h-20 font-bold" />
-        </div>
-        <div className="space-y-2">
-          <Label className="text-base text-foreground">Пиньинь *</Label>
-          <Input value={data.pinyin || ""} onChange={(e) => set("pinyin", e.target.value)}
-            placeholder="càidān" className="text-2xl h-20" />
-        </div>
-        <div className="space-y-2">
-          <Label className="text-base text-foreground">Перевод *</Label>
-          <Input value={data.translation || ""} onChange={(e) => set("translation", e.target.value)}
-            placeholder="menu" className="text-2xl h-20" />
-        </div>
-      </div>
-
-      {/* Доп. поля */}
-      <div className="grid grid-cols-3 gap-4">
-        <div className="space-y-2">
-          <Label className="text-base text-foreground">Часть речи</Label>
-          <Select value={data.partOfSpeech || ""} onValueChange={(v) => set("partOfSpeech", v)}>
-            <SelectTrigger className="h-11 text-base"><SelectValue placeholder="—" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="noun">noun</SelectItem>
-              <SelectItem value="verb">verb</SelectItem>
-              <SelectItem value="adjective">adj</SelectItem>
-              <SelectItem value="pronoun">pronoun</SelectItem>
-              <SelectItem value="phrase">phrase</SelectItem>
-              <SelectItem value="particle">particle</SelectItem>
-              <SelectItem value="measure">measure word</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-2">
-          <Label className="text-base text-foreground">HSK</Label>
-          <Select value={data.hskLevel?.toString() || ""} onValueChange={(v) => set("hskLevel", parseInt(v))}>
-            <SelectTrigger className="h-11 text-base"><SelectValue placeholder="—" /></SelectTrigger>
-            <SelectContent>
-              {[1,2,3,4,5,6].map((n) => <SelectItem key={n} value={n.toString()}>HSK {n}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-2">
-          <Label className="text-base text-foreground">Тоны</Label>
-          <Input value={toneStr} onChange={(e) => handleToneChange(e.target.value)}
-            placeholder="4, 1" className="h-11 text-lg" />
-        </div>
-      </div>
-
-      {/* Картинка к слову */}
+      {/* Основное поле: слово на изучаемом языке (обязательное) */}
       <div className="space-y-2">
-        <Label className="text-base text-foreground">Картинка к слову (необязательно)</Label>
+        <Label className="text-base text-foreground">Слово *</Label>
+        <Input value={data.word || ""} onChange={(e) => set("word", e.target.value)}
+          placeholder="Слово на изучаемом языке" className="text-3xl h-16 font-bold" />
+      </div>
+
+      {/* Перевод (опционально) */}
+      <div className="space-y-2">
+        <Label className="text-base text-foreground">Перевод</Label>
+        <Input value={data.translation || ""} onChange={(e) => set("translation", e.target.value)}
+          placeholder="Перевод на целевой язык" className="text-xl h-14" />
+      </div>
+
+      {/* Транскрипция (опционально) — пиньинь, IPA, ромадзи и т.д. */}
+      <div className="space-y-2">
+        <Label className="text-base text-foreground">Транскрипция</Label>
+        <Input value={data.transcription || ""} onChange={(e) => set("transcription", e.target.value)}
+          placeholder="Пиньинь, IPA, ромадзи..." className="text-lg h-12" />
+        <p className="text-xs text-muted-foreground">Необязательно. Используйте подходящую систему транскрипции для вашего языка.</p>
+      </div>
+
+      {/* Часть речи (опционально) */}
+      <div className="space-y-2">
+        <Label className="text-base text-foreground">Часть речи</Label>
+        <Select value={data.partOfSpeech || ""} onValueChange={(v) => set("partOfSpeech", v)}>
+          <SelectTrigger className="h-11 text-base"><SelectValue placeholder="Не указана" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="noun">noun (существительное)</SelectItem>
+            <SelectItem value="verb">verb (глагол)</SelectItem>
+            <SelectItem value="adjective">adjective (прилагательное)</SelectItem>
+            <SelectItem value="adverb">adverb (наречие)</SelectItem>
+            <SelectItem value="pronoun">pronoun (местоимение)</SelectItem>
+            <SelectItem value="preposition">preposition (предлог)</SelectItem>
+            <SelectItem value="conjunction">conjunction (союз)</SelectItem>
+            <SelectItem value="interjection">interjection (междометие)</SelectItem>
+            <SelectItem value="phrase">phrase (фраза)</SelectItem>
+            <SelectItem value="particle">particle (частица)</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Аудио (опционально) */}
+      <div className="space-y-2">
+        <Label className="text-base text-foreground">Аудио произношения</Label>
+        <input type="file" accept="audio/*" disabled={uploading}
+          onChange={(e) => { const f = e.target.files?.[0]; if (f) upload(f, "audioUrl"); }}
+          className="block w-full text-base text-foreground file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-primary file:text-primary-foreground file:cursor-pointer" />
+        {data.audioUrl && <audio controls src={data.audioUrl} className="mt-2" />}
+      </div>
+
+      {/* Картинка (опционально) */}
+      <div className="space-y-2">
+        <Label className="text-base text-foreground">Картинка к слову</Label>
         <input type="file" accept="image/*" disabled={uploading}
           onChange={(e) => { const f = e.target.files?.[0]; if (f) upload(f, "imageUrl"); }}
           className="block w-full text-base text-foreground file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-primary file:text-primary-foreground file:cursor-pointer" />
@@ -263,38 +308,51 @@ function VocabCardForm({ data, set, upload, uploading }: { data: any; set: any; 
 
       <Separator />
 
-      {/* Пример */}
-      <p className="text-base font-medium text-foreground">Пример в предложении</p>
+      {/* Пример в предложении (опционально) */}
       <div className="space-y-3">
-        <Input value={data.exampleHanzi || ""} onChange={(e) => set("exampleHanzi", e.target.value)}
-          placeholder="请给我菜单" className="text-2xl h-14" />
-        <Input value={data.examplePinyin || ""} onChange={(e) => set("examplePinyin", e.target.value)}
-          placeholder="Qǐng gěi wǒ càidān" className="text-xl h-12" />
-        <Input value={data.exampleTranslation || ""} onChange={(e) => set("exampleTranslation", e.target.value)}
-          placeholder="Please give me the menu" className="text-lg h-11" />
+        <Label className="text-base font-medium text-foreground">Пример в предложении</Label>
+        {/* Предложение на изучаемом языке */}
+        <div className="space-y-2">
+          <Label className="text-sm text-muted-foreground">Предложение</Label>
+          <TiptapEditor
+            content={data.exampleSentence || ""}
+            onChange={(html) => set("exampleSentence", html)}
+            minHeight="80px"
+          />
+        </div>
+        {/* Перевод примера */}
+        <div className="space-y-2">
+          <Label className="text-sm text-muted-foreground">Перевод примера</Label>
+          <Input value={data.exampleTranslation || ""} onChange={(e) => set("exampleTranslation", e.target.value)}
+            placeholder="Перевод предложения" className="text-base h-11" />
+        </div>
       </div>
     </div>
   );
 }
 
-// ===== ГРАММАТИКА — с KaTeX =====
+// ===== ГРАММАТИКА — заголовок + формула (MathLive) + объяснение (Tiptap) =====
 function GrammarForm({ data, set }: { data: any; set: any }) {
   return (
     <div className="space-y-4">
+      {/* Название грамматического правила */}
       <div className="space-y-2">
         <Label className="text-base text-foreground">Название правила</Label>
         <Input value={data.title || ""} onChange={(e) => set("title", e.target.value)}
-          placeholder="Выражение желания: 想 + V" className="text-lg h-12" />
+          placeholder="Например: Выражение желания: 想 + V" className="text-lg h-12" />
       </div>
+
+      {/* Формула — MathLive визуальный редактор */}
       <div className="space-y-2">
-        <Label className="text-base text-foreground">Формула (KaTeX / LaTeX синтаксис)</Label>
-        <Input value={data.formula || ""} onChange={(e) => set("formula", e.target.value)}
-          placeholder="S + \text{想} + V + O" className="text-xl h-12 font-mono" />
-        <p className="text-sm text-muted-foreground">
-          Используйте LaTeX: \text{'{'}слово{'}'} для текста, \frac{'{'}a{'}'}{'{'}b{'}'} для дробей, ^ для степени.
-          Для простых формул типа "S + 想 + V" можно писать как есть.
+        <Label className="text-base text-foreground">Формула (визуальный редактор)</Label>
+        <MathLiveEditor value={data.formula || ""} onChange={(val) => set("formula", val)} />
+        <p className="text-xs text-muted-foreground">
+          Используйте визуальный редактор для ввода формул. Поддерживает дроби, степени, корни, специальные символы.
+          Для простых формул типа «S + 想 + V» можно вводить как обычный текст.
         </p>
       </div>
+
+      {/* Объяснение — Tiptap */}
       <div className="space-y-2">
         <Label className="text-base text-foreground">Объяснение</Label>
         <TiptapEditor content={data.explanationHtml || ""} onChange={(html) => set("explanationHtml", html)} />
@@ -303,19 +361,80 @@ function GrammarForm({ data, set }: { data: any; set: any }) {
   );
 }
 
+// ===== MathLive — визуальный редактор формул =====
+function MathLiveEditor({ value, onChange }: { value: string; onChange: (val: string) => void }) {
+  // MathLive загружается динамически как веб-компонент
+  // При первом рендере добавляем скрипт, затем используем <math-field>
+  const [loaded, setLoaded] = useState(false);
+
+  // Загружаем MathLive если ещё не загружен
+  if (typeof window !== "undefined" && !loaded) {
+    // Проверяем есть ли уже скрипт на странице
+    if (!document.querySelector('script[src*="mathlive"]')) {
+      const script = document.createElement("script");
+      script.src = "https://cdn.jsdelivr.net/npm/mathlive@0.101.0/dist/mathlive.min.js";
+      script.onload = () => setLoaded(true);
+      document.head.appendChild(script);
+    } else {
+      setLoaded(true);
+    }
+  }
+
+  return (
+    <div className="border border-border rounded-lg overflow-hidden bg-card">
+      {loaded ? (
+        // MathLive веб-компонент (визуальный ввод формул)
+        <div
+          dangerouslySetInnerHTML={{
+            __html: `<math-field
+              id="grammar-math-field"
+              style="width:100%;min-height:60px;font-size:20px;padding:12px 16px;border:none;outline:none;background:transparent;"
+            >${value || ""}</math-field>`
+          }}
+          ref={(el) => {
+            if (!el) return;
+            // Подписываемся на изменения через событие input
+            const mf = el.querySelector("math-field");
+            if (mf) {
+              (mf as any).addEventListener("input", () => {
+                onChange((mf as any).value || "");
+              });
+            }
+          }}
+        />
+      ) : (
+        // Пока MathLive загружается — показываем обычный input
+        <Input value={value} onChange={(e) => onChange(e.target.value)}
+          placeholder="Загрузка редактора формул..." className="text-xl h-14 border-0" />
+      )}
+      {/* Фоллбэк: LaTeX-ввод для опытных пользователей */}
+      <div className="px-4 py-2 border-t border-border bg-muted/30">
+        <details>
+          <summary className="text-xs text-muted-foreground cursor-pointer">LaTeX-код (для опытных)</summary>
+          <Input value={value} onChange={(e) => onChange(e.target.value)}
+            placeholder="S + \text{想} + V + O" className="text-sm h-9 mt-2 font-mono" />
+        </details>
+      </div>
+    </div>
+  );
+}
+
 // ===== ДИАЛОГ — визуальный конструктор с аватарками и фонами =====
 function DialogueForm({ data, set }: { data: any; set: any }) {
+  // Участники диалога
   const speakers: any[] = data.speakers || [];
+  // Реплики
   const lines: any[] = data.lines || [];
+  // Аватарки участников
   const speakerAvatars: string[] = data.speakerAvatars || [];
+  // Выбранная сцена (фон)
   const sceneId: string = data.sceneId || "none";
 
-  // Попап выбора аватарки: индекс участника или null
+  // Состояние попапов
   const [avatarPickerFor, setAvatarPickerFor] = useState<number | null>(null);
-  // Попап выбора фона
   const [scenePickerOpen, setScenePickerOpen] = useState(false);
 
-  // --- Участники ---
+  // --- Управление участниками ---
   const addSpeaker = () => {
     set("speakers", [...speakers, ""]);
     set("speakerAvatars", [...speakerAvatars, "man"]);
@@ -338,16 +457,16 @@ function DialogueForm({ data, set }: { data: any; set: any }) {
     if (speakers.length <= 1) return;
     set("speakers", speakers.filter((_: any, i: number) => i !== index));
     set("speakerAvatars", speakerAvatars.filter((_: any, i: number) => i !== index));
-    // Удаляем реплики, корректируем индексы
+    // Удаляем реплики этого участника, корректируем индексы остальных
     set("lines", lines
       .filter((l: any) => l.speakerIndex !== index)
       .map((l: any) => ({ ...l, speakerIndex: l.speakerIndex > index ? l.speakerIndex - 1 : l.speakerIndex }))
     );
   };
 
-  // --- Реплики ---
+  // --- Управление репликами ---
   const addLine = (speakerIndex?: number) => {
-    set("lines", [...lines, { speakerIndex: speakerIndex ?? 0, hanzi: "", pinyin: "", translation: "" }]);
+    set("lines", [...lines, { speakerIndex: speakerIndex ?? 0, text: "", transcription: "", translation: "" }]);
   };
 
   const updateLine = (index: number, field: string, value: any) => {
@@ -366,7 +485,7 @@ function DialogueForm({ data, set }: { data: any; set: any }) {
     set("lines", updated);
   };
 
-  // Цвета участников
+  // Цвета для разных участников
   const speakerColors = [
     { bg: "bg-sky-500/10", border: "border-sky-500/30", text: "text-sky-400", dot: "bg-sky-400" },
     { bg: "bg-rose-500/10", border: "border-rose-500/30", text: "text-rose-400", dot: "bg-rose-400" },
@@ -374,7 +493,7 @@ function DialogueForm({ data, set }: { data: any; set: any }) {
     { bg: "bg-emerald-500/10", border: "border-emerald-500/30", text: "text-emerald-400", dot: "bg-emerald-400" },
   ];
 
-  // Текущая сцена
+  // Текущая выбранная сцена
   const currentScene = SCENE_MAP[sceneId] || SCENE_MAP["none"];
 
   return (
@@ -385,7 +504,7 @@ function DialogueForm({ data, set }: { data: any; set: any }) {
         <Input value={data.situationTitle || ""} onChange={(e) => set("situationTitle", e.target.value)}
           placeholder="Первая встреча" className="text-lg h-12" />
 
-        {/* Выбор фона */}
+        {/* Выбор фона ситуации */}
         <div>
           <Label className="text-sm text-muted-foreground mb-2 block">Фон ситуации</Label>
           <button onClick={() => setScenePickerOpen(!scenePickerOpen)}
@@ -394,7 +513,7 @@ function DialogueForm({ data, set }: { data: any; set: any }) {
             <span className="text-sm text-foreground">{currentScene.label}</span>
             <span className="text-xs text-muted-foreground ml-auto">▼</span>
           </button>
-          {/* Сетка фонов */}
+          {/* Сетка выбора фонов */}
           {scenePickerOpen && (
             <div className="mt-2 p-3 rounded-xl border border-border bg-card shadow-xl grid grid-cols-4 gap-2">
               {SCENE_OPTIONS.map((scene) => (
@@ -423,17 +542,17 @@ function DialogueForm({ data, set }: { data: any; set: any }) {
           return (
             <div key={i} className="relative">
               <div className="flex items-center gap-3">
-                {/* Аватарка — кликабельная */}
+                {/* Аватарка — кликабельная для выбора */}
                 <button onClick={() => setAvatarPickerFor(avatarPickerFor === i ? null : i)}
                   className={`w-14 h-14 rounded-xl flex items-center justify-center text-3xl ${color.bg} border ${color.border} hover:opacity-80 transition-opacity flex-shrink-0`}
                   title="Выбрать аватарку">
                   {avatar?.emoji || "👤"}
                 </button>
-                {/* Имя */}
+                {/* Имя участника */}
                 <Input value={speaker} onChange={(e) => updateSpeaker(i, e.target.value)}
-                  placeholder={i === 0 ? "Ли Мин" : i === 1 ? "Дэвид" : `Участник ${i + 1}`}
+                  placeholder={`Участник ${i + 1}`}
                   className="text-base h-11 flex-1" />
-                {/* Удалить */}
+                {/* Кнопка удаления */}
                 {speakers.length > 1 && (
                   <button onClick={() => removeSpeaker(i)}
                     className="w-8 h-8 flex items-center justify-center rounded text-red-400 hover:bg-red-400/10 transition-colors text-sm">✕</button>
@@ -471,12 +590,14 @@ function DialogueForm({ data, set }: { data: any; set: any }) {
       <div className="space-y-2">
         <Label className="text-base text-foreground">Реплики</Label>
 
+        {/* Пустое состояние */}
         {lines.length === 0 && (
           <div className="text-center py-6 bg-muted/30 rounded-lg border border-dashed border-border">
             <p className="text-muted-foreground">Нет реплик. Добавьте первую.</p>
           </div>
         )}
 
+        {/* Список реплик */}
         <div className="space-y-3">
           {lines.map((line: any, i: number) => {
             const spkIdx = line.speakerIndex || 0;
@@ -485,7 +606,7 @@ function DialogueForm({ data, set }: { data: any; set: any }) {
             const avatar = AVATAR_MAP[avatarId];
             return (
               <div key={i} className={`rounded-xl ${color.bg} border ${color.border} p-4 relative group`}>
-                {/* Кнопки управления */}
+                {/* Кнопки управления (вверх/вниз/удалить) */}
                 <div className="absolute top-2 right-2 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button onClick={() => moveLine(i, "up")} disabled={i === 0}
                     className="w-7 h-7 flex items-center justify-center rounded text-muted-foreground hover:text-foreground hover:bg-accent transition-colors disabled:opacity-30">
@@ -515,21 +636,21 @@ function DialogueForm({ data, set }: { data: any; set: any }) {
                   </select>
                 </div>
 
-                {/* Поля */}
+                {/* Поля реплики: текст, транскрипция, перевод */}
                 <div className="space-y-2">
-                  <Input value={line.hanzi || ""} onChange={(e) => updateLine(i, "hanzi", e.target.value)}
-                    placeholder="你好！我叫李明。" className="text-xl h-12 bg-transparent border-white/10" />
-                  <Input value={line.pinyin || ""} onChange={(e) => updateLine(i, "pinyin", e.target.value)}
-                    placeholder="Nǐ hǎo! Wǒ jiào Lǐ Míng." className="text-base h-10 bg-transparent border-white/10" />
+                  <Input value={line.text || line.hanzi || ""} onChange={(e) => updateLine(i, "text", e.target.value)}
+                    placeholder="Текст реплики на изучаемом языке" className="text-xl h-12 bg-transparent border-white/10" />
+                  <Input value={line.transcription || line.pinyin || ""} onChange={(e) => updateLine(i, "transcription", e.target.value)}
+                    placeholder="Транскрипция (необязательно)" className="text-base h-10 bg-transparent border-white/10" />
                   <Input value={line.translation || ""} onChange={(e) => updateLine(i, "translation", e.target.value)}
-                    placeholder="Hello! My name is Li Ming." className="text-sm h-10 bg-transparent border-white/10 text-muted-foreground" />
+                    placeholder="Перевод (необязательно)" className="text-sm h-10 bg-transparent border-white/10 text-muted-foreground" />
                 </div>
               </div>
             );
           })}
         </div>
 
-        {/* Быстрое добавление */}
+        {/* Быстрое добавление реплики для каждого участника */}
         <div className="flex gap-2 flex-wrap pt-1">
           {speakers.map((s: string, i: number) => {
             const color = speakerColors[i % speakerColors.length];
@@ -549,56 +670,38 @@ function DialogueForm({ data, set }: { data: any; set: any }) {
   );
 }
 
-// ===== ТОНОВЫЙ БЛОК =====
-function ToneBlockForm({ data, set }: { data: any; set: any }) {
-  const [pairsStr, setPairsStr] = useState(
-    Array.isArray(data.minimalPairs) ? data.minimalPairs.join(", ") : ""
-  );
-
-  return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label className="text-base text-foreground">Слог</Label>
-          <Input value={data.syllable || ""} onChange={(e) => set("syllable", e.target.value)}
-            placeholder="cài" className="text-2xl h-14" />
-        </div>
-        <div className="space-y-2">
-          <Label className="text-base text-foreground">Тон (0-4)</Label>
-          <Input value={data.tone?.toString() || ""} onChange={(e) => set("tone", parseInt(e.target.value) || 0)}
-            placeholder="4" className="text-2xl h-14" type="number" min="0" max="4" />
-        </div>
-      </div>
-      <div className="space-y-2">
-        <Label className="text-base text-foreground">Минимальные пары (через запятую)</Label>
-        <Input value={pairsStr} className="text-lg h-12"
-          onChange={(e) => {
-            setPairsStr(e.target.value);
-            set("minimalPairs", e.target.value.split(",").map((s: string) => s.trim()).filter(Boolean));
-          }}
-          placeholder="cāi, cái, cǎi, cài" />
-      </div>
-      <div className="space-y-2">
-        <Label className="text-base text-foreground">Правило изменения тона</Label>
-        <Textarea value={data.toneChangeRule || ""} onChange={(e) => set("toneChangeRule", e.target.value)}
-          placeholder="Перед 4-м тоном третий тон произносится как полутретий" rows={2} className="text-base" />
-      </div>
-    </div>
-  );
-}
+// =====================================================================
+// ДАННЫЕ ПО УМОЛЧАНИЮ ДЛЯ КАЖДОГО ТИПА БЛОКА
+// =====================================================================
 
 function getDefaultData(type: string): any {
   switch (type) {
-    case "TEXT": return { html: "" };
-    case "IMAGE": return { url: "", caption: "", alt: "" };
-    case "AUDIO": return { url: "", title: "" };
-    case "YOUTUBE": return { url: "", title: "" };
-    case "DIVIDER": return {};
-    case "HTML_EMBED": return { html: "" };
-    case "VOCAB_CARD": return { hanzi: "", pinyin: "", translation: "", partOfSpeech: "", hskLevel: null, tonePattern: [], imageUrl: "", exampleHanzi: "", examplePinyin: "", exampleTranslation: "" };
-    case "GRAMMAR_RULE": return { title: "", formula: "", explanationHtml: "", examples: [], commonMistakes: [] };
-    case "DIALOGUE": return { situationTitle: "", speakers: ["", ""], speakerAvatars: ["man", "woman"], sceneId: "none", lines: [] };
-    case "TONE_BLOCK": return { syllable: "", tone: 1, minimalPairs: [], toneChangeRule: "" };
-    default: return {};
+    case "TEXT":
+      return { html: "" };
+    case "IMAGE":
+      return { url: "", caption: "", alt: "" };
+    case "AUDIO":
+      return { url: "", title: "" };
+    case "YOUTUBE":
+      return { url: "", title: "" };
+    case "DIVIDER":
+      return {};
+    case "SPACER":
+      return { size: "md" }; // По умолчанию средний отступ
+    case "HTML_EMBED":
+      return { html: "" };
+    case "VOCAB_CARD":
+      // Универсальная карточка: слово + перевод + транскрипция + медиа + пример
+      return {
+        word: "", translation: "", transcription: "",
+        partOfSpeech: "", audioUrl: "", imageUrl: "",
+        exampleSentence: "", exampleTranslation: "",
+      };
+    case "GRAMMAR_RULE":
+      return { title: "", formula: "", explanationHtml: "" };
+    case "DIALOGUE":
+      return { situationTitle: "", speakers: ["", ""], speakerAvatars: ["man", "woman"], sceneId: "none", lines: [] };
+    default:
+      return {};
   }
 }

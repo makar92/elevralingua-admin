@@ -1,6 +1,11 @@
 // ===========================================
 // Файл: src/app/dashboard/courses/page.tsx
-// Описание: Список курсов. Все цвета текста исправлены.
+// Путь:  linguamethod-admin/src/app/dashboard/courses/page.tsx
+//
+// Описание:
+//   Страница списка курсов.
+//   Показывает все курсы с мета-информацией (язык, уровень, кол-во модулей/уроков).
+//   Кнопка создания нового курса. Карточки кликабельные — переход в редактор.
 // ===========================================
 
 import { prisma } from "@/lib/prisma";
@@ -35,13 +40,13 @@ export default async function CoursesPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-5">
           {courses.map((course) => {
             const lessonCount = course.modules.reduce((sum, m) => sum + m.lessons.length, 0);
             return (
               <Link key={course.id} href={`/dashboard/courses/${course.id}`}>
-                <Card className="hover:border-primary/50 hover:shadow-sm transition-all cursor-pointer">
-                  <CardContent className="py-4">
+                <Card className="hover:border-primary/50 hover:shadow-md transition-all cursor-pointer">
+                  <CardContent className="py-5 px-6">
                     <div className="flex items-center justify-between">
                       <div>
                         <div className="flex items-center gap-3">

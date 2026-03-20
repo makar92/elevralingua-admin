@@ -1,3 +1,11 @@
+// ===========================================
+// Файл: src/app/error.tsx
+// Путь:  linguamethod-admin/src/app/error.tsx
+//
+// Описание:
+//   Глобальная страница ошибки Next.js.
+// ===========================================
+
 "use client";
 
 export default function Error({ error, reset }: { error: Error; reset: () => void }) {

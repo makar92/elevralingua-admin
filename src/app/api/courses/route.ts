@@ -1,3 +1,11 @@
+// ===========================================
+// Файл: src/app/api/courses/route.ts
+// Путь:  linguamethod-admin/src/app/api/courses/route.ts
+//
+// Описание:
+//   GET — список курсов. POST — создать курс.
+// ===========================================
+
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";

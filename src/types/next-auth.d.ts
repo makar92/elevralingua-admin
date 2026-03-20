@@ -1,3 +1,11 @@
+// ===========================================
+// Файл: src/types/next-auth.d.ts
+// Путь:  linguamethod-admin/src/types/next-auth.d.ts
+//
+// Описание:
+//   Расширение типов NextAuth — добавление role к сессии.
+// ===========================================
+
 import { DefaultSession, DefaultUser } from "next-auth";
 
 declare module "next-auth" {

@@ -1,3 +1,8 @@
+// ===========================================
+// Файл: src/components/ui/dropdown-menu.tsx
+// Описание: Выпадающее меню (shadcn/ui).
+// ===========================================
+
 "use client"
 
 import * as React from "react"

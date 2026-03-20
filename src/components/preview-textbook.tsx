@@ -4,17 +4,21 @@
 //
 // Описание:
 //   Красивый рендер учебника для режима просмотра.
-//   Высокая контрастность: белый текст, яркий пиньинь,
-//   крупные шрифты для китайских символов.
-//   Карточки слов — визуально выразительные с градиентами.
+//   Отображает блоки как в реальном учебнике:
+//   - Стандартный отступ между блоками (1-2 строки)
+//   - Карточки слов — визуально выразительные
+//   - Грамматика — формулы через MathLive (read-only)
+//   - Диалоги — с аватарками и фонами
+//   - Заметки учителя — видны только в режиме учителя
+//   Поддерживает все 10 типов блоков включая SPACER.
 // ===========================================
 
 "use client";
 
 import { AudioPlayer } from "@/components/audio-player";
-import { KatexFormula } from "@/components/katex-formula";
 import { AVATAR_MAP, SCENE_MAP } from "@/lib/dialogue-assets";
 
+// ===== Типы =====
 interface ContentBlock {
   id: string; type: string; contentJson: any;
   teacherNote?: { noteHtml: string } | null;
@@ -22,28 +26,30 @@ interface ContentBlock {
 
 interface Props {
   blocks: ContentBlock[];
-  isTeacher: boolean;
+  isTeacher: boolean;    // true = показывать заметки учителя
 }
 
 // ===== Главный рендер учебника =====
 export function PreviewTextbook({ blocks, isTeacher }: Props) {
+  // Пустое состояние
   if (blocks.length === 0) {
     return (
       <div className="text-center py-20">
-        <p className="text-xl text-muted-foreground">This section is empty</p>
+        <p className="text-xl text-muted-foreground">Раздел пуст</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {blocks.map((block) => (
         <div key={block.id}>
+          {/* Рендер блока */}
           <PreviewBlock block={block} />
-          {/* Заметка учителя */}
+          {/* Заметка учителя (если есть и режим учителя) */}
           {isTeacher && block.teacherNote?.noteHtml && (
             <div className="mt-4 ml-4 pl-4 border-l-2 border-amber-600/40">
-              <p className="text-xs font-semibold text-amber-700 uppercase tracking-wider mb-1">Teacher's note</p>
+              <p className="text-xs font-semibold text-amber-700 uppercase tracking-wider mb-1">Заметка учителя</p>
               <div className="text-sm text-amber-800/80 leading-relaxed"
                 dangerouslySetInnerHTML={{ __html: block.teacherNote.noteHtml }} />
             </div>
@@ -54,22 +60,29 @@ export function PreviewTextbook({ blocks, isTeacher }: Props) {
   );
 }
 
-// ===== Рендер блока =====
+// ===== Рендер одного блока =====
 function PreviewBlock({ block }: { block: ContentBlock }) {
   const c = block.contentJson;
 
   switch (block.type) {
+    // --- Форматированный текст ---
     case "TEXT":
       return (
         <div className="prose prose-lg max-w-none
           text-foreground leading-[1.85]
-          [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:text-foreground [&_h2]:mt-8 [&_h2]:mb-4
-          [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:text-foreground [&_h3]:mt-6 [&_h3]:mb-3
+          [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:text-foreground [&_h1]:mt-8 [&_h1]:mb-4
+          [&_h2]:text-xl [&_h2]:font-bold [&_h2]:text-foreground [&_h2]:mt-6 [&_h2]:mb-3
+          [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-foreground [&_h3]:mt-5 [&_h3]:mb-2
           [&_p]:mb-4 [&_b]:text-foreground [&_strong]:text-foreground
-          [&_blockquote]:border-l-2 [&_blockquote]:border-emerald-400/40 [&_blockquote]:pl-5 [&_blockquote]:italic [&_blockquote]:text-foreground/80"
+          [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6
+          [&_li]:mb-1
+          [&_blockquote]:border-l-2 [&_blockquote]:border-primary/40 [&_blockquote]:pl-5 [&_blockquote]:italic [&_blockquote]:text-foreground/80
+          [&_code]:bg-muted [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-sm
+          [&_pre]:bg-muted [&_pre]:p-4 [&_pre]:rounded-lg [&_pre]:text-sm"
           dangerouslySetInnerHTML={{ __html: c.html || "" }} />
       );
 
+    // --- Картинка ---
     case "IMAGE":
       return c.url ? (
         <figure>
@@ -78,9 +91,11 @@ function PreviewBlock({ block }: { block: ContentBlock }) {
         </figure>
       ) : null;
 
+    // --- Аудио ---
     case "AUDIO":
       return c.url ? <AudioPlayer src={c.url} title={c.title} /> : null;
 
+    // --- YouTube ---
     case "YOUTUBE":
       return c.url ? (
         <div className="aspect-video rounded-xl overflow-hidden shadow-lg">
@@ -91,69 +106,77 @@ function PreviewBlock({ block }: { block: ContentBlock }) {
         </div>
       ) : null;
 
+    // --- Горизонтальный разделитель ---
     case "DIVIDER":
-      return <div className="py-2"><div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" /></div>;
+      return <div className="py-2"><div className="h-px bg-gradient-to-r from-transparent via-border to-transparent" /></div>;
 
+    // --- Пустая строка (отступ) ---
+    case "SPACER":
+      return <div className={c.size === "sm" ? "h-4" : c.size === "lg" ? "h-16" : "h-8"} />;
+
+    // --- HTML-вставка ---
     case "HTML_EMBED":
       return c.html ? <div className="rounded-xl overflow-hidden" dangerouslySetInnerHTML={{ __html: c.html }} /> : null;
 
+    // --- Карточка слова (универсальная) ---
     case "VOCAB_CARD": return <VocabCardPreview c={c} />;
+    // --- Грамматическое правило ---
     case "GRAMMAR_RULE": return <GrammarPreview c={c} />;
+    // --- Диалог ---
     case "DIALOGUE": return <DialoguePreview c={c} />;
-    case "TONE_BLOCK": return <ToneBlockPreview c={c} />;
+
     default: return null;
   }
 }
 
 // =====================================================================
-// КАРТОЧКИ
+// КАРТОЧКИ ПРОСМОТРА
 // =====================================================================
 
-// ===== Карточка слова =====
+// ===== Универсальная карточка слова =====
 function VocabCardPreview({ c }: { c: any }) {
+  // Поддерживаем и старый формат (hanzi/pinyin) и новый (word/transcription)
+  const word = c.word || c.hanzi || "";
+  const transcription = c.transcription || c.pinyin || "";
+
   return (
     <div className="rounded-2xl overflow-hidden bg-white border border-black/8 shadow-xl">
       <div className="p-7 flex gap-8">
-        {/* Иероглиф — очень крупно */}
+        {/* Слово — очень крупно */}
         <div className="flex flex-col items-center justify-center min-w-[130px]">
-          <span className="text-7xl font-bold text-foreground leading-none">{c.hanzi}</span>
-          {/* Тоновые точки */}
-          {c.tonePattern?.length > 0 && (
-            <div className="flex gap-2 mt-4">
-              {c.tonePattern.map((t: number, i: number) => (
-                <span key={i} className={`w-3 h-3 rounded-full ${
-                  t === 1 ? "bg-red-400" : t === 2 ? "bg-amber-400" : t === 3 ? "bg-emerald-400" : t === 4 ? "bg-sky-400" : "bg-black/20"
-                }`} />
-              ))}
-            </div>
-          )}
+          <span className="text-6xl font-bold text-foreground leading-none">{word}</span>
         </div>
-
         {/* Информация */}
         <div className="flex-1 min-w-0 py-1">
-          {/* Пиньинь — яркий, крупный, контрастный */}
-          <p className="text-3xl font-semibold text-emerald-600">{c.pinyin}</p>
-          {/* Перевод — белый, крупный */}
-          <p className="text-xl text-foreground mt-2">{c.translation}</p>
-          {/* Метаданные */}
-          <div className="flex gap-3 mt-4">
-            {c.partOfSpeech && (
-              <span className="text-sm px-3 py-1 rounded-full bg-black/5 text-foreground/60">{c.partOfSpeech}</span>
-            )}
-            {c.hskLevel && (
-              <span className="text-sm px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-700">HSK {c.hskLevel}</span>
-            )}
-          </div>
+          {/* Транскрипция — яркая, крупная */}
+          {transcription && (
+            <p className="text-2xl font-semibold text-emerald-600">{transcription}</p>
+          )}
+          {/* Перевод */}
+          {c.translation && <p className="text-xl text-foreground mt-2">{c.translation}</p>}
+          {/* Часть речи */}
+          {c.partOfSpeech && (
+            <span className="inline-block text-sm px-3 py-1 rounded-full bg-black/5 text-foreground/60 mt-3">
+              {c.partOfSpeech}
+            </span>
+          )}
           {/* Картинка */}
-          {c.imageUrl && <img src={c.imageUrl} alt={c.hanzi} className="max-w-[180px] rounded-xl mt-4" />}
+          {c.imageUrl && <img src={c.imageUrl} alt={word} className="max-w-[180px] rounded-xl mt-4" />}
+          {/* Аудио */}
+          {c.audioUrl && <div className="mt-4"><AudioPlayer src={c.audioUrl} title="Произношение" /></div>}
         </div>
       </div>
-
-      {/* Пример */}
-      {c.exampleHanzi && (
+      {/* Пример в предложении */}
+      {(c.exampleSentence || c.exampleHanzi) && (
         <div className="px-7 py-5 bg-black/[0.03] border-t border-black/8">
-          <p className="text-xl text-foreground">{c.exampleHanzi}</p>
-          {c.examplePinyin && <p className="text-base text-emerald-600/80 mt-1">{c.examplePinyin}</p>}
+          {c.exampleSentence ? (
+            <div className="text-lg text-foreground" dangerouslySetInnerHTML={{ __html: c.exampleSentence }} />
+          ) : (
+            <>
+              <p className="text-xl text-foreground">{c.exampleHanzi}</p>
+              {c.examplePinyin && <p className="text-base text-emerald-600/80 mt-1">{c.examplePinyin}</p>}
+            </>
+          )}
           {c.exampleTranslation && <p className="text-base text-foreground/50 mt-1">{c.exampleTranslation}</p>}
         </div>
       )}
@@ -161,7 +184,7 @@ function VocabCardPreview({ c }: { c: any }) {
   );
 }
 
-// ===== Грамматика =====
+// ===== Грамматическое правило =====
 function GrammarPreview({ c }: { c: any }) {
   return (
     <div className="rounded-2xl overflow-hidden bg-white border border-black/8 shadow-xl">
@@ -172,32 +195,21 @@ function GrammarPreview({ c }: { c: any }) {
           <h3 className="text-xl font-bold text-foreground">{c.title}</h3>
         </div>
       </div>
-
-      {/* Формула */}
+      {/* Формула — MathLive (read-only) */}
       {c.formula && (
         <div className="mx-7 mb-5 bg-black/[0.04] rounded-xl px-6 py-4">
-          <KatexFormula formula={c.formula} />
+          <math-field
+            read-only
+            style={{ fontSize: "20px", border: "none", background: "transparent", pointerEvents: "none" } as any}
+          >{c.formula}</math-field>
         </div>
       )}
-
-      {/* Объяснение */}
+      {/* Объяснение (HTML из Tiptap) */}
       {c.explanationHtml && (
         <div className="px-7 pb-5 text-lg text-foreground/80 leading-relaxed
-          [&_b]:text-foreground [&_strong]:text-foreground"
+          [&_b]:text-foreground [&_strong]:text-foreground
+          [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5"
           dangerouslySetInnerHTML={{ __html: c.explanationHtml }} />
-      )}
-
-      {/* Примеры */}
-      {c.examples?.length > 0 && (
-        <div className="px-7 pb-6 space-y-4">
-          {c.examples.map((ex: any, i: number) => (
-            <div key={i} className="pl-5 border-l-2 border-violet-600/40">
-              <p className="text-xl text-foreground">{ex.hanzi}</p>
-              <p className="text-base text-emerald-600/80 mt-0.5">{ex.pinyin}</p>
-              <p className="text-base text-foreground/50 mt-0.5">{ex.translation}</p>
-            </div>
-          ))}
-        </div>
       )}
     </div>
   );
@@ -209,6 +221,7 @@ function DialoguePreview({ c }: { c: any }) {
   const scene = SCENE_MAP[c.sceneId] || SCENE_MAP["none"];
   const hasScene = c.sceneId && c.sceneId !== "none" && scene;
 
+  // Цвета для участников
   const colors = [
     { bg: "bg-sky-500/12", border: "border-sky-400/25", name: "text-sky-700" },
     { bg: "bg-rose-500/12", border: "border-rose-400/25", name: "text-rose-700" },
@@ -220,14 +233,12 @@ function DialoguePreview({ c }: { c: any }) {
     <div className={`rounded-2xl overflow-hidden border border-black/8 shadow-xl relative ${
       hasScene ? `bg-gradient-to-br ${scene.gradient}` : "bg-white"
     }`}>
-
-      {/* Заголовок */}
+      {/* Заголовок ситуации */}
       {c.situationTitle && (
         <div className="px-7 pt-6 pb-2 relative">
           <h3 className="text-xl font-bold text-foreground">{c.situationTitle}</h3>
         </div>
       )}
-
       {/* Реплики */}
       <div className="px-7 pb-7 pt-4 space-y-6 relative">
         {(c.lines || []).map((line: any, i: number) => {
@@ -237,9 +248,12 @@ function DialoguePreview({ c }: { c: any }) {
           const avatarId = speakerAvatars[spkIdx] || "man";
           const avatar = AVATAR_MAP[avatarId];
           const speakerName = c.speakers?.[spkIdx] || "";
+          // Поддерживаем оба формата: text/transcription (новый) и hanzi/pinyin (старый)
+          const text = line.text || line.hanzi || "";
+          const transcription = line.transcription || line.pinyin || "";
           return (
             <div key={i} className={`flex items-end gap-4 ${isLeft ? "" : "flex-row-reverse"}`}>
-              {/* Аватарка — крупная */}
+              {/* Аватарка */}
               <div className="flex flex-col items-center gap-1 flex-shrink-0">
                 <div className={`w-14 h-14 rounded-2xl ${col.bg} border-2 ${col.border} flex items-center justify-center text-3xl`}>
                   {avatar?.emoji || "👤"}
@@ -248,49 +262,18 @@ function DialoguePreview({ c }: { c: any }) {
                   <span className={`text-sm font-semibold ${col.name} max-w-[80px] truncate`}>{speakerName}</span>
                 )}
               </div>
-              {/* Реплика */}
+              {/* Пузырёк реплики */}
               <div className={`max-w-[75%] rounded-2xl ${col.bg} border ${col.border} px-5 py-4 ${
                 isLeft ? "rounded-bl-md" : "rounded-br-md"
               }`}>
-                <p className="text-xl text-foreground leading-relaxed">{line.hanzi}</p>
-                <p className="text-base text-emerald-600/70 mt-1.5">{line.pinyin}</p>
-                <p className="text-sm text-foreground/50 mt-1">{line.translation}</p>
+                <p className="text-xl text-foreground leading-relaxed">{text}</p>
+                {transcription && <p className="text-base text-emerald-600/70 mt-1.5">{transcription}</p>}
+                {line.translation && <p className="text-sm text-foreground/50 mt-1">{line.translation}</p>}
               </div>
             </div>
           );
         })}
       </div>
-    </div>
-  );
-}
-
-// ===== Тоновый блок =====
-function ToneBlockPreview({ c }: { c: any }) {
-  const toneColors = ["bg-black/20", "bg-red-400", "bg-amber-400", "bg-emerald-400", "bg-sky-400"];
-  const toneNames = ["neutral", "flat", "rising", "dip", "falling"];
-
-  return (
-    <div className="rounded-2xl bg-white border border-black/8 shadow-xl p-7">
-      <div className="flex items-center gap-10">
-        <div className="text-center">
-          <p className="text-5xl font-bold text-emerald-600">{c.syllable}</p>
-          <div className={`w-12 h-1.5 rounded-full mx-auto mt-3 ${toneColors[c.tone] || toneColors[0]}`} />
-          <p className="text-sm text-foreground/50 mt-2">tone {c.tone} — {toneNames[c.tone] || ""}</p>
-        </div>
-        {c.minimalPairs?.length > 0 && (
-          <div className="flex-1">
-            <p className="text-sm text-foreground/50 uppercase tracking-wider mb-3">Compare tones</p>
-            <div className="flex gap-3 flex-wrap">
-              {c.minimalPairs.map((p: string, i: number) => (
-                <span key={i} className="text-xl text-foreground bg-black/[0.04] px-5 py-2.5 rounded-xl border border-black/8">{p}</span>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-      {c.toneChangeRule && (
-        <p className="text-base text-foreground/60 mt-5 pl-5 border-l-2 border-emerald-600/30">{c.toneChangeRule}</p>
-      )}
     </div>
   );
 }

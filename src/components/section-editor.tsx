@@ -5,9 +5,22 @@
 // Описание:
 //   Редактор раздела с тремя вкладками:
 //   📕 Учебник — контент-блоки (теория)
-//   📓 Тетрадь — упражнения по умолчанию (isDefaultInWorkbook=true)
-//   🏦 Банк упражнений — все упражнения раздела
-//   Банк = все упражнения. Тетрадь = подмножество банка.
+//   📓 Тетрадь — упражнения, включённые по умолчанию
+//              + возможность создавать упражнения прямо из тетради
+//   🏦 Банк упражнений — неиспользованные упражнения
+//
+//   Логика:
+//   - Упражнение может быть ЛИБО в тетради (isDefaultInWorkbook=true),
+//     ЛИБО в банке (isDefaultInWorkbook=false). Не в обоих.
+//   - Создание из тетради → isDefaultInWorkbook=true
+//   - Создание из банка → isDefaultInWorkbook=false
+//   - Можно перемещать между тетрадью и банком
+//
+//   UI:
+//   - Компактная кнопка «+» справа для добавления блоков
+//   - Кнопка добавляет блок в указанную позицию (не в конец)
+//   - Кнопки ↑↓ для перемещения блоков
+//   - Одна кнопка «+» с категориями (Контент / Упражнение) в тетради
 // ===========================================
 
 "use client";
@@ -30,40 +43,41 @@ interface Exercise {
   title: string; instructionText: string; difficulty: number;
   contentJson: any; gradingType: string; correctAnswers: string[];
   referenceAnswer: string | null; gradingCriteria: string | null;
+  teacherComment: string | null;
   isDefaultInWorkbook: boolean; isPublished: boolean;
 }
 
 // ===== Типы блоков контента (учебник) =====
 const BLOCK_TYPES = [
-  { type: "TEXT", icon: "📝", name: "Текст", desc: "Форматированный текст" },
-  { type: "IMAGE", icon: "🖼️", name: "Картинка", desc: "Изображение с подписью" },
-  { type: "AUDIO", icon: "🔊", name: "Аудио", desc: "Аудио-файл с плеером" },
-  { type: "YOUTUBE", icon: "▶️", name: "YouTube", desc: "Видео с YouTube" },
-  { type: "DIVIDER", icon: "—", name: "Разделитель", desc: "Горизонтальная линия" },
-  { type: "HTML_EMBED", icon: "🧩", name: "HTML код", desc: "Кастомный HTML/iframe" },
-  { type: "VOCAB_CARD", icon: "🈶", name: "Карточка слова", desc: "Иероглиф + пиньинь + перевод" },
-  { type: "GRAMMAR_RULE", icon: "📐", name: "Грамматика", desc: "Правило + формула + примеры" },
-  { type: "DIALOGUE", icon: "💬", name: "Диалог", desc: "Участники + реплики" },
-  { type: "TONE_BLOCK", icon: "🎵", name: "Тоновый блок", desc: "Слог + тон + пары" },
+  { type: "TEXT",         icon: "📝", name: "Текст",           desc: "Форматированный текст (WYSIWYG)" },
+  { type: "IMAGE",        icon: "🖼️", name: "Картинка",        desc: "Изображение с подписью" },
+  { type: "AUDIO",        icon: "🔊", name: "Аудио",           desc: "Аудио-файл с плеером" },
+  { type: "YOUTUBE",      icon: "▶️", name: "YouTube",         desc: "Видео с YouTube" },
+  { type: "VOCAB_CARD",   icon: "🃏", name: "Карточка слова",  desc: "Слово + перевод + транскрипция + медиа" },
+  { type: "GRAMMAR_RULE", icon: "📐", name: "Грамматика",      desc: "Правило + формула + объяснение" },
+  { type: "DIALOGUE",     icon: "💬", name: "Диалог",          desc: "Участники + реплики" },
+  { type: "DIVIDER",      icon: "—",  name: "Разделитель",     desc: "Горизонтальная линия" },
+  { type: "SPACER",       icon: "↕️", name: "Отступ",          desc: "Пустая строка (пробел между блоками)" },
+  { type: "HTML_EMBED",   icon: "🧩", name: "HTML код",        desc: "Кастомный HTML/iframe" },
 ];
 
 // ===== Типы упражнений (тетрадь + банк) =====
 const EXERCISE_TYPES = [
   // Автопроверка
-  { type: "MATCHING",        icon: "🔗", name: "Соединить пары",   desc: "Соединить левую и правую части",        grading: "AUTO" },
-  { type: "MULTIPLE_CHOICE", icon: "🔘", name: "Выбор ответа",     desc: "Выбрать правильный из вариантов",       grading: "AUTO" },
-  { type: "TONE_PLACEMENT",  icon: "🎵", name: "Расставить тоны",  desc: "Расставить тоны над пиньинем",          grading: "AUTO" },
-  { type: "WORD_ORDER",      icon: "🔀", name: "Порядок слов",     desc: "Составить предложение из слов",         grading: "AUTO" },
+  { type: "MATCHING",        icon: "🔗", name: "Соединить пары",   desc: "Соединить левую и правую части",    grading: "AUTO" },
+  { type: "MULTIPLE_CHOICE", icon: "🔘", name: "Выбор ответа",     desc: "Выбрать правильный из вариантов",   grading: "AUTO" },
+  { type: "TONE_PLACEMENT",  icon: "🎵", name: "Расставить тоны",  desc: "Расставить тоны над транскрипцией",  grading: "AUTO" },
+  { type: "WORD_ORDER",      icon: "🔀", name: "Порядок слов",     desc: "Составить предложение из слов",     grading: "AUTO" },
   // Ручная проверка
-  { type: "FILL_BLANK",      icon: "✏️", name: "Заполнить пропуск", desc: "Вписать слово в предложение",          grading: "TEACHER" },
-  { type: "TRANSLATION",     icon: "🌐", name: "Перевод",          desc: "Перевести с одного языка на другой",    grading: "TEACHER" },
-  { type: "WRITE_PINYIN",    icon: "📖", name: "Написать пиньинь", desc: "Написать пиньинь и тоны над иероглифами", grading: "TEACHER" },
-  { type: "DICTATION",       icon: "🎧", name: "Диктант",          desc: "Прослушать аудио и записать",           grading: "TEACHER" },
-  { type: "DESCRIBE_IMAGE",  icon: "🖼️", name: "Описание картинки", desc: "Описать что изображено на картинке",   grading: "TEACHER" },
-  { type: "FREE_WRITING",    icon: "📝", name: "Свободное письмо", desc: "Письменное задание на тему",            grading: "TEACHER" },
+  { type: "FILL_BLANK",      icon: "✏️", name: "Заполнить пропуск", desc: "Вписать слово в предложение",       grading: "TEACHER" },
+  { type: "TRANSLATION",     icon: "🌐", name: "Перевод",          desc: "Перевести с одного языка на другой", grading: "TEACHER" },
+  { type: "WRITE_PINYIN",    icon: "📖", name: "Написать транскр.", desc: "Написать транскрипцию к словам",    grading: "TEACHER" },
+  { type: "DICTATION",       icon: "🎧", name: "Диктант",          desc: "Прослушать аудио и записать",       grading: "TEACHER" },
+  { type: "DESCRIBE_IMAGE",  icon: "🖼️", name: "Описание картинки", desc: "Описать что изображено",            grading: "TEACHER" },
+  { type: "FREE_WRITING",    icon: "📝", name: "Свободное письмо", desc: "Письменное задание на тему",        grading: "TEACHER" },
 ];
 
-// Словари для быстрого доступа
+// Словари для быстрого доступа к названиям и иконкам
 const typeNames: Record<string, string> = {};
 const typeIcons: Record<string, string> = {};
 BLOCK_TYPES.forEach((b) => { typeNames[b.type] = b.name; typeIcons[b.type] = b.icon; });
@@ -72,21 +86,21 @@ EXERCISE_TYPES.forEach((t) => { exTypeMap[t.type] = t; });
 
 // ===== Главный компонент =====
 export function SectionEditor({ section }: { section: Section }) {
-  // Режим: editor (редактирование) | preview (просмотр)
+  // Режим отображения: редактирование или просмотр
   const [viewMode, setViewMode] = useState<"editor" | "preview">("editor");
-  // Роль для просмотра: student | teacher
+  // Роль при просмотре: ученик или учитель
   const [previewRole, setPreviewRole] = useState<"student" | "teacher">("student");
   // Активная вкладка
   const [activeTab, setActiveTab] = useState<"textbook" | "workbook" | "bank">("textbook");
 
-  // --- Состояние учебника (блоки) ---
+  // --- Состояние учебника (блоки контента) ---
   const [blocks, setBlocks] = useState<ContentBlock[]>([]);
   const [loadingBlocks, setLoadingBlocks] = useState(true);
-  const [addTypeOpen, setAddTypeOpen] = useState(false);
-  const [editOpen, setEditOpen] = useState(false);
-  const [insertAfterOrder, setInsertAfterOrder] = useState<number | null>(null);
-  const [selectedType, setSelectedType] = useState("");
-  const [editingBlock, setEditingBlock] = useState<ContentBlock | null>(null);
+  const [addTypeOpen, setAddTypeOpen] = useState(false);   // Показать выбор типа блока
+  const [editOpen, setEditOpen] = useState(false);          // Показать форму редактирования
+  const [insertAfterOrder, setInsertAfterOrder] = useState<number | null>(null); // Позиция вставки
+  const [selectedType, setSelectedType] = useState("");     // Выбранный тип для создания
+  const [editingBlock, setEditingBlock] = useState<ContentBlock | null>(null); // Блок для редактирования
 
   // --- Состояние упражнений (банк + тетрадь) ---
   const [exercises, setExercises] = useState<Exercise[]>([]);
@@ -94,6 +108,8 @@ export function SectionEditor({ section }: { section: Section }) {
   const [exMode, setExMode] = useState<"list" | "pickType" | "form">("list");
   const [selectedExType, setSelectedExType] = useState("");
   const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
+  // Контекст создания: откуда создаём (тетрадь или банк)
+  const [createFromWorkbook, setCreateFromWorkbook] = useState(false);
 
   // ===== Загрузка блоков учебника =====
   useEffect(() => {
@@ -111,7 +127,7 @@ export function SectionEditor({ section }: { section: Section }) {
     }
   }, [activeTab, section.id]);
 
-  // Загрузить упражнения раздела
+  // Загрузить все упражнения раздела
   const loadExercises = async () => {
     setLoadingExercises(true);
     try {
@@ -122,84 +138,129 @@ export function SectionEditor({ section }: { section: Section }) {
   };
 
   // ===== Действия с блоками (учебник) =====
+
+  // Перезагрузить блоки с сервера
   const reloadBlocks = async () => {
     const fresh = await fetch(`/api/sections/${section.id}/blocks`).then((r) => r.json());
     setBlocks(fresh);
   };
 
-  const openAddBlock = (afterOrder: number | null) => { setInsertAfterOrder(afterOrder); setAddTypeOpen(true); };
-
-  const selectBlockType = (type: string) => {
-    setSelectedType(type); setAddTypeOpen(false);
-    if (type === "DIVIDER") { createBlock(type, {}); return; }
-    setEditingBlock(null); setEditOpen(true);
+  // Открыть выбор типа блока (в указанной позиции)
+  const openAddBlock = (afterOrder: number | null) => {
+    setInsertAfterOrder(afterOrder);
+    setAddTypeOpen(true);
   };
 
+  // Выбрать тип блока для создания
+  const selectBlockType = (type: string) => {
+    setSelectedType(type);
+    setAddTypeOpen(false);
+    // DIVIDER и SPACER создаются мгновенно без формы
+    if (type === "DIVIDER") { createBlock(type, {}); return; }
+    if (type === "SPACER") { createBlock(type, { size: "md" }); return; }
+    setEditingBlock(null);
+    setEditOpen(true);
+  };
+
+  // Создать блок через API (с правильной позицией вставки)
   const createBlock = async (type: string, contentJson: any) => {
     await fetch(`/api/sections/${section.id}/blocks`, {
-      method: "POST", headers: { "Content-Type": "application/json" },
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ type, contentJson, insertAfterOrder }),
     });
-    await reloadBlocks(); setEditOpen(false);
+    await reloadBlocks();
+    setEditOpen(false);
   };
 
+  // Обновить содержимое блока
   const updateBlock = async (id: string, contentJson: any) => {
     await fetch(`/api/blocks/${id}`, {
-      method: "PATCH", headers: { "Content-Type": "application/json" },
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ contentJson }),
     });
-    await reloadBlocks(); setEditOpen(false);
+    await reloadBlocks();
+    setEditOpen(false);
   };
 
+  // Удалить блок (с подтверждением)
   const deleteBlock = async (id: string) => {
     if (!confirm("Удалить блок?")) return;
     await fetch(`/api/blocks/${id}`, { method: "DELETE" });
     setBlocks((prev) => prev.filter((b) => b.id !== id));
   };
 
+  // Переместить блок вверх/вниз
   const moveBlock = async (blockId: string, direction: "up" | "down") => {
     await fetch(`/api/sections/${section.id}/reorder`, {
-      method: "POST", headers: { "Content-Type": "application/json" },
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ blockId, direction }),
     });
     await reloadBlocks();
   };
 
-  const openEditBlock = (block: ContentBlock) => { setEditingBlock(block); setSelectedType(block.type); setEditOpen(true); };
+  // Открыть форму редактирования существующего блока
+  const openEditBlock = (block: ContentBlock) => {
+    setEditingBlock(block);
+    setSelectedType(block.type);
+    setEditOpen(true);
+  };
 
   // ===== Действия с упражнениями =====
+
+  // Создать упражнение (учитывает контекст: тетрадь или банк)
   const createExercise = async (formData: any) => {
     const res = await fetch("/api/exercises", {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...formData, sectionId: section.id, exerciseType: selectedExType }),
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ...formData,
+        sectionId: section.id,
+        exerciseType: selectedExType,
+        // Если создаём из тетради — сразу в тетрадь
+        isDefaultInWorkbook: createFromWorkbook,
+      }),
     });
     if (res.ok) { await loadExercises(); setExMode("list"); }
   };
 
+  // Обновить существующее упражнение
   const updateExercise = async (formData: any) => {
     if (!editingExercise) return;
     const res = await fetch(`/api/exercises/${editingExercise.id}`, {
-      method: "PATCH", headers: { "Content-Type": "application/json" },
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(formData),
     });
     if (res.ok) { await loadExercises(); setExMode("list"); }
   };
 
+  // Удалить упражнение (с подтверждением)
   const deleteExercise = async (id: string) => {
-    if (!confirm("Удалить упражнение из банка?")) return;
+    if (!confirm("Удалить упражнение?")) return;
     await fetch(`/api/exercises/${id}`, { method: "DELETE" });
     setExercises((prev) => prev.filter((e) => e.id !== id));
   };
 
+  // Переместить упражнение между тетрадью и банком
   const toggleWorkbook = async (ex: Exercise) => {
     const res = await fetch(`/api/exercises/${ex.id}`, {
-      method: "PATCH", headers: { "Content-Type": "application/json" },
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ isDefaultInWorkbook: !ex.isDefaultInWorkbook }),
     });
     if (res.ok) {
-      setExercises((prev) => prev.map((e) => e.id === ex.id ? { ...e, isDefaultInWorkbook: !e.isDefaultInWorkbook } : e));
+      setExercises((prev) => prev.map((e) =>
+        e.id === ex.id ? { ...e, isDefaultInWorkbook: !e.isDefaultInWorkbook } : e
+      ));
     }
   };
+
+  // ===== Фильтрация упражнений по вкладке =====
+  const workbookExercises = exercises.filter((e) => e.isDefaultInWorkbook);
+  const bankExercises = exercises.filter((e) => !e.isDefaultInWorkbook);
 
   // ===== РЕНДЕР: Форма блока (учебник) =====
   if (activeTab === "textbook" && editOpen) {
@@ -233,7 +294,10 @@ export function SectionEditor({ section }: { section: Section }) {
             <button key={bt.type} onClick={() => selectBlockType(bt.type)}
               className="flex items-center gap-4 p-5 rounded-lg border border-border bg-card hover:bg-accent hover:border-primary/30 transition-colors text-left">
               <span className="text-3xl">{bt.icon}</span>
-              <div><p className="text-lg font-medium text-foreground">{bt.name}</p><p className="text-base text-muted-foreground">{bt.desc}</p></div>
+              <div>
+                <p className="text-lg font-medium text-foreground">{bt.name}</p>
+                <p className="text-base text-muted-foreground">{bt.desc}</p>
+              </div>
             </button>
           ))}
         </div>
@@ -241,14 +305,17 @@ export function SectionEditor({ section }: { section: Section }) {
     );
   }
 
-  // ===== РЕНДЕР: Форма упражнения (банк) =====
-  if (activeTab === "bank" && exMode === "form") {
+  // ===== РЕНДЕР: Форма упражнения (банк ИЛИ тетрадь) =====
+  if ((activeTab === "bank" || activeTab === "workbook") && exMode === "form") {
     const info = exTypeMap[selectedExType];
     return (
       <div className="min-h-[60vh]">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold text-foreground">
             {editingExercise ? "Редактировать" : "Новое упражнение"} — {info?.icon} {info?.name}
+            {createFromWorkbook && !editingExercise && (
+              <Badge className="ml-2 text-xs" variant="outline">→ в тетрадь</Badge>
+            )}
           </h2>
           <Button variant="outline" onClick={() => { setExMode(editingExercise ? "list" : "pickType"); setEditingExercise(null); }}>← Назад</Button>
         </div>
@@ -261,14 +328,18 @@ export function SectionEditor({ section }: { section: Section }) {
     );
   }
 
-  // ===== РЕНДЕР: Выбор типа упражнения (банк) =====
-  if (activeTab === "bank" && exMode === "pickType") {
+  // ===== РЕНДЕР: Выбор типа упражнения (банк ИЛИ тетрадь) =====
+  if ((activeTab === "bank" || activeTab === "workbook") && exMode === "pickType") {
     return (
       <div className="min-h-[60vh]">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold text-foreground">Выберите тип упражнения</h2>
+          <h2 className="text-xl font-bold text-foreground">
+            Выберите тип упражнения
+            {createFromWorkbook && <Badge className="ml-2 text-xs" variant="outline">→ в тетрадь</Badge>}
+          </h2>
           <Button variant="outline" onClick={() => setExMode("list")}>← Назад</Button>
         </div>
+        {/* Автопроверка */}
         <p className="text-base font-medium text-foreground mb-3">⚡ Автоматическая проверка</p>
         <div className="grid grid-cols-2 gap-3 mb-6">
           {EXERCISE_TYPES.filter((t) => t.grading === "AUTO").map((t) => (
@@ -279,6 +350,7 @@ export function SectionEditor({ section }: { section: Section }) {
             </button>
           ))}
         </div>
+        {/* Ручная проверка */}
         <p className="text-base font-medium text-foreground mb-3">👩‍🏫 Проверка учителем</p>
         <div className="grid grid-cols-2 gap-3">
           {EXERCISE_TYPES.filter((t) => t.grading === "TEACHER").map((t) => (
@@ -295,14 +367,12 @@ export function SectionEditor({ section }: { section: Section }) {
 
   // ===== РЕНДЕР: РЕЖИМ ПРОСМОТРА =====
   if (viewMode === "preview") {
-    const workbookExercisesPreview = exercises.filter((e) => e.isDefaultInWorkbook);
     const isTeacher = previewRole === "teacher";
-    // Сохраняем текущую вкладку при переключении (textbook или workbook)
     const previewTab = activeTab === "bank" ? "textbook" : activeTab;
 
     return (
       <div className="min-h-[60vh]">
-        {/* Шапка */}
+        {/* Шапка просмотра */}
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-foreground">{section.title}</h2>
           <div className="flex items-center gap-2">
@@ -311,17 +381,17 @@ export function SectionEditor({ section }: { section: Section }) {
               <button onClick={() => setPreviewRole("student")}
                 className={`px-4 py-2 text-sm font-medium transition-colors ${
                   previewRole === "student" ? "bg-primary text-primary-foreground" : "bg-card text-muted-foreground hover:text-foreground hover:bg-accent"
-                }`}>👨‍🎓 Ученик</button>
+                }`}>Ученик</button>
               <button onClick={() => setPreviewRole("teacher")}
                 className={`px-4 py-2 text-sm font-medium transition-colors ${
                   previewRole === "teacher" ? "bg-primary text-primary-foreground" : "bg-card text-muted-foreground hover:text-foreground hover:bg-accent"
-                }`}>👩‍🏫 Учитель</button>
+                }`}>Учитель</button>
             </div>
-            <Button variant="outline" size="sm" onClick={() => setViewMode("editor")}>✏️ Editor</Button>
+            <Button variant="outline" size="sm" onClick={() => setViewMode("editor")}>✏️ Редактор</Button>
           </div>
         </div>
 
-        {/* Вкладки: Учебник / Тетрадь (без Банка — он не для просмотра) */}
+        {/* Вкладки: Учебник / Тетрадь */}
         <div className="flex gap-2 mb-8">
           <button onClick={() => setActiveTab("textbook")}
             className={`px-6 py-3 rounded-xl text-base font-medium transition-colors ${
@@ -330,24 +400,23 @@ export function SectionEditor({ section }: { section: Section }) {
           <button onClick={() => setActiveTab("workbook")}
             className={`px-6 py-3 rounded-xl text-base font-medium transition-colors ${
               previewTab === "workbook" ? "bg-primary text-primary-foreground" : "bg-card text-muted-foreground hover:text-foreground border border-border"
-            }`}>📓 Тетрадь{workbookExercisesPreview.length > 0 ? ` (${workbookExercisesPreview.length})` : ""}</button>
+            }`}>📓 Тетрадь{workbookExercises.length > 0 ? ` (${workbookExercises.length})` : ""}</button>
         </div>
 
-        {/* Контент */}
+        {/* Контент просмотра */}
         {previewTab === "textbook" && <PreviewTextbook blocks={blocks} isTeacher={isTeacher} />}
-        {previewTab === "workbook" && <PreviewWorkbook exercises={workbookExercisesPreview} isTeacher={isTeacher} />}
+        {previewTab === "workbook" && <PreviewWorkbook exercises={workbookExercises} isTeacher={isTeacher} />}
       </div>
     );
   }
 
   // ===== РЕНДЕР: Основной вид с тремя вкладками =====
-  const workbookExercises = exercises.filter((e) => e.isDefaultInWorkbook);
-
   return (
     <div className="min-h-[60vh]">
+      {/* Заголовок + кнопка просмотра */}
       <div className="flex items-center justify-between mb-5">
         <h2 className="text-2xl font-bold text-foreground">{section.title}</h2>
-        <Button variant="outline" size="sm" onClick={() => { setViewMode("preview"); }}>
+        <Button variant="outline" size="sm" onClick={() => setViewMode("preview")}>
           👁 Просмотр
         </Button>
       </div>
@@ -355,12 +424,12 @@ export function SectionEditor({ section }: { section: Section }) {
       {/* Три вкладки */}
       <div className="flex gap-2 mb-5">
         {([
-          { key: "textbook" as const, label: "📕 Учебник", count: null },
+          { key: "textbook" as const, label: "📕 Учебник", count: blocks.length || null },
           { key: "workbook" as const, label: "📓 Тетрадь", count: workbookExercises.length || null },
-          { key: "bank" as const, label: "🏦 Банк упражнений", count: exercises.length || null },
+          { key: "bank" as const, label: "🏦 Банк", count: bankExercises.length || null },
         ]).map((tab) => (
           <button key={tab.key} onClick={() => { setActiveTab(tab.key); setExMode("list"); }}
-            className={`px-6 py-3 rounded-lg text-base font-medium transition-colors ${
+            className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-colors ${
               activeTab === tab.key ? "bg-primary text-primary-foreground" : "bg-card text-muted-foreground hover:text-foreground border border-border"
             }`}>
             {tab.label}{tab.count ? ` (${tab.count})` : ""}
@@ -374,29 +443,42 @@ export function SectionEditor({ section }: { section: Section }) {
           {loadingBlocks && <p className="text-lg text-muted-foreground">Загрузка...</p>}
           {!loadingBlocks && (
             <div>
+              {/* Кнопка добавления перед первым блоком */}
               <AddBlockBtn onClick={() => openAddBlock(null)} />
+
+              {/* Список блоков */}
               {blocks.map((block, idx) => (
                 <div key={block.id}>
+                  {/* Карточка блока */}
                   <Card className="group relative">
+                    {/* Кнопки управления (появляются при наведении) */}
                     <div className="absolute top-2 right-2 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity z-10 bg-card/90 backdrop-blur-sm rounded-md border border-border p-0.5">
+                      {/* Вверх */}
                       <IconBtn onClick={() => moveBlock(block.id, "up")} disabled={idx === 0} title="Вверх">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 15l-6-6-6 6"/></svg>
                       </IconBtn>
+                      {/* Вниз */}
                       <IconBtn onClick={() => moveBlock(block.id, "down")} disabled={idx === blocks.length - 1} title="Вниз">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9l6 6 6-6"/></svg>
                       </IconBtn>
+                      {/* Редактировать */}
                       <IconBtn onClick={() => openEditBlock(block)} title="Редактировать">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                       </IconBtn>
+                      {/* Удалить */}
                       <IconBtn onClick={() => deleteBlock(block.id)} title="Удалить" danger>
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
                       </IconBtn>
                     </div>
+                    {/* Содержимое блока */}
                     <CardContent className="p-4"><BlockRenderer block={block} /></CardContent>
                   </Card>
+                  {/* Кнопка добавления после каждого блока */}
                   <AddBlockBtn onClick={() => openAddBlock(block.order)} />
                 </div>
               ))}
+
+              {/* Пустое состояние */}
               {blocks.length === 0 && (
                 <Card><CardContent className="py-16 text-center">
                   <p className="text-xl text-foreground">Раздел пуст</p>
@@ -411,19 +493,46 @@ export function SectionEditor({ section }: { section: Section }) {
       {/* ===== ТЕТРАДЬ ===== */}
       {activeTab === "workbook" && (
         <div>
+          {/* Кнопка создания упражнения прямо из тетради */}
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-sm text-muted-foreground">
+              В тетради: {workbookExercises.length} · В банке: {bankExercises.length}
+            </p>
+            <Button onClick={() => { setCreateFromWorkbook(true); setExMode("pickType"); }}>
+              + Создать упражнение
+            </Button>
+          </div>
+
           {loadingExercises && <p className="text-lg text-muted-foreground">Загрузка...</p>}
+
+          {/* Пустое состояние */}
           {!loadingExercises && workbookExercises.length === 0 && (
             <Card><CardContent className="py-16 text-center">
               <span className="text-5xl block mb-4">📓</span>
               <p className="text-xl text-foreground">Тетрадь пуста</p>
-              <p className="text-base text-muted-foreground mt-2">Создайте упражнения во вкладке «Банк упражнений»</p>
-              <Button className="mt-4" onClick={() => setActiveTab("bank")}>Перейти в банк</Button>
+              <p className="text-base text-muted-foreground mt-2">Создайте упражнение или добавьте из банка</p>
+              <div className="flex gap-2 justify-center mt-4">
+                <Button onClick={() => { setCreateFromWorkbook(true); setExMode("pickType"); }}>
+                  + Создать упражнение
+                </Button>
+                {bankExercises.length > 0 && (
+                  <Button variant="outline" onClick={() => setActiveTab("bank")}>
+                    Перейти в банк ({bankExercises.length})
+                  </Button>
+                )}
+              </div>
             </CardContent></Card>
           )}
+
+          {/* Список упражнений тетради */}
           {!loadingExercises && workbookExercises.length > 0 && (
             <div className="space-y-3">
               {workbookExercises.map((ex, idx) => (
-                <ExerciseCard key={ex.id} ex={ex} idx={idx} onToggle={toggleWorkbook} showToggle />
+                <ExerciseCard key={ex.id} ex={ex} idx={idx}
+                  onToggle={toggleWorkbook} showToggle
+                  onEdit={() => { setEditingExercise(ex); setSelectedExType(ex.exerciseType); setCreateFromWorkbook(true); setExMode("form"); }}
+                  onDelete={() => deleteExercise(ex.id)}
+                  toggleLabel="Убрать в банк" />
               ))}
             </div>
           )}
@@ -433,25 +542,36 @@ export function SectionEditor({ section }: { section: Section }) {
       {/* ===== БАНК УПРАЖНЕНИЙ ===== */}
       {activeTab === "bank" && exMode === "list" && (
         <div>
+          {/* Шапка банка */}
           <div className="flex items-center justify-between mb-4">
-            <p className="text-sm text-muted-foreground">Всего: {exercises.length} · В тетради: {workbookExercises.length}</p>
-            <Button onClick={() => setExMode("pickType")}>+ Добавить упражнение</Button>
+            <p className="text-sm text-muted-foreground">
+              В банке: {bankExercises.length} · В тетради: {workbookExercises.length}
+            </p>
+            <Button onClick={() => { setCreateFromWorkbook(false); setExMode("pickType"); }}>
+              + Добавить в банк
+            </Button>
           </div>
+
           {loadingExercises && <p className="text-lg text-muted-foreground">Загрузка...</p>}
-          {!loadingExercises && exercises.length === 0 && (
+
+          {/* Пустое состояние */}
+          {!loadingExercises && bankExercises.length === 0 && (
             <Card><CardContent className="py-16 text-center">
               <span className="text-5xl block mb-4">🏦</span>
               <p className="text-xl text-foreground">Банк пуст</p>
-              <p className="text-base text-muted-foreground mt-2">Нажмите «+ Добавить упражнение»</p>
+              <p className="text-base text-muted-foreground mt-2">Все упражнения включены в тетрадь, или ещё нет упражнений</p>
             </CardContent></Card>
           )}
-          {!loadingExercises && exercises.length > 0 && (
+
+          {/* Список упражнений банка */}
+          {!loadingExercises && bankExercises.length > 0 && (
             <div className="space-y-3">
-              {exercises.map((ex, idx) => (
+              {bankExercises.map((ex, idx) => (
                 <ExerciseCard key={ex.id} ex={ex} idx={idx}
                   onToggle={toggleWorkbook} showToggle
-                  onEdit={() => { setEditingExercise(ex); setSelectedExType(ex.exerciseType); setExMode("form"); }}
-                  onDelete={() => deleteExercise(ex.id)} />
+                  onEdit={() => { setEditingExercise(ex); setSelectedExType(ex.exerciseType); setCreateFromWorkbook(false); setExMode("form"); }}
+                  onDelete={() => deleteExercise(ex.id)}
+                  toggleLabel="Добавить в тетрадь" />
               ))}
             </div>
           )}
@@ -461,33 +581,47 @@ export function SectionEditor({ section }: { section: Section }) {
   );
 }
 
+// =====================================================================
+// ВСПОМОГАТЕЛЬНЫЕ КОМПОНЕНТЫ
+// =====================================================================
+
 // ===== Карточка упражнения (переиспользуемая) =====
-function ExerciseCard({ ex, idx, onToggle, onEdit, onDelete, showToggle }: {
+function ExerciseCard({ ex, idx, onToggle, onEdit, onDelete, showToggle, toggleLabel }: {
   ex: Exercise; idx: number; onToggle: (ex: Exercise) => void;
   onEdit?: () => void; onDelete?: () => void; showToggle?: boolean;
+  toggleLabel?: string;
 }) {
   const info = exTypeMap[ex.exerciseType];
   return (
     <Card className="group relative">
-      {/* Кнопки действий */}
+      {/* Кнопки действий (при наведении) */}
       <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10 bg-card/90 backdrop-blur-sm rounded-md border border-border p-0.5">
+        {/* Переключение тетрадь ↔ банк */}
         {showToggle && (
-          <button onClick={() => onToggle(ex)} title={ex.isDefaultInWorkbook ? "Убрать из тетради" : "Добавить в тетрадь"}
-            className={`w-8 h-8 flex items-center justify-center rounded transition-colors text-sm ${
-              ex.isDefaultInWorkbook ? "text-green-600 hover:bg-green-500/10" : "text-muted-foreground hover:bg-accent"
-            }`}>📓</button>
+          <button onClick={() => onToggle(ex)}
+            title={toggleLabel || (ex.isDefaultInWorkbook ? "Убрать из тетради" : "Добавить в тетрадь")}
+            className={`px-2 h-8 flex items-center justify-center rounded transition-colors text-xs font-medium ${
+              ex.isDefaultInWorkbook
+                ? "text-amber-600 hover:bg-amber-500/10"
+                : "text-green-600 hover:bg-green-500/10"
+            }`}>
+            {ex.isDefaultInWorkbook ? "→ банк" : "→ тетрадь"}
+          </button>
         )}
+        {/* Редактировать */}
         {onEdit && (
           <IconBtn onClick={onEdit} title="Редактировать">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
           </IconBtn>
         )}
+        {/* Удалить */}
         {onDelete && (
           <IconBtn onClick={onDelete} title="Удалить" danger>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
           </IconBtn>
         )}
       </div>
+      {/* Содержимое карточки */}
       <CardContent className="py-4">
         <div className="flex items-start gap-4">
           <span className="text-lg font-bold text-muted-foreground w-8 text-center flex-shrink-0">{idx + 1}</span>
@@ -498,7 +632,6 @@ function ExerciseCard({ ex, idx, onToggle, onEdit, onDelete, showToggle }: {
               <Badge variant={ex.gradingType === "AUTO" ? "default" : "secondary"} className="text-xs">
                 {ex.gradingType === "AUTO" ? "⚡ Авто" : "👩‍🏫 Учитель"}
               </Badge>
-              {ex.isDefaultInWorkbook && <Badge variant="outline" className="text-xs text-green-600 border-green-500/30">📓 В тетради</Badge>}
               <span className="text-xs text-muted-foreground">{"⭐".repeat(Math.min(ex.difficulty, 5))}</span>
             </div>
             <p className="text-sm text-muted-foreground mt-1 truncate">{ex.instructionText}</p>
@@ -509,18 +642,20 @@ function ExerciseCard({ ex, idx, onToggle, onEdit, onDelete, showToggle }: {
   );
 }
 
-// ===== Вспомогательные компоненты =====
+// ===== Компактная кнопка «+ Добавить блок» (справа) =====
 function AddBlockBtn({ onClick }: { onClick: () => void }) {
   return (
-    <div className="flex items-center justify-center py-2">
+    <div className="flex items-center justify-end py-1">
       <button onClick={onClick}
-        className="flex items-center gap-2 px-4 py-1.5 rounded-full border border-dashed border-border text-muted-foreground hover:border-primary hover:text-primary transition-colors opacity-40 hover:opacity-100">
-        <span className="text-lg">+</span><span className="text-sm">Добавить блок</span>
+        className="flex items-center gap-1 px-3 py-1 rounded-full border border-dashed border-border text-muted-foreground hover:border-primary hover:text-primary transition-colors opacity-30 hover:opacity-100 text-xs">
+        <span className="text-sm">+</span>
+        <span>Блок</span>
       </button>
     </div>
   );
 }
 
+// ===== Иконочная кнопка (для панели управления блоком) =====
 function IconBtn({ onClick, title, children, disabled, danger }: {
   onClick: () => void; title: string; children: React.ReactNode; disabled?: boolean; danger?: boolean;
 }) {

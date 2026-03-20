@@ -1,3 +1,11 @@
+// ===========================================
+// Файл: src/app/layout.tsx
+// Путь:  linguamethod-admin/src/app/layout.tsx
+//
+// Описание:
+//   Корневой layout. Подключение шрифтов, тема, провайдеры.
+// ===========================================
+
 import type { Metadata } from "next";
 import "./globals.css";
 import { Figtree } from "next/font/google";

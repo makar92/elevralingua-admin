@@ -1,3 +1,11 @@
+// ===========================================
+// Файл: src/app/api/courses/[id]/modules/route.ts
+// Путь:  linguamethod-admin/src/app/api/courses/[id]/modules/route.ts
+//
+// Описание:
+//   POST — создать модуль в курсе.
+// ===========================================
+
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
