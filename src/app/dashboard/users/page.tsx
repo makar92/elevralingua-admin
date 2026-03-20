@@ -3,79 +3,72 @@
 // Путь:  linguamethod-admin/src/app/dashboard/users/page.tsx
 //
 // Описание:
-//   Страница «Пользователи» — roadmap будущей реализации.
-//   Показывает архитектуру ролей и запланированные функции:
-//   управление учителями, учениками, подписками.
+//   Страница «Пользователи» — управление командой админ-панели.
+//   Roadmap: роли в админке (лингвисты, редакторы, модераторы),
+//   права доступа, история изменений.
+//   Не включает учителей и учеников — у них отдельные приложения.
 // ===========================================
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
-// Архитектура ролей платформы
-const roles = [
+// Роли внутри админ-панели
+const adminRoles = [
   {
     icon: "👩‍💼",
-    name: "Super Admin",
-    description: "Полный доступ к платформе. Управление контентом, пользователями, подписками и настройками.",
+    name: "Admin",
+    description: "Полный доступ к админ-панели. Управление курсами, контентом, пользователями админки и настройками платформы.",
+    permissions: ["Все курсы", "Все юниты", "Все настройки", "Управление ролями"],
     current: true,
   },
   {
     icon: "✍️",
     name: "Linguist",
-    description: "Создание и редактирование учебных материалов. Доступ к конструктору курсов и банку упражнений.",
+    description: "Создание и редактирование учебных материалов. Работа с конструктором курсов: блоки контента, упражнения, тетради.",
+    permissions: ["Создание курсов", "Редактирование контента", "Банк упражнений", "Загрузка медиа"],
     current: true,
   },
   {
-    icon: "👩‍🏫",
-    name: "Teacher",
-    description: "Подписчик-преподаватель. Доступ к готовым материалам, персонализация тетрадей для учеников, проверка заданий.",
+    icon: "👁️",
+    name: "Reviewer",
+    description: "Проверка и утверждение контента перед публикацией. Просмотр всех материалов, добавление комментариев и замечаний.",
+    permissions: ["Просмотр курсов", "Комментарии", "Утверждение публикации"],
     current: false,
   },
   {
-    icon: "👨‍🎓",
-    name: "Student",
-    description: "Ученик преподавателя. Доступ к назначенным материалам, выполнение упражнений, отслеживание прогресса.",
+    icon: "🌐",
+    name: "Translator",
+    description: "Адаптация существующих курсов для новых языковых пар. Перевод контент-блоков, упражнений и интерфейсных текстов.",
+    permissions: ["Редактирование переводов", "Просмотр оригиналов", "Загрузка аудио"],
     current: false,
   },
 ];
 
-// Запланированные функции
+// Запланированные функции управления командой
 const plannedFeatures = [
   {
-    icon: "📋",
-    title: "Управление преподавателями",
-    description: "Регистрация, подписки, тарифные планы. Преподаватель получает доступ к авторским материалам для своих учеников.",
+    icon: "🔐",
+    title: "Права доступа",
+    description: "Гранулярные права: кто может создавать курсы, кто — только редактировать назначенные. Ограничение по языковым парам.",
     status: "Q3 2026",
   },
   {
-    icon: "👥",
-    title: "Классы и группы",
-    description: "Преподаватель создаёт классы, приглашает учеников. Групповые задания, общий прогресс, статистика.",
+    icon: "📋",
+    title: "Назначение задач",
+    description: "Администратор назначает лингвисту курс или юнит для работы. Статусы: в работе, на проверке, опубликовано.",
+    status: "Q3 2026",
+  },
+  {
+    icon: "📜",
+    title: "История изменений",
+    description: "Лог всех действий: кто создал блок, кто изменил упражнение, кто опубликовал курс. Возможность отката к предыдущей версии.",
     status: "Q4 2026",
   },
   {
-    icon: "📊",
-    title: "Прогресс и аналитика",
-    description: "Дашборд для преподавателя: прогресс каждого ученика, слабые места, рекомендации. Геймификация для учеников.",
+    icon: "💬",
+    title: "Комментарии и ревью",
+    description: "Рецензент оставляет замечания к блокам и упражнениям. Лингвист видит замечания и исправляет. Встроенный workflow согласования.",
     status: "Q4 2026",
-  },
-  {
-    icon: "💳",
-    title: "Подписки и биллинг",
-    description: "Интеграция с Stripe. Месячные/годовые планы для преподавателей. Бесплатный доступ для учеников.",
-    status: "2027",
-  },
-  {
-    icon: "🏫",
-    title: "Школы и организации",
-    description: "B2B подписки для языковых школ. Единый аккаунт для всех преподавателей школы, административная панель.",
-    status: "2027",
-  },
-  {
-    icon: "🔐",
-    title: "SSO и интеграции",
-    description: "Вход через Google, Microsoft. Интеграция с LMS (Canvas, Moodle). API для сторонних платформ.",
-    status: "2027",
   },
 ];
 
@@ -85,19 +78,35 @@ export default function UsersPage() {
       {/* Заголовок */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
-          <h1 className="text-2xl font-bold text-foreground">Пользователи</h1>
+          <h1 className="text-2xl font-bold text-foreground">Пользователи админ-панели</h1>
           <Badge variant="outline" className="text-xs">Coming Soon</Badge>
         </div>
         <p className="text-base text-muted-foreground">
-          Управление пользователями платформы: лингвисты, преподаватели, ученики.
-          Сейчас админ-панель работает с единственным аккаунтом автора контента.
+          Управление командой, которая создаёт учебные материалы:
+          лингвисты, редакторы, рецензенты, переводчики.
         </p>
       </div>
 
-      {/* Архитектура ролей */}
-      <h2 className="text-lg font-semibold text-foreground mb-4">Архитектура ролей</h2>
+      {/* Текущий статус */}
+      <Card className="mb-8">
+        <CardContent className="py-6">
+          <div className="flex items-center gap-4">
+            <span className="text-4xl">✅</span>
+            <div>
+              <p className="text-lg font-medium text-foreground">Текущая версия (MVP)</p>
+              <p className="text-base text-muted-foreground">
+                Один аккаунт автора контента с полным доступом ко всем функциям.
+                Авторизация через email и пароль. Все инструменты конструктора доступны.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Роли в админке */}
+      <h2 className="text-lg font-semibold text-foreground mb-4">Роли в админ-панели</h2>
       <div className="grid grid-cols-2 gap-4 mb-8">
-        {roles.map((role) => (
+        {adminRoles.map((role) => (
           <Card key={role.name} className={role.current ? "" : "border-dashed"}>
             <CardContent className="py-5">
               <div className="flex items-start gap-4">
@@ -109,7 +118,14 @@ export default function UsersPage() {
                       {role.current ? "Реализовано" : "Планируется"}
                     </Badge>
                   </div>
-                  <p className="text-sm text-muted-foreground">{role.description}</p>
+                  <p className="text-sm text-muted-foreground mb-2">{role.description}</p>
+                  <div className="flex flex-wrap gap-1">
+                    {role.permissions.map((perm) => (
+                      <span key={perm} className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+                        {perm}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -117,25 +133,7 @@ export default function UsersPage() {
         ))}
       </div>
 
-      {/* B2B модель */}
-      <Card className="mb-8">
-        <CardContent className="py-6">
-          <div className="flex items-center gap-4">
-            <span className="text-4xl">💡</span>
-            <div>
-              <p className="text-lg font-medium text-foreground">Бизнес-модель: B2B SaaS</p>
-              <p className="text-base text-muted-foreground">
-                Преподаватели оформляют подписку и получают доступ к авторским учебным материалам.
-                Ученики получают бесплатный доступ через преподавателя.
-                Преподаватель может персонализировать материалы: выбирать упражнения из банка,
-                составлять индивидуальные тетради, проверять задания.
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Roadmap */}
+      {/* Roadmap команды */}
       <h2 className="text-lg font-semibold text-foreground mb-4">Дорожная карта</h2>
       <div className="grid grid-cols-2 gap-4">
         {plannedFeatures.map((feature) => (

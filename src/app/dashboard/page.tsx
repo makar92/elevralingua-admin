@@ -29,7 +29,7 @@ export default async function DashboardPage() {
   const actions = [
     { icon: "📚", title: "Создать курс",         desc: "Новый курс иностранного языка",  href: "/dashboard/courses/new" },
     { icon: "✏️", title: "Редактировать контент", desc: "Уроки, лексика, упражнения",      href: "/dashboard/courses" },
-    { icon: "📝", title: "Банк упражнений",       desc: "Все упражнения по категориям",    href: "/dashboard/exercises" },
+    { icon: "🗺️", title: "Roadmap",               desc: "Дорожная карта развития платформы", href: "/dashboard/roadmap" },
   ];
 
   return (

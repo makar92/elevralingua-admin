@@ -17,11 +17,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 const navItems = [
-  { name: "Главная",         href: "/dashboard" },
-  { name: "Курсы",           href: "/dashboard/courses" },
-  { name: "Банк упражнений", href: "/dashboard/exercises" },
-  { name: "Медиа",           href: "/dashboard/media" },
-  { name: "Пользователи",    href: "/dashboard/users" },
+  { name: "Главная",      href: "/dashboard" },
+  { name: "Курсы",        href: "/dashboard/courses" },
+  { name: "Пользователи", href: "/dashboard/users" },
+  { name: "Roadmap",      href: "/dashboard/roadmap" },
 ];
 
 export function TopNav({ user }: { user: { name?: string | null; email?: string | null } }) {
