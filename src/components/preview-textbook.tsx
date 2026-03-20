@@ -16,6 +16,7 @@
 
 import { AudioPlayer } from "@/components/audio-player";
 import { AVATAR_MAP, SCENE_MAP } from "@/lib/dialogue-assets";
+import { TIPTAP_CONTENT_STYLES } from "@/lib/utils";
 
 // ===== Типы =====
 interface ContentBlock {
@@ -40,21 +41,23 @@ export function PreviewTextbook({ blocks, isTeacher }: Props) {
   }
 
   return (
-    <div className="space-y-3">
-      {blocks.map((block) => (
-        <div key={block.id}>
-          {/* Рендер блока */}
-          <PreviewBlock block={block} />
-          {/* Заметка учителя (если есть и режим учителя) */}
-          {isTeacher && block.teacherNote?.noteHtml && (
-            <div className="mt-4 ml-4 pl-4 border-l-2 border-amber-600/40">
-              <p className="text-xs font-semibold text-amber-700 uppercase tracking-wider mb-1">Заметка учителя</p>
-              <div className="text-sm text-amber-800/80 leading-relaxed"
-                dangerouslySetInnerHTML={{ __html: block.teacherNote.noteHtml }} />
-            </div>
-          )}
-        </div>
-      ))}
+    <div className="bg-card rounded-2xl border border-border shadow-sm px-10 py-8">
+      <div className="space-y-3">
+        {blocks.map((block) => (
+          <div key={block.id}>
+            {/* Рендер блока */}
+            <PreviewBlock block={block} />
+            {/* Заметка учителя (если есть и режим учителя) */}
+            {isTeacher && block.teacherNote?.noteHtml && (
+              <div className="mt-4 ml-4 pl-4 border-l-2 border-amber-600/40">
+                <p className="text-xs font-semibold text-amber-700 uppercase tracking-wider mb-1">Заметка учителя</p>
+                <div className="text-sm text-amber-800/80 leading-relaxed"
+                  dangerouslySetInnerHTML={{ __html: block.teacherNote.noteHtml }} />
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -67,18 +70,7 @@ function PreviewBlock({ block }: { block: ContentBlock }) {
     // --- Форматированный текст ---
     case "TEXT":
       return (
-        <div className="prose prose-base max-w-none
-          text-foreground leading-normal
-          [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:text-foreground [&_h1]:mt-5 [&_h1]:mb-2
-          [&_h2]:text-xl [&_h2]:font-bold [&_h2]:text-foreground [&_h2]:mt-4 [&_h2]:mb-2
-          [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-foreground [&_h3]:mt-3 [&_h3]:mb-1
-          [&_p]:mb-1.5 [&_b]:text-foreground [&_strong]:text-foreground
-          [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6
-          [&_li]:mb-0.5
-          [&_blockquote]:border-l-2 [&_blockquote]:border-primary/40 [&_blockquote]:pl-5 [&_blockquote]:italic [&_blockquote]:text-foreground/80
-          [&_code]:bg-muted [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-sm
-          [&_pre]:bg-muted [&_pre]:p-4 [&_pre]:rounded-lg [&_pre]:text-sm
-          [&_table]:border-collapse [&_table]:w-full [&_table]:border [&_table]:border-border [&_td]:border [&_td]:border-border [&_td]:p-2 [&_td]:text-sm [&_th]:border [&_th]:border-border [&_th]:p-2 [&_th]:font-semibold [&_th]:bg-muted [&_a]:text-primary [&_a]:underline"
+        <div className={TIPTAP_CONTENT_STYLES}
           dangerouslySetInnerHTML={{ __html: c.html || "" }} />
       );
 

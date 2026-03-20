@@ -14,6 +14,7 @@
 "use client";
 
 import { AudioPlayer } from "@/components/audio-player";
+import { TIPTAP_CONTENT_STYLES } from "@/lib/utils";
 
 // ===== Типы =====
 interface ContentBlock {
@@ -31,12 +32,7 @@ export function BlockRenderer({ block }: { block: ContentBlock }) {
     // --- Форматированный текст (HTML из Tiptap) ---
     case "TEXT":
       return (
-        <div className="prose max-w-none text-foreground text-base leading-relaxed
-          [&_h1]:text-xl [&_h1]:font-bold [&_h1]:mb-2
-          [&_h2]:text-lg [&_h2]:font-bold [&_h2]:mb-2
-          [&_h3]:text-base [&_h3]:font-semibold [&_h3]:mb-1
-          [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5
-          [&_blockquote]:border-l-2 [&_blockquote]:border-primary/30 [&_blockquote]:pl-3 [&_blockquote]:italic"
+        <div className={TIPTAP_CONTENT_STYLES}
           dangerouslySetInnerHTML={{ __html: c.html || "<p>Пустой текст</p>" }} />
       );
 

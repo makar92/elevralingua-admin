@@ -87,8 +87,6 @@ EXERCISE_TYPES.forEach((t) => { exTypeMap[t.type] = t; });
 export function SectionEditor({ section }: { section: Section }) {
   // Режим отображения: редактирование или просмотр
   const [viewMode, setViewMode] = useState<"editor" | "preview">("editor");
-  // Роль при просмотре: ученик или учитель
-  const [previewRole, setPreviewRole] = useState<"student" | "teacher">("student");
   // Активная вкладка
   const [activeTab, setActiveTab] = useState<"textbook" | "workbook" | "bank">("textbook");
 
@@ -402,45 +400,33 @@ export function SectionEditor({ section }: { section: Section }) {
 
   // ===== РЕНДЕР: РЕЖИМ ПРОСМОТРА =====
   if (viewMode === "preview") {
-    const isTeacher = previewRole === "teacher";
-    const previewTab = activeTab === "bank" ? "textbook" : activeTab;
-
     return (
       <div className="min-h-[60vh]">
         {/* Шапка просмотра */}
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-foreground">{section.title}</h2>
-          <div className="flex items-center gap-2">
-            {/* Переключатель роли */}
-            <div className="flex rounded-xl overflow-hidden border border-border">
-              <button onClick={() => setPreviewRole("student")}
-                className={`px-4 py-2 text-sm font-medium transition-colors ${
-                  previewRole === "student" ? "bg-primary text-primary-foreground" : "bg-card text-muted-foreground hover:text-foreground hover:bg-accent"
-                }`}>Ученик</button>
-              <button onClick={() => setPreviewRole("teacher")}
-                className={`px-4 py-2 text-sm font-medium transition-colors ${
-                  previewRole === "teacher" ? "bg-primary text-primary-foreground" : "bg-card text-muted-foreground hover:text-foreground hover:bg-accent"
-                }`}>Учитель</button>
-            </div>
-            <Button variant="outline" size="sm" onClick={() => setViewMode("editor")}>✏️ Редактор</Button>
-          </div>
+          <Button variant="outline" size="sm" onClick={() => setViewMode("editor")}>✏️ Редактор</Button>
         </div>
 
-        {/* Вкладки: Учебник / Тетрадь */}
+        {/* Вкладки: Учебник / Тетрадь / Банк */}
         <div className="flex gap-2 mb-8">
           <button onClick={() => setActiveTab("textbook")}
             className={`px-6 py-3 rounded-xl text-base font-medium transition-colors ${
-              previewTab === "textbook" ? "bg-primary text-primary-foreground" : "bg-card text-muted-foreground hover:text-foreground border border-border"
+              activeTab === "textbook" ? "bg-primary text-primary-foreground" : "bg-card text-muted-foreground hover:text-foreground border border-border"
             }`}>📕 Учебник</button>
           <button onClick={() => setActiveTab("workbook")}
             className={`px-6 py-3 rounded-xl text-base font-medium transition-colors ${
-              previewTab === "workbook" ? "bg-primary text-primary-foreground" : "bg-card text-muted-foreground hover:text-foreground border border-border"
+              activeTab === "workbook" ? "bg-primary text-primary-foreground" : "bg-card text-muted-foreground hover:text-foreground border border-border"
             }`}>📓 Тетрадь{workbookExercises.length > 0 ? ` (${workbookExercises.length})` : ""}</button>
+          <button onClick={() => setActiveTab("bank")}
+            className={`px-6 py-3 rounded-xl text-base font-medium transition-colors ${
+              activeTab === "bank" ? "bg-primary text-primary-foreground" : "bg-card text-muted-foreground hover:text-foreground border border-border"
+            }`}>🏦 Банк{bankExercises.length > 0 ? ` (${bankExercises.length})` : ""}</button>
         </div>
 
-        {/* Контент просмотра */}
-        {previewTab === "textbook" && <PreviewTextbook blocks={blocks} isTeacher={isTeacher} />}
-        {previewTab === "workbook" && (
+        {/* Контент просмотра — режим учителя (видны комментарии и ответы) */}
+        {activeTab === "textbook" && <PreviewTextbook blocks={blocks} isTeacher={true} />}
+        {activeTab === "workbook" && (
           <div className="space-y-6">
             {workbookExercises.length === 0 && (
               <div className="text-center py-20">
@@ -450,7 +436,22 @@ export function SectionEditor({ section }: { section: Section }) {
             {workbookExercises.map((ex, idx) => (
               <div key={ex.id} className="border border-border rounded-xl p-5 bg-card">
                 <p className="text-xs text-muted-foreground mb-3">Упражнение {idx + 1}</p>
-                <ExercisePreview exercise={ex} mode={isTeacher ? "teacher" : "student"} />
+                <ExercisePreview exercise={ex} mode="teacher" />
+              </div>
+            ))}
+          </div>
+        )}
+        {activeTab === "bank" && (
+          <div className="space-y-6">
+            {bankExercises.length === 0 && (
+              <div className="text-center py-20">
+                <p className="text-xl text-muted-foreground">Банк пуст</p>
+              </div>
+            )}
+            {bankExercises.map((ex, idx) => (
+              <div key={ex.id} className="border border-border rounded-xl p-5 bg-card">
+                <p className="text-xs text-muted-foreground mb-3">Упражнение {idx + 1} (банк)</p>
+                <ExercisePreview exercise={ex} mode="teacher" />
               </div>
             ))}
           </div>

@@ -180,19 +180,8 @@ export function ExerciseForm({ exerciseType, initialData, onSave, onCancel, save
           </Button>
         </div>
 
-        {/* Вид студента — светло-голубой фон, чтобы элементы не сливались с белым */}
-        <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium mb-2">
-          Вид для ученика
-        </p>
-        <div className="border border-blue-100 rounded-xl p-6 shadow-sm mb-4" style={{background: "oklch(0.97 0.01 230)"}}>
-          <ExercisePreview exercise={previewExercise} mode="student" />
-        </div>
-
-        {/* Вид учителя */}
-        <p className="text-xs text-amber-600 uppercase tracking-wide font-medium mb-2">
-          👩‍🏫 Вид для учителя
-        </p>
-        <div className="border border-amber-200 rounded-xl p-6 bg-amber-50/50 shadow-sm">
+        {/* Просмотр упражнения — режим учителя (видны ответы и комментарии) */}
+        <div className="border border-border rounded-xl p-6 bg-card shadow-sm">
           <ExercisePreview exercise={previewExercise} mode="teacher" />
         </div>
       </div>
