@@ -1,14 +1,10 @@
 // ===========================================
 // Файл: prisma/schema.prisma
-// Путь:  linguamethod-admin/prisma/schema.prisma
-//
 // Описание:
-//   БЛОЧНАЯ АРХИТЕКТУРА v4.
-//   Иерархия: Course → Unit → Lesson → Section → Blocks.
+//   БЛОЧНАЯ АРХИТЕКТУРА v5 + КАБИНЕТЫ.
+//   Иерархия контента: Course → Unit → Lesson → Section → Blocks.
 //   Банк упражнений (10 типов) привязан к разделам.
-//   Рабочая тетрадь = упражнения с isDefaultInWorkbook=true.
-//   ContentBlock — одна таблица для 9 типов контента.
-//   Exercise — одна таблица для 10 типов упражнений.
+//   Кабинеты: Classroom, Enrollment, Invitation, Homework, Progress, Schedule.
 // ===========================================
 
 generator client {
@@ -26,16 +22,52 @@ model User {
   id            String    @id @default(cuid())
   email         String    @unique
   name          String?
-  passwordHash  String
-  role          UserRole  @default(ADMIN)
+  passwordHash  String?
+  image         String?
+  role          UserRole  @default(STUDENT)
+  language      String?
+  bio           String?   @db.Text
+  lastSeenAt    DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+
+  teacherClassrooms    Classroom[]          @relation("ClassroomTeacher")
+  enrollments          ClassroomEnrollment[]
+  sentInvitations      Invitation[]         @relation("InvitationSender")
+  receivedInvitations  Invitation[]         @relation("InvitationReceiver")
+  exerciseAnswers      ExerciseAnswer[]
+  homeworkStudentLinks HomeworkStudent[]
+  lessonProgress       LessonProgress[]
+  accounts             Account[]
+  logAttendance        LessonLogAttendance[]
+  logGrades            LessonLogGrade[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
 }
 
 enum UserRole {
   SUPER_ADMIN
   ADMIN
   LINGUIST
+  TEACHER
+  STUDENT
 }
 
 // ==================== ИЕРАРХИЯ: КУРС > ЮНИТ > УРОК > РАЗДЕЛ ====================
@@ -53,18 +85,19 @@ model Course {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  units Unit[]
+  units      Unit[]
+  classrooms Classroom[]
 }
 
 model Unit {
-  id             String   @id @default(cuid())
-  courseId        String
-  title          String
-  description    String?  @db.Text
-  order          Int      @default(0)
-  isPublished    Boolean  @default(false)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id        String   @id @default(cuid())
+  courseId   String
+  title     String
+  description String? @db.Text
+  order     Int      @default(0)
+  isPublished Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   course  Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
   lessons Lesson[]
@@ -83,78 +116,72 @@ model Lesson {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  unit       Unit        @relation(fields: [unitId], references: [id], onDelete: Cascade)
-  sections   Section[]
-  lessonPlan LessonPlan?
+  unit            Unit             @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  sections        Section[]
+  lessonPlan      LessonPlan?
+  progress        LessonProgress[]
+  homeworkLessons HomeworkLesson[]
+  logTopics       LessonLogTopic[]
 
   @@index([unitId])
 }
 
-// Раздел — СВОБОДНЫЙ. Любое название, любой порядок.
 model Section {
   id        String   @id @default(cuid())
   lessonId  String
-  title     String   // Свободное: "Новые слова", "О культуре", что угодно
+  title     String
   order     Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   lesson    Lesson         @relation(fields: [lessonId], references: [id], onDelete: Cascade)
-  blocks    ContentBlock[] // Блоки-кирпичики внутри раздела
-  exercises Exercise[]     // Упражнения к разделу
+  blocks    ContentBlock[]
+  exercises Exercise[]
 
   @@index([lessonId])
 }
 
-// ==================== БЛОКИ КОНТЕНТА (кирпичики) ====================
+// ==================== БЛОКИ КОНТЕНТА ====================
 
-// Универсальный блок. Один тип таблицы для всего контента.
-// Тип блока определяет структуру contentJson.
 model ContentBlock {
   id          String           @id @default(cuid())
   sectionId   String
-  type        ContentBlockType // Какой это блок (текст, картинка, карточка слова...)
-  order       Int              @default(0) // Порядок в разделе (для перемещения)
-  contentJson Json             // Содержимое — структура зависит от type
+  type        ContentBlockType
+  order       Int              @default(0)
+  contentJson Json
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
 
   section     Section      @relation(fields: [sectionId], references: [id], onDelete: Cascade)
-  teacherNote TeacherNote? // Методическая заметка (только для учителя)
+  teacherNote TeacherNote?
 
   @@index([sectionId])
 }
 
-// 9 типов блоков контента
 enum ContentBlockType {
-  // --- Базовые ---
-  TEXT           // Форматированный текст (Tiptap WYSIWYG)
-  IMAGE          // Картинка с подписью
-  AUDIO          // Аудио-файл с плеером
-  YOUTUBE        // Видео с YouTube
-  DIVIDER        // Разделитель (горизонтальная линия)
-  SPACER         // Пустая строка — настраиваемый отступ (sm/md/lg)
-  HTML_EMBED     // Кастомный HTML/iframe код
-
-  // --- Специализированные для языков ---
-  VOCAB_CARD     // Универсальная карточка слова (слово + перевод + транскрипция + аудио + картинка + пример)
-  DIALOGUE       // Диалог (участники + реплики + аудио)
+  TEXT
+  IMAGE
+  AUDIO
+  YOUTUBE
+  DIVIDER
+  SPACER
+  HTML_EMBED
+  VOCAB_CARD
+  DIALOGUE
 }
 
 // ==================== СЛОЙ УЧИТЕЛЯ ====================
 
-// Методическая заметка — привязывается к ЛЮБОМУ блоку
 model TeacherNote {
   id             String   @id @default(cuid())
   contentBlockId String   @unique
-  noteHtml       String   @db.Text // Текст заметки
+  noteHtml       String   @db.Text
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
   contentBlock ContentBlock @relation(fields: [contentBlockId], references: [id], onDelete: Cascade)
 }
 
-// План урока
 model LessonPlan {
   id              String   @id @default(cuid())
   lessonId        String   @unique
@@ -169,83 +196,361 @@ model LessonPlan {
 }
 
 // ==================== БАНК УПРАЖНЕНИЙ ====================
-// Все упражнения хранятся в банке, привязаны к разделу (Section).
-// Банк курса = все упражнения всех разделов всех уроков курса.
-// Рабочая тетрадь = упражнения с isDefaultInWorkbook=true.
-// В будущем: учитель сможет персонализировать набор для ученика.
 
 model Exercise {
   id                  String       @id @default(cuid())
-  sectionId           String                           // Привязка к разделу
-  exerciseType        ExerciseType                     // Тип упражнения (10 типов)
-  order               Int          @default(0)         // Порядок в разделе
-  title               String       @default("")        // Короткое название для банка
-  instructionText     String       @db.Text             // Задание для ученика
-  difficulty          Int          @default(1)          // Сложность 1-5
-  contentJson         Json                              // Содержимое — структура зависит от exerciseType
-  gradingType         GradingType  @default(AUTO)       // AUTO = автопроверка, TEACHER = ручная
-  correctAnswers      String[]                          // Эталонные ответы (для автопроверки)
-  referenceAnswer     String?      @db.Text             // Образцовый ответ (для ручной проверки)
-  gradingCriteria     String?      @db.Text             // Устарело — заменено на teacherComment
-  teacherComment      String?      @db.Text             // Комментарий для учителя: почему этот ответ правильный
-  isDefaultInWorkbook Boolean      @default(true)       // Входит в тетрадь по умолчанию
-  isPublished         Boolean      @default(false)      // Опубликовано ли
+  sectionId           String
+  exerciseType        ExerciseType
+  order               Int          @default(0)
+  title               String       @default("")
+  instructionText     String       @db.Text
+  difficulty          Int          @default(1)
+  contentJson         Json
+  gradingType         GradingType  @default(AUTO)
+  correctAnswers      String[]
+  referenceAnswer     String?      @db.Text
+  gradingCriteria     String?      @db.Text
+  teacherComment      String?      @db.Text
+  isDefaultInWorkbook Boolean      @default(true)
+  isPublished         Boolean      @default(false)
   createdAt           DateTime     @default(now())
   updatedAt           DateTime     @updatedAt
 
-  section  Section           @relation(fields: [sectionId], references: [id], onDelete: Cascade)
-  answers  ExerciseAnswer[]  // Ответы учеников (будущее)
+  section           Section           @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  answers           ExerciseAnswer[]
+  homeworkExercises HomeworkExercise[]
 
   @@index([sectionId])
   @@index([exerciseType])
 }
 
-// 10 типов упражнений для MVP
 enum ExerciseType {
-  // === Автопроверка (4 типа) ===
-  MATCHING              // Соединить пары (слово↔перевод, пиньинь↔иероглиф)
-  MULTIPLE_CHOICE       // Выбрать правильный ответ из вариантов
-  TONE_PLACEMENT        // Расставить тоны над пиньинь (китайский)
-  WORD_ORDER            // Составить предложение из перемешанных слов
-
-  // === Ручная проверка учителем (6 типов) ===
-  FILL_BLANK            // Вписать слово в пропуск в предложении
-  TRANSLATION           // Перевести с одного языка на другой (универсально)
-  WRITE_PINYIN          // Написать пиньинь над иероглифами (китайский)
-  DICTATION             // Диктант: слушай аудио → пиши
-  DESCRIBE_IMAGE        // Опиши картинку
-  FREE_WRITING          // Свободное письменное задание
+  MATCHING
+  MULTIPLE_CHOICE
+  TONE_PLACEMENT
+  WORD_ORDER
+  FILL_BLANK
+  TRANSLATION
+  WRITE_PINYIN
+  DICTATION
+  DESCRIBE_IMAGE
+  FREE_WRITING
 }
 
 enum GradingType {
-  AUTO      // Автоматическая проверка (сравнение с эталоном)
-  TEACHER   // Ручная проверка учителем
+  AUTO
+  TEACHER
 }
 
-// ==================== ОТВЕТЫ УЧЕНИКОВ (будущее) ====================
+// ==================== ОТВЕТЫ УЧЕНИКОВ ====================
 
 model ExerciseAnswer {
   id              String        @id @default(cuid())
   exerciseId      String
-  studentId       String?                              // ID ученика (будущее)
-  answersJson     Json                                 // Ответ ученика
-  score           Int?                                 // Балл
-  status          AnswerStatus  @default(PENDING)      // Статус проверки
-  teacherComment  String?       @db.Text               // Комментарий учителя
-  gradedBy        String?                              // Кто проверил
-  attemptNumber   Int           @default(1)            // Номер попытки
+  studentId       String
+  homeworkId      String?
+  answersJson     Json
+  score           Int?
+  status          AnswerStatus  @default(PENDING)
+  teacherComment  String?       @db.Text
+  gradedBy        String?
+  attemptNumber   Int           @default(1)
   startedAt       DateTime?
   completedAt     DateTime?
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
-  exercise Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  exercise Exercise  @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  student  User      @relation(fields: [studentId], references: [id])
+  homework Homework? @relation(fields: [homeworkId], references: [id])
 
   @@index([exerciseId])
+  @@index([studentId])
+  @@index([homeworkId])
 }
 
 enum AnswerStatus {
-  PENDING      // Ожидает проверки
-  GRADED       // Проверено учителем
-  AUTO_GRADED  // Проверено автоматически
+  PENDING
+  GRADED
+  AUTO_GRADED
+}
+
+// ==================== CLASSROOM ====================
+
+model Classroom {
+  id          String   @id @default(cuid())
+  name        String
+  teacherId   String
+  courseId     String
+  description String?  @db.Text
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  teacher     User     @relation("ClassroomTeacher", fields: [teacherId], references: [id])
+  course      Course   @relation(fields: [courseId], references: [id])
+  enrollments ClassroomEnrollment[]
+  homework    Homework[]
+  schedule    ScheduleSlot[]
+  progress    LessonProgress[]
+  invitations Invitation[]
+  lessonLogs  LessonLog[]
+
+  @@index([teacherId])
+  @@index([courseId])
+}
+
+model ClassroomEnrollment {
+  id          String           @id @default(cuid())
+  classroomId String
+  studentId   String
+  status      EnrollmentStatus @default(ACTIVE)
+  joinedAt    DateTime         @default(now())
+
+  classroom Classroom @relation(fields: [classroomId], references: [id], onDelete: Cascade)
+  student   User      @relation(fields: [studentId], references: [id])
+
+  @@unique([classroomId, studentId])
+}
+
+enum EnrollmentStatus {
+  ACTIVE
+  INACTIVE
+}
+
+// ==================== ПРИГЛАШЕНИЯ ====================
+
+model Invitation {
+  id          String           @id @default(cuid())
+  senderId    String
+  receiverId  String
+  classroomId String
+  type        InvitationType
+  status      InvitationStatus @default(PENDING)
+  message     String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  sender    User      @relation("InvitationSender", fields: [senderId], references: [id])
+  receiver  User      @relation("InvitationReceiver", fields: [receiverId], references: [id])
+  classroom Classroom @relation(fields: [classroomId], references: [id])
+
+  @@index([receiverId, status])
+  @@index([classroomId])
+}
+
+enum InvitationType {
+  TEACHER_INVITES
+  STUDENT_REQUESTS
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+}
+
+// ==================== ПРОГРЕСС ====================
+
+model LessonProgress {
+  id          String         @id @default(cuid())
+  classroomId String
+  lessonId    String
+  studentId   String
+  status      ProgressStatus @default(NOT_STARTED)
+  updatedAt   DateTime       @updatedAt
+
+  classroom Classroom @relation(fields: [classroomId], references: [id], onDelete: Cascade)
+  lesson    Lesson    @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  student   User      @relation(fields: [studentId], references: [id])
+
+  @@unique([classroomId, lessonId, studentId])
+  @@index([classroomId])
+}
+
+enum ProgressStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+}
+
+// ==================== ДОМАШНИЕ ЗАДАНИЯ ====================
+
+model Homework {
+  id           String       @id @default(cuid())
+  classroomId  String
+  lessonLogId  String?
+  title        String
+  type         HomeworkType
+  dueDate      DateTime?
+  instructions String?      @db.Text
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  classroom   Classroom          @relation(fields: [classroomId], references: [id], onDelete: Cascade)
+  lessonLog   LessonLog?         @relation("HomeworkLessonLog", fields: [lessonLogId], references: [id])
+  readLessons HomeworkLesson[]
+  exercises   HomeworkExercise[]
+  students    HomeworkStudent[]
+  answers     ExerciseAnswer[]
+
+  @@index([classroomId])
+  @@index([lessonLogId])
+}
+
+enum HomeworkType {
+  READ
+  EXERCISE
+  MIXED
+}
+
+model HomeworkLesson {
+  id         String @id @default(cuid())
+  homeworkId String
+  lessonId   String
+
+  homework Homework @relation(fields: [homeworkId], references: [id], onDelete: Cascade)
+  lesson   Lesson   @relation(fields: [lessonId], references: [id])
+
+  @@index([homeworkId])
+}
+
+model HomeworkExercise {
+  id         String @id @default(cuid())
+  homeworkId String
+  exerciseId String
+
+  homework Homework @relation(fields: [homeworkId], references: [id], onDelete: Cascade)
+  exercise Exercise @relation(fields: [exerciseId], references: [id])
+
+  @@index([homeworkId])
+}
+
+model HomeworkStudent {
+  id         String               @id @default(cuid())
+  homeworkId String
+  studentId  String
+  status     HomeworkStudentStatus @default(ASSIGNED)
+  note       String?              @db.Text
+  updatedAt  DateTime             @updatedAt
+
+  homework Homework @relation(fields: [homeworkId], references: [id], onDelete: Cascade)
+  student  User     @relation(fields: [studentId], references: [id])
+
+  @@unique([homeworkId, studentId])
+}
+
+enum HomeworkStudentStatus {
+  ASSIGNED
+  IN_PROGRESS
+  COMPLETED
+  HAS_QUESTIONS
+  REVIEWED
+}
+
+// ==================== РАСПИСАНИЕ ====================
+
+model ScheduleSlot {
+  id          String   @id @default(cuid())
+  classroomId String
+  dayOfWeek   Int
+  startTime   String
+  endTime     String
+  location    String?
+
+  classroom Classroom @relation(fields: [classroomId], references: [id], onDelete: Cascade)
+
+  @@index([classroomId])
+}
+
+// ==================== ЭЛЕКТРОННЫЙ ЖУРНАЛ ====================
+
+// Запись о занятии
+model LessonLog {
+  id          String          @id @default(cuid())
+  classroomId String
+  date        DateTime
+  startTime   String
+  endTime     String
+  location    String?
+  status      LessonLogStatus @default(SCHEDULED)
+  teacherNotes String?        @db.Text
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  classroom   Classroom              @relation(fields: [classroomId], references: [id], onDelete: Cascade)
+  attendance  LessonLogAttendance[]
+  topics      LessonLogTopic[]
+  grades      LessonLogGrade[]
+  homeworkAssigned Homework[]         @relation("HomeworkLessonLog")
+
+  @@index([classroomId])
+  @@index([date])
+}
+
+enum LessonLogStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+}
+
+// Посещаемость
+model LessonLogAttendance {
+  id          String           @id @default(cuid())
+  lessonLogId String
+  studentId   String
+  status      AttendanceStatus @default(PRESENT)
+  note        String?
+
+  lessonLog LessonLog @relation(fields: [lessonLogId], references: [id], onDelete: Cascade)
+  student   User      @relation(fields: [studentId], references: [id])
+
+  @@unique([lessonLogId, studentId])
+  @@index([lessonLogId])
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  EXCUSED
+}
+
+// Пройденные темы (привязка к учебнику)
+model LessonLogTopic {
+  id          String  @id @default(cuid())
+  lessonLogId String
+  lessonId    String
+  sectionId   String?
+  completed   Boolean @default(true)
+
+  lessonLog   LessonLog @relation(fields: [lessonLogId], references: [id], onDelete: Cascade)
+  lesson      Lesson    @relation(fields: [lessonId], references: [id])
+
+  @@index([lessonLogId])
+}
+
+// Оценки
+model LessonLogGrade {
+  id          String    @id @default(cuid())
+  lessonLogId String
+  studentId   String
+  exerciseId  String?
+  type        GradeType @default(CLASS_WORK)
+  grade       String                // A, B, C, D, F, N/A
+  comment     String?
+  createdAt   DateTime  @default(now())
+
+  lessonLog LessonLog @relation(fields: [lessonLogId], references: [id], onDelete: Cascade)
+  student   User      @relation(fields: [studentId], references: [id])
+
+  @@index([lessonLogId])
+  @@index([studentId])
+}
+
+enum GradeType {
+  CLASS_WORK
+  HOMEWORK
+  PARTICIPATION
+  QUIZ
 }

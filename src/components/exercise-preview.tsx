@@ -393,7 +393,7 @@ function TonePlacementPreview({ content, mode, exercise }: { content: any; mode:
   const [showResult, setShowResult]     = useState(false);
 
   // Клик на слот гласной → ставим activeTone
-  const placeToне = (charIdx: number, vowelIdx: number) => {
+  const placeTone = (charIdx: number, vowelIdx: number) => {
     if (!activeTone) return;
     const key = `${charIdx}_${vowelIdx}`;
     setStudentTones((prev) => ({ ...prev, [key]: activeTone }));
@@ -444,7 +444,7 @@ function TonePlacementPreview({ content, mode, exercise }: { content: any; mode:
                     <div key={letterIdx} className="flex flex-col items-center">
                       {/* Слот тона над гласной */}
                       <button
-                        onClick={() => placeToне(charIdx, currentVowelIdx)}
+                        onClick={() => placeTone(charIdx, currentVowelIdx)}
                         disabled={showResult}
                         title={activeTone ? `Поставить тон ${TONE_SYMBOLS[activeTone]}` : "Сначала выберите тон снизу"}
                         className={`w-8 h-7 rounded border-2 text-sm font-bold transition-all mb-0.5 ${

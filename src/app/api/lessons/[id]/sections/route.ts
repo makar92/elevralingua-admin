@@ -1,12 +1,34 @@
 // ===========================================
 // Файл: src/app/api/lessons/[id]/sections/route.ts
-// Описание: POST — создать раздел со свободным названием.
+// Описание: GET — список разделов урока, POST — создать раздел.
 // ===========================================
 
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { apiSuccess, apiError, withErrorHandling } from "@/lib/api-helpers";
+
+export async function GET(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  return withErrorHandling(async () => {
+    const { id: lessonId } = await params;
+
+    const sections = await prisma.section.findMany({
+      where: { lessonId },
+      orderBy: { order: "asc" },
+      include: {
+        blocks: {
+          orderBy: { order: "asc" },
+          include: { teacherNote: true },
+        },
+      },
+    });
+
+    return apiSuccess(sections);
+  });
+}
 
 export async function POST(
   request: NextRequest,
