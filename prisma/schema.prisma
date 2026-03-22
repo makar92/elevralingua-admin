@@ -41,6 +41,7 @@ model User {
   accounts             Account[]
   logAttendance        LessonLogAttendance[]
   logGrades            LessonLogGrade[]
+  studyAssignmentLinks StudyAssignmentStudent[]
 }
 
 model Account {
@@ -137,6 +138,8 @@ model Section {
   lesson    Lesson         @relation(fields: [lessonId], references: [id], onDelete: Cascade)
   blocks    ContentBlock[]
   exercises Exercise[]
+  visibility       SectionVisibility[]
+  studyAssignments StudyAssignment[]
 
   @@index([lessonId])
 }
@@ -219,6 +222,7 @@ model Exercise {
   section           Section           @relation(fields: [sectionId], references: [id], onDelete: Cascade)
   answers           ExerciseAnswer[]
   homeworkExercises HomeworkExercise[]
+  assignments       ExerciseAssignment[]
 
   @@index([sectionId])
   @@index([exerciseType])
@@ -295,6 +299,9 @@ model Classroom {
   progress    LessonProgress[]
   invitations Invitation[]
   lessonLogs  LessonLog[]
+  sectionVisibility    SectionVisibility[]
+  studyAssignments     StudyAssignment[]
+  exerciseAssignments  ExerciseAssignment[]
 
   @@index([teacherId])
   @@index([courseId])
@@ -553,4 +560,85 @@ enum GradeType {
   HOMEWORK
   PARTICIPATION
   QUIZ
+}
+
+// ==================== ВИДИМОСТЬ СЕКЦИЙ ДЛЯ УЧЕНИКОВ ====================
+// studentId = "_ALL_" означает открыто для всех
+
+model SectionVisibility {
+  id          String   @id @default(cuid())
+  sectionId   String
+  classroomId String
+  studentId   String   @default("_ALL_")
+  openedBy    String
+  createdAt   DateTime @default(now())
+
+  section   Section   @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  classroom Classroom @relation(fields: [classroomId], references: [id], onDelete: Cascade)
+
+  @@unique([sectionId, classroomId, studentId])
+  @@index([classroomId])
+}
+
+// ==================== НАЗНАЧЕНИЕ СЕКЦИЙ УЧЕБНИКА ====================
+
+model StudyAssignment {
+  id          String              @id @default(cuid())
+  sectionId   String
+  classroomId String
+  assignedBy  String
+  type        StudyAssignmentType @default(HOMEWORK)
+  createdAt   DateTime            @default(now())
+
+  section   Section                @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  classroom Classroom              @relation(fields: [classroomId], references: [id], onDelete: Cascade)
+  students  StudyAssignmentStudent[]
+
+  @@index([classroomId])
+  @@index([sectionId])
+}
+
+enum StudyAssignmentType {
+  CLASS_WORK
+  HOMEWORK
+}
+
+model StudyAssignmentStudent {
+  id                String                @id @default(cuid())
+  studyAssignmentId String
+  studentId         String
+  status            StudyAssignmentStatus @default(ASSIGNED)
+  grade             String?
+  comment           String?               @db.Text
+  updatedAt         DateTime              @updatedAt
+
+  studyAssignment StudyAssignment @relation(fields: [studyAssignmentId], references: [id], onDelete: Cascade)
+  student         User            @relation(fields: [studentId], references: [id])
+
+  @@unique([studyAssignmentId, studentId])
+  @@index([studentId])
+}
+
+enum StudyAssignmentStatus {
+  ASSIGNED
+  COMPLETED
+  HAS_QUESTION
+}
+
+// ==================== НАЗНАЧЕНИЕ УПРАЖНЕНИЙ ====================
+// studentId = "_ALL_" означает назначено всем
+
+model ExerciseAssignment {
+  id          String   @id @default(cuid())
+  exerciseId  String
+  classroomId String
+  studentId   String   @default("_ALL_")
+  isFromBank  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  exercise  Exercise  @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  classroom Classroom @relation(fields: [classroomId], references: [id], onDelete: Cascade)
+
+  @@index([classroomId])
+  @@index([exerciseId])
 }

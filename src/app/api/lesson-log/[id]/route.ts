@@ -83,6 +83,23 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       }
     }
 
+    // Добавление одной темы (без удаления старых)
+    if (body.topic) {
+      await prisma.lessonLogTopic.create({
+        data: {
+          lessonLogId: id,
+          lessonId: body.topic.lessonId,
+          sectionId: body.topic.sectionId || null,
+          completed: body.topic.completed ?? true,
+        },
+      });
+    }
+
+    // Удаление одной темы
+    if (body.deleteTopic) {
+      await prisma.lessonLogTopic.delete({ where: { id: body.deleteTopic } }).catch(() => {});
+    }
+
     // Добавление/обновление оценки
     if (body.grade) {
       const g = body.grade;
