@@ -41,10 +41,22 @@ export default function LoginPage() {
     signIn("google", { callbackUrl: "/" });
   };
 
-  // Быстрый вход для демо
-  const quickLogin = (demoEmail: string, demoPassword: string) => {
+  // Быстрый вход для демо — автоматически отправляет форму
+  const quickLogin = async (demoEmail: string, demoPassword: string) => {
     setEmail(demoEmail);
     setPassword(demoPassword);
+    setError("");
+    setLoading(true);
+
+    const result = await signIn("credentials", { email: demoEmail, password: demoPassword, redirect: false });
+    setLoading(false);
+
+    if (result?.error) {
+      setError("Invalid email or password");
+    } else {
+      router.push("/");
+      router.refresh();
+    }
   };
 
   return (
@@ -52,7 +64,10 @@ export default function LoginPage() {
       <div className="w-full max-w-md px-4">
         <Card>
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl text-primary">LinguaMethod</CardTitle>
+            <CardTitle className="text-2xl text-primary flex items-center justify-center gap-2">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="6" className="fill-primary"/><text x="12" y="17" textAnchor="middle" className="fill-primary-foreground" fontSize="14" fontWeight="bold" fontFamily="Arial">L</text></svg>
+              LinguaMethod
+            </CardTitle>
             <CardDescription>Language teaching platform</CardDescription>
           </CardHeader>
           <CardContent className="space-y-5">
@@ -112,39 +127,30 @@ export default function LoginPage() {
               New users can register with Google
             </p>
 
-            {/* Демо-аккаунты */}
-            <div className="border border-dashed border-border rounded-lg p-3">
-              <p className="text-xs font-medium text-muted-foreground mb-2">Demo accounts:</p>
-              <div className="space-y-1.5">
+            {/* Быстрый демо-вход */}
+            <div className="rounded-lg border border-border bg-muted/30 p-3">
+              <p className="text-xs font-medium text-muted-foreground mb-2.5 text-center">Быстрый демо-вход</p>
+              <div className="grid grid-cols-3 gap-2">
                 <button
                   onClick={() => quickLogin("ksenia@linguamethod.com", "admin123")}
-                  className="w-full text-left text-xs px-2 py-1.5 rounded hover:bg-accent transition-colors flex items-center justify-between group"
+                  className="flex flex-col items-center gap-1.5 p-3 rounded-lg border border-border bg-card hover:border-primary/40 hover:bg-primary/5 transition-all"
                 >
-                  <span>
-                    <span className="font-medium text-foreground">Admin</span>
-                    <span className="text-muted-foreground ml-2">ksenia@linguamethod.com</span>
-                  </span>
-                  <span className="text-primary opacity-0 group-hover:opacity-100 transition-opacity">Fill →</span>
+                  <span className="text-xl">⚙️</span>
+                  <span className="text-xs font-medium text-foreground">Админ</span>
                 </button>
                 <button
                   onClick={() => quickLogin("sarah.chen@demo.com", "teacher123")}
-                  className="w-full text-left text-xs px-2 py-1.5 rounded hover:bg-accent transition-colors flex items-center justify-between group"
+                  className="flex flex-col items-center gap-1.5 p-3 rounded-lg border border-border bg-card hover:border-emerald-400/40 hover:bg-emerald-50 transition-all"
                 >
-                  <span>
-                    <span className="font-medium text-emerald-600">Teacher</span>
-                    <span className="text-muted-foreground ml-2">sarah.chen@demo.com</span>
-                  </span>
-                  <span className="text-primary opacity-0 group-hover:opacity-100 transition-opacity">Fill →</span>
+                  <span className="text-xl">🎓</span>
+                  <span className="text-xs font-medium text-emerald-700">Учитель</span>
                 </button>
                 <button
                   onClick={() => quickLogin("emma.wilson@demo.com", "student123")}
-                  className="w-full text-left text-xs px-2 py-1.5 rounded hover:bg-accent transition-colors flex items-center justify-between group"
+                  className="flex flex-col items-center gap-1.5 p-3 rounded-lg border border-border bg-card hover:border-blue-400/40 hover:bg-blue-50 transition-all"
                 >
-                  <span>
-                    <span className="font-medium text-blue-600">Student</span>
-                    <span className="text-muted-foreground ml-2">emma.wilson@demo.com</span>
-                  </span>
-                  <span className="text-primary opacity-0 group-hover:opacity-100 transition-opacity">Fill →</span>
+                  <span className="text-xl">📖</span>
+                  <span className="text-xs font-medium text-blue-700">Ученик</span>
                 </button>
               </div>
             </div>

@@ -1,4 +1,4 @@
 "use client";
 import { useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-export default function P(){const{id}=useParams();const r=useRouter();useEffect(()=>{r.replace(`/student/classrooms/${id}/diary`);},[id,r]);return<div className="p-6 text-muted-foreground animate-pulse">Загрузка...</div>;}
+export default function P(){const{id}=useParams();const r=useRouter();useEffect(()=>{r.replace(`/student/classrooms/${id}/diary`);},[id,r]);return<div className="p-6 text-muted-foreground animate-pulse">&nbsp;</div>;}

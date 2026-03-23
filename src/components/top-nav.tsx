@@ -32,7 +32,7 @@ export function TopNav({ user }: { user: { name?: string | null; email?: string 
       <div className="px-6 flex items-center justify-between h-14">
         <div className="flex items-center gap-8">
           <Link href="/dashboard" className="flex items-center gap-2">
-            <span className="text-lg font-bold text-primary">LinguaMethod</span>
+            <span className="flex items-center gap-1.5"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="6" className="fill-primary"/><text x="12" y="17" textAnchor="middle" className="fill-primary-foreground" fontSize="14" fontWeight="bold" fontFamily="Arial">L</text></svg><span className="text-lg font-bold text-primary">LinguaMethod</span></span>
             <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-muted-foreground">admin</Badge>
           </Link>
           <nav className="flex items-center gap-1">

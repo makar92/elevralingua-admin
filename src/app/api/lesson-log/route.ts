@@ -17,9 +17,19 @@ export async function GET(req: Request) {
     const month = url.searchParams.get("month"); // "2026-03"
     const studentId = url.searchParams.get("studentId"); // для дневника ученика
 
-    if (!classroomId) return NextResponse.json([], { status: 200 });
+    const where: any = {};
 
-    const where: any = { classroomId };
+    if (classroomId) {
+      where.classroomId = classroomId;
+    } else {
+      // Без classroomId — все классы текущего учителя (для дашборда)
+      const role = (session.user as any).role;
+      if (role === "TEACHER") {
+        where.classroom = { teacherId: session.user.id };
+      } else {
+        return NextResponse.json([], { status: 200 });
+      }
+    }
 
     // Фильтр по месяцу
     if (month) {
@@ -33,6 +43,9 @@ export async function GET(req: Request) {
     const logs = await prisma.lessonLog.findMany({
       where,
       include: {
+        classroom: {
+          select: { id: true, name: true, course: { select: { title: true } } },
+        },
         attendance: {
           include: { student: { select: { id: true, name: true, image: true } } },
         },

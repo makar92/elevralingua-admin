@@ -15,6 +15,15 @@ export async function GET(req: Request) {
   const q = url.searchParams.get("q") || "";
   const role = url.searchParams.get("role");
 
+  // Без параметров — вернуть текущего пользователя (для дашборда)
+  if (!q && !role) {
+    const me = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { id: true, name: true, email: true, image: true, role: true },
+    });
+    return NextResponse.json(me);
+  }
+
   const where: any = {
     id: { not: session.user.id },
   };
