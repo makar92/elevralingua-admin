@@ -60,6 +60,9 @@ export function ClassroomCard({ classroom, href }: ClassroomCardProps) {
             {classroom.name}
           </h3>
         </Link>
+        {classroom.course?.title && (
+          <p className="text-xs text-muted-foreground mt-1">{classroom.course.title}</p>
+        )}
         {/* Лейбл языка с картинкой флага */}
         <div className="mt-2">
           <LanguageLabel code={classroom.course?.language} size="md" />

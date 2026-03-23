@@ -1,6 +1,8 @@
 // ===========================================
 // Файл: src/app/login/page.tsx
-// Описание: Страница входа. Email+пароль для всех ролей, Google OAuth как опция.
+// Описание: Страница входа.
+//   Демо-аккаунты — основной способ входа.
+//   Google OAuth — для желающих тестировать на своём аккаунте.
 // ===========================================
 
 "use client";
@@ -9,29 +11,23 @@ import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const quickLogin = async (email: string, password: string, role: string) => {
+    if (loading) return;
     setError("");
-    setLoading(true);
+    setLoading(role);
 
     const result = await signIn("credentials", { email, password, redirect: false });
-    setLoading(false);
-
     if (result?.error) {
-      setError("Invalid email or password");
+      setError("Ошибка входа. Попробуйте ещё раз.");
+      setLoading(null);
     } else {
-      // Редирект на корень — middleware перенаправит по роли
       router.push("/");
       router.refresh();
     }
@@ -41,72 +37,90 @@ export default function LoginPage() {
     signIn("google", { callbackUrl: "/" });
   };
 
-  // Быстрый вход для демо — автоматически отправляет форму
-  const quickLogin = async (demoEmail: string, demoPassword: string) => {
-    setEmail(demoEmail);
-    setPassword(demoPassword);
-    setError("");
-    setLoading(true);
-
-    const result = await signIn("credentials", { email: demoEmail, password: demoPassword, redirect: false });
-    setLoading(false);
-
-    if (result?.error) {
-      setError("Invalid email or password");
-    } else {
-      router.push("/");
-      router.refresh();
-    }
-  };
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
       <div className="w-full max-w-md px-4">
         <Card>
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl text-primary flex items-center justify-center gap-2">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="6" className="fill-primary"/><text x="12" y="17" textAnchor="middle" className="fill-primary-foreground" fontSize="14" fontWeight="bold" fontFamily="Arial">L</text></svg>
-              LinguaMethod
-            </CardTitle>
-            <CardDescription>Language teaching platform</CardDescription>
+          <CardHeader className="text-center pb-2">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="24" height="24" rx="6" className="fill-primary"/>
+                <text x="12" y="17" textAnchor="middle" className="fill-primary-foreground" fontSize="14" fontWeight="bold" fontFamily="Arial">L</text>
+              </svg>
+              <CardTitle className="text-2xl text-primary">LinguaMethod</CardTitle>
+            </div>
+            <CardDescription>B2B SaaS платформа для преподавателей иностранных языков</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-5">
-            {/* Email + Password — основной способ */}
-            <form onSubmit={handleSubmit} className="space-y-3">
-              <div className="space-y-2">
-                <Label className="text-foreground text-sm">Email</Label>
-                <Input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="your@email.com"
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-foreground text-sm">Password</Label>
-                <Input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-              </div>
-              {error && (
-                <div className="text-sm text-red-600 bg-red-500/10 px-3 py-2 rounded-lg">{error}</div>
-              )}
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? "Signing in..." : "Sign in"}
-              </Button>
-            </form>
 
-            {/* Google Sign-In — опциональный */}
+          <CardContent className="space-y-5">
+            {/* === Демо-вход === */}
+            <div className="rounded-xl border-2 border-primary/20 bg-primary/5 p-5">
+              <p className="text-sm font-semibold text-foreground text-center mb-1">
+                Ознакомьтесь с платформой
+              </p>
+              <p className="text-xs text-muted-foreground text-center mb-4">
+                Готовые аккаунты для ознакомления — войдите в один клик
+              </p>
+
+              <div className="space-y-2.5">
+                <button
+                  onClick={() => quickLogin("sarah.chen@demo.com", "teacher123", "teacher")}
+                  disabled={loading !== null}
+                  className="w-full flex items-center gap-4 p-3.5 rounded-xl border-2 border-emerald-200 bg-white hover:bg-emerald-50 hover:border-emerald-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  <div className="w-11 h-11 rounded-xl bg-emerald-100 flex items-center justify-center text-xl flex-shrink-0">🎓</div>
+                  <div className="text-left flex-1">
+                    <p className="text-sm font-semibold text-foreground">
+                      {loading === "teacher" ? "Входим..." : "Войти как Учитель"}
+                    </p>
+                    <p className="text-xs text-muted-foreground">Sarah Chen — классы, журнал, учебники, упражнения</p>
+                  </div>
+                  <span className="text-emerald-500 text-lg flex-shrink-0">→</span>
+                </button>
+
+                <button
+                  onClick={() => quickLogin("emma.wilson@demo.com", "student123", "student")}
+                  disabled={loading !== null}
+                  className="w-full flex items-center gap-4 p-3.5 rounded-xl border-2 border-blue-200 bg-white hover:bg-blue-50 hover:border-blue-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  <div className="w-11 h-11 rounded-xl bg-blue-100 flex items-center justify-center text-xl flex-shrink-0">📖</div>
+                  <div className="text-left flex-1">
+                    <p className="text-sm font-semibold text-foreground">
+                      {loading === "student" ? "Входим..." : "Войти как Ученик"}
+                    </p>
+                    <p className="text-xs text-muted-foreground">Emma Wilson — учебник, тетрадь, дневник</p>
+                  </div>
+                  <span className="text-blue-500 text-lg flex-shrink-0">→</span>
+                </button>
+
+                <button
+                  onClick={() => quickLogin("ksenia@linguamethod.com", "admin123", "admin")}
+                  disabled={loading !== null}
+                  className="w-full flex items-center gap-4 p-3.5 rounded-xl border-2 border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  <div className="w-11 h-11 rounded-xl bg-gray-100 flex items-center justify-center text-xl flex-shrink-0">⚙️</div>
+                  <div className="text-left flex-1">
+                    <p className="text-sm font-semibold text-foreground">
+                      {loading === "admin" ? "Входим..." : "Войти как Админ"}
+                    </p>
+                    <p className="text-xs text-muted-foreground">Ксения — конструктор курсов, roadmap</p>
+                  </div>
+                  <span className="text-gray-400 text-lg flex-shrink-0">→</span>
+                </button>
+              </div>
+            </div>
+
+            {error && (
+              <div className="text-sm text-red-600 bg-red-500/10 px-3 py-2 rounded-lg text-center">{error}</div>
+            )}
+
+            {/* === Google — вторичный способ === */}
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <span className="w-full border-t border-border" />
               </div>
               <div className="relative flex justify-center text-xs">
-                <span className="bg-card px-2 text-muted-foreground">or</span>
+                <span className="bg-card px-2 text-muted-foreground">или</span>
               </div>
             </div>
 
@@ -121,39 +135,11 @@ export default function LoginPage() {
                 <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
                 <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
               </svg>
-              Sign in with Google
+              Войти через Google
             </Button>
-            <p className="text-xs text-muted-foreground text-center">
-              New users can register with Google
+            <p className="text-[11px] text-muted-foreground text-center">
+              Новые пользователи могут зарегистрироваться через Google
             </p>
-
-            {/* Быстрый демо-вход */}
-            <div className="rounded-lg border border-border bg-muted/30 p-3">
-              <p className="text-xs font-medium text-muted-foreground mb-2.5 text-center">Быстрый демо-вход</p>
-              <div className="grid grid-cols-3 gap-2">
-                <button
-                  onClick={() => quickLogin("ksenia@linguamethod.com", "admin123")}
-                  className="flex flex-col items-center gap-1.5 p-3 rounded-lg border border-border bg-card hover:border-primary/40 hover:bg-primary/5 transition-all"
-                >
-                  <span className="text-xl">⚙️</span>
-                  <span className="text-xs font-medium text-foreground">Админ</span>
-                </button>
-                <button
-                  onClick={() => quickLogin("sarah.chen@demo.com", "teacher123")}
-                  className="flex flex-col items-center gap-1.5 p-3 rounded-lg border border-border bg-card hover:border-emerald-400/40 hover:bg-emerald-50 transition-all"
-                >
-                  <span className="text-xl">🎓</span>
-                  <span className="text-xs font-medium text-emerald-700">Учитель</span>
-                </button>
-                <button
-                  onClick={() => quickLogin("emma.wilson@demo.com", "student123")}
-                  className="flex flex-col items-center gap-1.5 p-3 rounded-lg border border-border bg-card hover:border-blue-400/40 hover:bg-blue-50 transition-all"
-                >
-                  <span className="text-xl">📖</span>
-                  <span className="text-xs font-medium text-blue-700">Ученик</span>
-                </button>
-              </div>
-            </div>
           </CardContent>
         </Card>
       </div>

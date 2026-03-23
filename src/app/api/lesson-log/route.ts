@@ -22,10 +22,14 @@ export async function GET(req: Request) {
     if (classroomId) {
       where.classroomId = classroomId;
     } else {
-      // Без classroomId — все классы текущего учителя (для дашборда)
+      // Без classroomId — все классы текущего пользователя (для дашборда)
       const role = (session.user as any).role;
       if (role === "TEACHER") {
         where.classroom = { teacherId: session.user.id };
+      } else if (role === "STUDENT") {
+        where.classroom = {
+          enrollments: { some: { studentId: session.user.id, status: "ACTIVE" } },
+        };
       } else {
         return NextResponse.json([], { status: 200 });
       }

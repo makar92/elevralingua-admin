@@ -38,7 +38,7 @@ export function UserBadge({ user, role = "student", size = "md", showStatus = tr
   const { online, compact } = formatLastSeen(user.lastSeenAt);
 
   return (
-    <div className={`flex items-center ${s.gap} ${s.h} ${className}`}>
+    <div className={`flex items-center ${s.gap} ${className}`}>
       <div className="relative flex-shrink-0">
         <Avatar className={`${s.avatar} ring-2 ${r.border}`}>
           <AvatarImage src={user.image || undefined} />
@@ -52,7 +52,7 @@ export function UserBadge({ user, role = "student", size = "md", showStatus = tr
       </div>
       <div className="min-w-0 flex-1">
         <p className={`${s.name} font-medium text-foreground truncate leading-tight`}>{user.name || "Без имени"}</p>
-        {showRole && <span className={`${s.role} ${r.text} font-medium`}>{r.label}</span>}
+        {showRole && <p className={`${s.role} ${r.text} font-medium leading-tight`}>{r.label}</p>}
       </div>
     </div>
   );
