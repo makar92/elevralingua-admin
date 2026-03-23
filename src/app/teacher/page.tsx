@@ -37,43 +37,9 @@ function getGreeting(): string {
   return "Добрый вечер";
 }
 
-// Генерация дат будущих занятий по расписанию (для ячеек без lesson-log)
-function getScheduledDates(schedule: any[], year: number, month: number): Map<string, any[]> {
-  const map = new Map<string, any[]>();
-  const firstDay = new Date(year, month, 1);
-  const lastDay = new Date(year, month + 1, 0);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  for (let d = new Date(firstDay); d <= lastDay; d.setDate(d.getDate() + 1)) {
-    // Расписание генерируем только на сегодня и будущее
-    if (d < today) continue;
-    const jsDow = d.getDay();
-    for (const slot of schedule) {
-      const slotJsDow = slot.dayOfWeek === 6 ? 0 : slot.dayOfWeek + 1;
-      if (jsDow === slotJsDow) {
-        const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
-        const entry = {
-          type: "scheduled" as const,
-          startTime: slot.startTime,
-          endTime: slot.endTime,
-          location: slot.location || "",
-          classroomName: slot.classroom?.name || "",
-          classroomId: slot.classroom?.id || slot.classroomId || "",
-        };
-        const arr = map.get(key) || [];
-        arr.push(entry);
-        map.set(key, arr);
-      }
-    }
-  }
-  return map;
-}
-
 export default function TeacherDashboard() {
   const [classrooms, setClassrooms] = useState<any[]>([]);
   const [pending, setPending] = useState<any[]>([]);
-  const [schedule, setSchedule] = useState<any[]>([]);
   const [logs, setLogs] = useState<any[]>([]);
   const [userName, setUserName] = useState("");
   const [loading, setLoading] = useState(true);
@@ -92,12 +58,10 @@ export default function TeacherDashboard() {
     Promise.all([
       safeFetch("/api/classrooms"),
       safeFetch("/api/homework/pending"),
-      safeFetch("/api/schedule"),
       safeFetch("/api/users"),
-    ]).then(([c, p, s, u]) => {
+    ]).then(([c, p, u]) => {
       setClassrooms(Array.isArray(c) ? c : []);
       setPending(Array.isArray(p) ? p : []);
-      setSchedule(Array.isArray(s) ? s : []);
       if (u?.name) setUserName(u.name);
       setLoading(false);
     });
@@ -136,24 +100,11 @@ export default function TeacherDashboard() {
     logsByDay.set(d, arr);
   }
 
-  // Плановые занятия по расписанию
-  const scheduledMap = getScheduledDates(schedule, year, month);
-
-  // Объединённые данные для каждого дня
-  const getDayData = (day: number) => {
-    const key = `${year}-${month}-${day}`;
-    const dayLogs = logsByDay.get(day) || [];
-    const dayScheduled = scheduledMap.get(key) || [];
-
-    // Убираем из scheduled те, для которых уже есть log
-    const logClassIds = new Set(dayLogs.map((l: any) => l.classroomId));
-    const pendingScheduled = dayScheduled.filter(s => !logClassIds.has(s.classroomId));
-
-    return { logs: dayLogs, scheduled: pendingScheduled };
-  };
+  // Данные для каждого дня — только записи журнала
+  const getDayLogs = (day: number) => logsByDay.get(day) || [];
 
   // Данные выбранного дня
-  const selectedData = selectedDay ? getDayData(selectedDay) : null;
+  const selectedLogs = selectedDay ? getDayLogs(selectedDay) : [];
 
   // Статистика
   const totalStudents = classrooms.reduce((sum: number, c: any) => sum + (c._count?.enrollments || 0), 0);
@@ -248,8 +199,8 @@ export default function TeacherDashboard() {
                 ))}
                 {Array.from({ length: daysInMonth }).map((_, i) => {
                   const day = i + 1;
-                  const { logs: dayLogs, scheduled: dayScheduled } = getDayData(day);
-                  const hasContent = dayLogs.length > 0 || dayScheduled.length > 0;
+                  const dayLogs = getDayLogs(day);
+                  const hasContent = dayLogs.length > 0;
                   const isToday = isCurrentMonth && today.getDate() === day;
                   const isSelected = selectedDay === day;
 
@@ -284,12 +235,6 @@ export default function TeacherDashboard() {
                             <span className="truncate">{log.startTime} {log.classroom?.name?.slice(0, 12) || ""}</span>
                           </div>
                         ))}
-                        {dayScheduled.map((s: any, j: number) => (
-                          <div key={`s${j}`} className="flex items-center gap-0.5 px-1 py-0.5 rounded bg-blue-50 text-blue-600 text-[9px] leading-tight">
-                            <span className="w-1.5 h-1.5 rounded-full flex-shrink-0 bg-blue-300" />
-                            <span className="truncate">{s.startTime} {s.classroomName?.slice(0, 12)}</span>
-                          </div>
-                        ))}
                       </div>
                     </button>
                   );
@@ -308,17 +253,16 @@ export default function TeacherDashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {!selectedDay || !selectedData ? (
+              {!selectedDay ? (
                 <div className="text-center py-8">
                   <span className="text-3xl block mb-2">📅</span>
                   <p className="text-sm text-muted-foreground">Нажмите на день с занятиями чтобы увидеть детали</p>
                 </div>
-              ) : (selectedData.logs.length === 0 && selectedData.scheduled.length === 0) ? (
+              ) : selectedLogs.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-4">Нет занятий в этот день</p>
               ) : (
                 <div className="space-y-3">
-                  {/* Проведённые/отменённые */}
-                  {selectedData.logs.map((log: any) => (
+                  {selectedLogs.map((log: any) => (
                     <Link key={log.id} href={`/teacher/classrooms/${log.classroomId}/journal`}
                       className="block p-3 rounded-lg border border-border hover:bg-accent transition-colors">
                       <div className="flex items-center gap-2 mb-1.5">
@@ -337,21 +281,6 @@ export default function TeacherDashboard() {
                       )}
                       {log.teacherNotes && (
                         <p className="text-[11px] text-muted-foreground mt-1.5 italic line-clamp-2">"{log.teacherNotes}"</p>
-                      )}
-                    </Link>
-                  ))}
-                  {/* Запланированные по расписанию */}
-                  {selectedData.scheduled.map((s: any, i: number) => (
-                    <Link key={`s${i}`} href={`/teacher/classrooms/${s.classroomId}/journal`}
-                      className="block p-3 rounded-lg border border-dashed border-blue-200 bg-blue-50/30 hover:bg-blue-50 transition-colors">
-                      <div className="flex items-center gap-2 mb-1.5">
-                        <span className="w-2 h-2 rounded-full bg-blue-300" />
-                        <span className="text-xs font-medium text-blue-600 uppercase">Запланировано</span>
-                      </div>
-                      <p className="text-sm font-medium text-foreground">{s.startTime} — {s.endTime}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">{s.classroomName}</p>
-                      {s.location && (
-                        <p className="text-[11px] text-muted-foreground/70 mt-0.5">📍 {s.location}</p>
                       )}
                     </Link>
                   ))}
@@ -383,9 +312,6 @@ export default function TeacherDashboard() {
                   {classrooms.map((c: any) => {
                     const studentCount = c._count?.enrollments || 0;
                     const pendingCount = pendingByClassroom.get(c.id) || 0;
-                    // Найти ближайший слот из расписания
-                    const classSlots = schedule.filter((s: any) => (s.classroom?.id || s.classroomId) === c.id);
-                    const slotText = classSlots.map((s: any) => `${DW[s.dayOfWeek]} ${s.startTime}`).join(", ");
 
                     return (
                       <Link key={c.id} href={`/teacher/classrooms/${c.id}`}
@@ -396,10 +322,7 @@ export default function TeacherDashboard() {
                           <p className="text-xs text-muted-foreground mt-0.5">{c.course?.title}</p>
                         </div>
                         <div className="flex items-center gap-3 flex-shrink-0">
-                          <div className="text-right">
-                            <p className="text-xs text-muted-foreground">{studentCount} уч.</p>
-                            {slotText && <p className="text-[11px] text-muted-foreground/70">{slotText}</p>}
-                          </div>
+                          <p className="text-xs text-muted-foreground">{studentCount} уч.</p>
                           {pendingCount > 0 && (
                             <Badge variant="destructive" className="text-[10px] px-1.5">{pendingCount}</Badge>
                           )}

@@ -20,25 +20,7 @@ interface ClassroomCardProps {
   href: string;
 }
 
-const dayNamesFull = ["Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота", "Воскресенье"];
 const dayNamesShort = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
-
-// Вычислить ближайшие N дат для расписания
-function getNextDates(dayOfWeek: number, count: number = 3): Date[] {
-  const dates: Date[] = [];
-  const today = new Date();
-  // dayOfWeek в БД: 0=Пн, 6=Вс. JS Date: 0=Вс, 1=Пн...
-  const jsDow = dayOfWeek === 6 ? 0 : dayOfWeek + 1;
-
-  let d = new Date(today);
-  for (let i = 0; i < 30 && dates.length < count; i++) {
-    if (d.getDay() === jsDow) {
-      dates.push(new Date(d));
-    }
-    d.setDate(d.getDate() + 1);
-  }
-  return dates;
-}
 
 function formatDate(date: Date): string {
   const dd = String(date.getDate()).padStart(2, "0");
@@ -53,26 +35,21 @@ export function ClassroomCard({ classroom, href }: ClassroomCardProps) {
   const lang = getLanguage(classroom.course?.language);
   const teacher = classroom.teacher;
   const students = classroom.enrollments?.map((e: any) => e.student) || [];
-  const scheduleSlots = classroom.schedule || [];
   const visibleStudents = showAllStudents ? students : students.slice(0, 5);
   const hasMore = students.length > 5;
 
-  // Собираем ближайшие занятия с датами
-  const upcomingLessons: { dayShort: string; date: string; time: string; location: string }[] = [];
-  for (const slot of scheduleSlots) {
-    const nextDates = getNextDates(slot.dayOfWeek, 2);
-    for (const d of nextDates) {
-      upcomingLessons.push({
-        dayShort: dayNamesShort[slot.dayOfWeek],
-        date: formatDate(d),
-        time: `${slot.startTime}–${slot.endTime}`,
-        location: slot.location || "",
-      });
-    }
-  }
-  // Сортировка по дате
-  upcomingLessons.sort((a, b) => a.date.localeCompare(b.date));
-  const visibleSchedule = upcomingLessons.slice(0, 4);
+  // Ближайшие занятия из LessonLog (реальные записи из БД)
+  const upcomingLessons = (classroom.lessonLogs || []).slice(0, 4).map((log: any) => {
+    const d = new Date(log.date);
+    const jsDow = d.getDay();
+    const dowIdx = jsDow === 0 ? 6 : jsDow - 1;
+    return {
+      dayShort: dayNamesShort[dowIdx],
+      date: formatDate(d),
+      time: `${log.startTime}–${log.endTime}`,
+      location: log.location || "",
+    };
+  });
 
   return (
     <div className="rounded-xl border border-border bg-card hover:border-primary/30 transition-all duration-200 overflow-hidden">
@@ -134,13 +111,13 @@ export function ClassroomCard({ classroom, href }: ClassroomCardProps) {
       </div>
 
       {/* === Расписание с датами === */}
-      {visibleSchedule.length > 0 && (
+      {upcomingLessons.length > 0 && (
         <div className="px-5 py-2.5 border-t border-border/50">
           <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider mb-2">
             Ближайшие занятия
           </p>
           <div className="space-y-1">
-            {visibleSchedule.map((item, i) => (
+            {upcomingLessons.map((item: any, i: number) => (
               <div key={i} className="flex items-center gap-1.5 text-xs">
                 <span className="font-medium text-foreground w-5">{item.dayShort}</span>
                 <span className="text-muted-foreground">{item.date}</span>

@@ -87,11 +87,11 @@ async function main() {
 
   // ==================== Schedule ====================
   await prisma.scheduleSlot.deleteMany({ where: { classroomId: classroom.id } });
-  await prisma.scheduleSlot.createMany({
-    data: [
-      { classroomId: classroom.id, dayOfWeek: 1, startTime: "18:00", endTime: "19:30", location: "Zoom" },
-      { classroomId: classroom.id, dayOfWeek: 3, startTime: "18:00", endTime: "19:30", location: "Zoom" },
-    ],
+  const slotTue = await prisma.scheduleSlot.create({
+    data: { classroomId: classroom.id, dayOfWeek: 1, startTime: "18:00", endTime: "19:30", location: "Zoom" },
+  });
+  const slotThu = await prisma.scheduleSlot.create({
+    data: { classroomId: classroom.id, dayOfWeek: 3, startTime: "18:00", endTime: "19:30", location: "Zoom" },
   });
   console.log("Schedule: Tue & Thu 18:00-19:30");
 
@@ -291,6 +291,7 @@ async function main() {
     const log = await prisma.lessonLog.create({
       data: {
         classroomId: classroom.id,
+        scheduleSlotId: date.getDay() === 2 ? slotTue.id : slotThu.id,
         date,
         startTime: "18:00",
         endTime: "19:30",

@@ -47,39 +47,39 @@ interface NextLesson {
   isTomorrow: boolean;
 }
 
-function getUpcomingLessons(schedule: any[]): NextLesson[] {
+// Собрать ближайшие занятия из lessonLogs всех классов
+function getUpcomingFromClassrooms(classrooms: any[]): NextLesson[] {
   const lessons: NextLesson[] = [];
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
 
-  for (let dayOffset = 0; dayOffset < 14; dayOffset++) {
-    const d = new Date(today);
-    d.setDate(d.getDate() + dayOffset);
-    const jsDow = d.getDay();
-
-    for (const slot of schedule) {
-      const slotJsDow = slot.dayOfWeek === 6 ? 0 : slot.dayOfWeek + 1;
-      if (jsDow === slotJsDow) {
-        lessons.push({
-          dayName: dayNamesShort[jsDow],
-          date: formatDateFull(d),
-          startTime: slot.startTime,
-          endTime: slot.endTime,
-          location: slot.location || "",
-          classroomName: slot.classroom?.name || "",
-          classroomId: slot.classroom?.id || slot.classroomId || "",
-          isToday: dayOffset === 0,
-          isTomorrow: dayOffset === 1,
-        });
-      }
+  for (const cls of classrooms) {
+    for (const log of (cls.lessonLogs || [])) {
+      const d = new Date(log.date);
+      const jsDow = d.getDay();
+      const isToday = d >= today && d < tomorrow;
+      const isTomorrow = d >= tomorrow && d < new Date(tomorrow.getTime() + 86400000);
+      lessons.push({
+        dayName: dayNamesShort[jsDow],
+        date: formatDateFull(d),
+        startTime: log.startTime,
+        endTime: log.endTime,
+        location: log.location || "",
+        classroomName: cls.name || "",
+        classroomId: cls.id || "",
+        isToday,
+        isTomorrow,
+      });
     }
   }
+  lessons.sort((a, b) => a.date.localeCompare(b.date));
   return lessons.slice(0, 4);
 }
 
 export default function StudentDashboard() {
   const [classrooms, setClassrooms] = useState<any[]>([]);
-  const [schedule, setSchedule] = useState<any[]>([]);
   const [userName, setUserName] = useState("");
   const [homeworks, setHomeworks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -90,12 +90,10 @@ export default function StudentDashboard() {
 
     Promise.all([
       safeFetch("/api/classrooms"),
-      safeFetch("/api/schedule"),
       safeFetch("/api/users"),
-    ]).then(([c, s, u]) => {
+    ]).then(([c, u]) => {
       const cls = Array.isArray(c) ? c : [];
       setClassrooms(cls);
-      setSchedule(Array.isArray(s) ? s : []);
       if (u?.name) setUserName(u.name);
 
       // Загружаем ДЗ для каждого класса
@@ -115,7 +113,7 @@ export default function StudentDashboard() {
     });
   }, []);
 
-  const upcoming = getUpcomingLessons(schedule);
+  const upcoming = getUpcomingFromClassrooms(classrooms);
   const nextLesson = upcoming[0];
 
   // Активные ДЗ (не сданные и с будущим дедлайном)
@@ -210,8 +208,8 @@ export default function StudentDashboard() {
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center text-lg flex-shrink-0">📅</div>
               <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Занятий на неделе</p>
-                <p className="text-2xl font-bold text-foreground">{schedule.length}</p>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Ближайших занятий</p>
+                <p className="text-2xl font-bold text-foreground">{upcoming.length}</p>
               </div>
             </div>
           </CardContent>

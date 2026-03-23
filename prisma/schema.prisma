@@ -465,7 +465,8 @@ model ScheduleSlot {
   endTime     String
   location    String?
 
-  classroom Classroom @relation(fields: [classroomId], references: [id], onDelete: Cascade)
+  classroom  Classroom   @relation(fields: [classroomId], references: [id], onDelete: Cascade)
+  lessonLogs LessonLog[]
 
   @@index([classroomId])
 }
@@ -474,25 +475,28 @@ model ScheduleSlot {
 
 // Запись о занятии
 model LessonLog {
-  id          String          @id @default(cuid())
-  classroomId String
-  date        DateTime
-  startTime   String
-  endTime     String
-  location    String?
-  status      LessonLogStatus @default(SCHEDULED)
-  teacherNotes String?        @db.Text
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
+  id              String          @id @default(cuid())
+  classroomId     String
+  scheduleSlotId  String?
+  date            DateTime
+  startTime       String
+  endTime         String
+  location        String?
+  status          LessonLogStatus @default(SCHEDULED)
+  teacherNotes    String?         @db.Text
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
 
-  classroom   Classroom              @relation(fields: [classroomId], references: [id], onDelete: Cascade)
-  attendance  LessonLogAttendance[]
-  topics      LessonLogTopic[]
-  grades      LessonLogGrade[]
-  homeworkAssigned Homework[]         @relation("HomeworkLessonLog")
+  classroom        Classroom              @relation(fields: [classroomId], references: [id], onDelete: Cascade)
+  scheduleSlot     ScheduleSlot?          @relation(fields: [scheduleSlotId], references: [id], onDelete: SetNull)
+  attendance       LessonLogAttendance[]
+  topics           LessonLogTopic[]
+  grades           LessonLogGrade[]
+  homeworkAssigned Homework[]             @relation("HomeworkLessonLog")
 
   @@index([classroomId])
   @@index([date])
+  @@index([scheduleSlotId])
 }
 
 enum LessonLogStatus {

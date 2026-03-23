@@ -15,6 +15,7 @@ export async function GET(req: Request) {
     const role = (session.user as any).role;
 
     // Общий include для всех ролей
+    const now = new Date();
     const commonInclude = {
       course: { select: { id: true, title: true, language: true, level: true } },
       teacher: { select: { id: true, name: true, image: true, email: true, lastSeenAt: true } },
@@ -25,6 +26,12 @@ export async function GET(req: Request) {
         },
       },
       schedule: { orderBy: { dayOfWeek: "asc" } },
+      lessonLogs: {
+        where: { status: "SCHEDULED", date: { gte: now } },
+        orderBy: { date: "asc" },
+        take: 4,
+        select: { id: true, date: true, startTime: true, endTime: true, location: true, status: true },
+      },
       _count: { select: { enrollments: true } },
     } as any;
 
