@@ -26,7 +26,7 @@ export function Sidebar({ user }: { user: { name?: string | null; email?: string
   // Текущий путь для подсветки активного пункта
   const pathname = usePathname();
 
-  return (
+  return ( 
     <aside
       className="w-64 flex-shrink-0 flex flex-col border-r border-border"
       style={{ background: "var(--sidebar)" }}
