@@ -1,6 +1,7 @@
 // ===========================================
 // Файл: src/app/api/answers/route.ts
-// Описание: POST отправка ответа, GET ответы ученика.
+// Описание: POST отправка ответа, GET ответы ученика,
+//   PATCH — учитель ставит оценку и комментарий.
 // ===========================================
 
 import { auth } from "@/lib/auth";
@@ -81,4 +82,30 @@ export async function GET(req: Request) {
   });
 
   return NextResponse.json(answers);
+}
+
+export async function PATCH(req: Request) {
+  const session = await auth();
+  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  // Проверяем что это учитель
+  const user = await prisma.user.findUnique({ where: { id: session.user.id } });
+  if (!user || user.role !== "TEACHER") {
+    return NextResponse.json({ error: "Only teachers can grade answers" }, { status: 403 });
+  }
+
+  const { id, score, teacherComment } = await req.json();
+  if (!id) return NextResponse.json({ error: "Answer id required" }, { status: 400 });
+
+  const updated = await prisma.exerciseAnswer.update({
+    where: { id },
+    data: {
+      score: score != null ? Number(score) : undefined,
+      teacherComment: teacherComment ?? undefined,
+      status: "GRADED",
+      gradedBy: session.user.id,
+    },
+  });
+
+  return NextResponse.json(updated);
 }

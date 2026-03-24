@@ -1,3 +1,10 @@
+// ===========================================
+// Файл: src/app/student/classrooms/[id]/workbook/page.tsx
+// Описание: Рабочая тетрадь ученика.
+//   Показывает назначенные упражнения с типом (классная/домашняя),
+//   ответы, оценки учителя, автопроверку.
+// ===========================================
+
 "use client";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
@@ -27,11 +34,16 @@ export default function StudentWorkbook() {
     ]).then(([c, ea, ans]) => {
       setClassroom(c);
       setEaList(Array.isArray(ea) ? ea : []);
-      // Index existing answers by exerciseId (only workbook answers, not homework)
+      // Index answers by exerciseId — take latest, include all (not just non-homework)
       const ansMap: Record<string, any> = {};
-      if (Array.isArray(ans)) ans.filter((a: any) => !a.homeworkId).forEach((a: any) => { ansMap[a.exerciseId] = a; });
+      if (Array.isArray(ans)) {
+        for (const a of ans) {
+          if (!ansMap[a.exerciseId] || new Date(a.createdAt) > new Date(ansMap[a.exerciseId].createdAt)) {
+            ansMap[a.exerciseId] = a;
+          }
+        }
+      }
       setAnswers(ansMap);
-      // Find first section that has assigned exercises
       const assignedSecIds = new Set((Array.isArray(ea) ? ea : []).map((a: any) => a.exercise?.section?.id).filter(Boolean));
       const allSecs = c.course?.units?.flatMap((u: any) => u.lessons?.flatMap((l: any) => l.sections || []) || []) || [];
       const firstAssigned = allSecs.find((s: any) => assignedSecIds.has(s.id));
@@ -45,13 +57,22 @@ export default function StudentWorkbook() {
     try {
       const all = await fetch(`/api/sections/${secId}/exercises`).then(r => r.json());
       const allEx = Array.isArray(all) ? all : [];
-      // Filter: only show exercises that are assigned to this student
       const ea = eaOverride || eaList;
       const assignedIds = new Set(ea.map((a: any) => a.exerciseId));
       const assigned = allEx.filter((e: any) => assignedIds.has(e.id));
-      // Mark which are from bank
       const bankIds = new Set(ea.filter((a: any) => a.isFromBank).map((a: any) => a.exerciseId));
-      setExercises(assigned.map((e: any) => ({ ...e, _isFromBank: bankIds.has(e.id) })));
+      // Build type map
+      const typeMap = new Map<string, Set<string>>();
+      for (const a of ea) {
+        const types = typeMap.get(a.exerciseId) || new Set();
+        types.add(a.type || "CLASS_WORK");
+        typeMap.set(a.exerciseId, types);
+      }
+      setExercises(assigned.map((e: any) => ({
+        ...e,
+        _isFromBank: bankIds.has(e.id),
+        _types: typeMap.get(e.id) || new Set(["CLASS_WORK"]),
+      })));
     } catch { setExercises([]); }
     setExLoading(false);
   };
@@ -73,14 +94,22 @@ export default function StudentWorkbook() {
   const toggleU = (uid: string) => { setUCol(p => { const n = new Set(p); n.has(uid) ? n.delete(uid) : n.add(uid); return n; }); };
   const toggleL = (lid: string) => { setLCol(p => { const n = new Set(p); n.has(lid) ? n.delete(lid) : n.add(lid); return n; }); };
 
-  // Count assigned exercises per section
-  const getSecExCount = (secId: string) => {
-    return eaList.filter((a: any) => a.exercise?.section?.id === secId).length;
+  const getSecExCount = (secId: string) => eaList.filter((a: any) => a.exercise?.section?.id === secId).length;
+
+  // Section-level answer stats
+  const getSecAnswerStats = (secId: string) => {
+    const secExIds = new Set(eaList.filter((a: any) => a.exercise?.section?.id === secId).map((a: any) => a.exerciseId));
+    if (secExIds.size === 0) return null;
+    let answered = 0, graded = 0;
+    for (const eid of secExIds) {
+      const ans = answers[eid];
+      if (ans) { answered++; if (ans.status === "GRADED" || ans.status === "AUTO_GRADED") graded++; }
+    }
+    return { total: secExIds.size, answered, graded };
   };
 
   if (loading) return <div className="p-6 text-muted-foreground animate-pulse">Загрузка тетради...</div>;
 
-  // Filter units/lessons/sections to only show those with assigned exercises
   const assignedSecIds = new Set(eaList.map((a: any) => a.exercise?.section?.id).filter(Boolean));
   const filtered = (classroom?.course?.units || []).map((u: any) => ({
     ...u,
@@ -90,21 +119,19 @@ export default function StudentWorkbook() {
     })).filter((l: any) => l.sections.length > 0),
   })).filter((u: any) => u.lessons.length > 0);
 
-  const hasContent = filtered.length > 0;
-
   return (
     <div className="p-6 max-w-7xl mx-auto">
       <ClassroomHeader classroom={classroom || {}} />
       <ClassroomTabs basePath={`/student/classrooms/${id}`} tabs={STUDENT_TABS()} />
 
-      {!hasContent ? (
+      {filtered.length === 0 ? (
         <div className="text-center py-16">
           <p className="text-lg text-muted-foreground">Тетрадь пуста</p>
           <p className="text-sm text-muted-foreground mt-1">Учитель ещё не назначил упражнения</p>
         </div>
       ) : (
         <div className="flex gap-6">
-          {/* Sidebar: same structure as textbook */}
+          {/* Sidebar */}
           <div className="w-72 flex-shrink-0 border-r border-border pr-4 max-h-[calc(100vh-200px)] overflow-y-auto">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">{classroom?.course?.title}</p>
             {filtered.map((u: any) => {
@@ -122,12 +149,20 @@ export default function StudentWorkbook() {
                       <span className="truncate font-medium flex-1">{l.title}</span>
                     </button>
                     {!lh && l.sections.map((s: any) => {
-                      const cnt = getSecExCount(s.id);
+                      const st = getSecAnswerStats(s.id);
                       return (
                         <button key={s.id} onClick={() => loadExBySec(s.id, s.title)}
                           className={`w-full text-left pl-10 pr-2 py-0.5 rounded-md text-xs transition-colors truncate flex items-center gap-1 ${selSection === s.id ? "bg-primary/10 text-primary font-medium" : "text-muted-foreground hover:text-foreground hover:bg-accent"}`}>
                           <span className="truncate flex-1">{s.title}</span>
-                          {cnt > 0 && <span className="text-[10px] text-muted-foreground flex-shrink-0">{cnt}</span>}
+                          {st && st.answered === st.total && st.total > 0 && (
+                            <span className="w-2 h-2 rounded-full bg-emerald-400 flex-shrink-0" />
+                          )}
+                          {st && st.answered > 0 && st.answered < st.total && (
+                            <span className="text-[10px] text-muted-foreground flex-shrink-0">{st.answered}/{st.total}</span>
+                          )}
+                          {st && st.answered === 0 && (
+                            <span className="text-[10px] text-muted-foreground flex-shrink-0">{st.total}</span>
+                          )}
                         </button>
                       );
                     })}
@@ -137,18 +172,34 @@ export default function StudentWorkbook() {
             })}
           </div>
 
-          {/* Exercises: ExercisePreview mode="student" — same component as admin */}
+          {/* Exercises */}
           <div className="flex-1 min-w-0 overflow-hidden">
             {selSectionTitle && <h2 className="text-lg font-semibold text-foreground mb-4">{selSectionTitle}</h2>}
             {exLoading ? <div className="text-muted-foreground animate-pulse text-center py-12">Загрузка...</div> :
               exercises.length === 0 ? <p className="text-muted-foreground text-center py-12">Нет назначенных упражнений</p> :
                 <div className="space-y-5">
-                  {exercises.map((ex: any) => (
-                    <div key={ex.id} className="bg-card rounded-xl border border-border p-6 shadow-sm">
-                      {ex._isFromBank && <div className="mb-1"><Badge variant="outline" className="text-[10px] text-amber-600 border-amber-300">дополнительное</Badge></div>}
-                      <ExercisePreview exercise={ex} mode="student" onAnswer={handleAnswer} existingAnswer={answers[ex.id] || null} />
-                    </div>
-                  ))}
+                  {exercises.map((ex: any) => {
+                    const existingAnswer = answers[ex.id] || null;
+                    const types: Set<string> = ex._types || new Set();
+                    return (
+                      <div key={ex.id} className="bg-card rounded-xl border border-border p-6 shadow-sm">
+                        {/* Type & bank badges */}
+                        <div className="flex items-center gap-2 mb-2">
+                          {types.has("CLASS_WORK") && <Badge variant="outline" className="text-[10px] text-blue-600 border-blue-300">Классная</Badge>}
+                          {types.has("HOMEWORK") && <Badge variant="outline" className="text-[10px] text-purple-600 border-purple-300">Домашняя</Badge>}
+                          {ex._isFromBank && <Badge variant="outline" className="text-[10px] text-amber-600 border-amber-300">дополнительное</Badge>}
+                        </div>
+                        {/* Teacher comment if graded */}
+                        {existingAnswer?.status === "GRADED" && existingAnswer?.teacherComment && (
+                          <div className="mb-3 p-2.5 bg-emerald-50 border border-emerald-200 rounded-lg">
+                            <p className="text-[11px] font-semibold text-emerald-700 mb-0.5">Комментарий учителя:</p>
+                            <p className="text-sm text-emerald-900">{existingAnswer.teacherComment}</p>
+                          </div>
+                        )}
+                        <ExercisePreview exercise={ex} mode="student" onAnswer={handleAnswer} existingAnswer={existingAnswer} />
+                      </div>
+                    );
+                  })}
                 </div>}
           </div>
         </div>

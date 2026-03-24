@@ -633,16 +633,22 @@ enum StudyAssignmentStatus {
 // studentId = "_ALL_" означает назначено всем
 
 model ExerciseAssignment {
-  id          String   @id @default(cuid())
+  id          String                @id @default(cuid())
   exerciseId  String
   classroomId String
-  studentId   String   @default("_ALL_")
-  isFromBank  Boolean  @default(false)
-  createdAt   DateTime @default(now())
+  studentId   String                @default("_ALL_")
+  isFromBank  Boolean               @default(false)
+  type        ExerciseAssignmentType @default(CLASS_WORK)
+  createdAt   DateTime              @default(now())
 
   exercise  Exercise  @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
   classroom Classroom @relation(fields: [classroomId], references: [id], onDelete: Cascade)
 
   @@index([classroomId])
   @@index([exerciseId])
+}
+
+enum ExerciseAssignmentType {
+  CLASS_WORK
+  HOMEWORK
 }

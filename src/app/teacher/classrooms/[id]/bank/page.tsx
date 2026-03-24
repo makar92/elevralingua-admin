@@ -23,6 +23,7 @@ export default function TeacherBank() {
   const [busy, setBusy] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
   const [picked, setPicked] = useState<Set<string>>(new Set());
+  const [assignType, setAssignType] = useState("CLASS_WORK");
 
   const sc = classroom?.enrollments?.length || 0;
   const total = classroom?.enrollments?.length || 0;
@@ -55,7 +56,7 @@ export default function TeacherBank() {
 
   const doAssign = async (studentIds?: string[]) => {
     if (checked.size === 0) return; setBusy(true);
-    await fetch("/api/exercise-assignments", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ classroomId: id, exerciseIds: Array.from(checked), isFromBank: true, studentIds: studentIds?.length ? studentIds : undefined }) });
+    await fetch("/api/exercise-assignments", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ classroomId: id, exerciseIds: Array.from(checked), isFromBank: true, type: assignType, studentIds: studentIds?.length ? studentIds : undefined }) });
     const ea = await fetch(`/api/exercise-assignments?classroomId=${id}`).then(r => r.ok ? r.json() : []);
     setEaList(Array.isArray(ea) ? ea : []); setChecked(new Set()); setBusy(false); setShowPicker(false); setPicked(new Set());
   };
@@ -115,7 +116,8 @@ export default function TeacherBank() {
       <div className={`fixed bottom-0 left-0 right-0 bg-card border-t border-border shadow-lg transition-transform z-50 ${checked.size > 0 ? "translate-y-0" : "translate-y-full"}`}>
         <div className="max-w-7xl mx-auto px-6 py-3 flex items-center gap-3">
           <span className="text-sm font-medium">Выбрано: {checked.size} доп.</span>
-          <Button size="sm" onClick={() => setShowPicker(true)} disabled={busy}>Назначить</Button>
+          <Button size="sm" onClick={() => { setAssignType("CLASS_WORK"); setShowPicker(true); }} disabled={busy}>Назначить (классная)</Button>
+          <Button size="sm" variant="outline" onClick={() => { setAssignType("HOMEWORK"); setShowPicker(true); }} disabled={busy}>Назначить (домашняя)</Button>
           <Button size="sm" variant="ghost" onClick={() => setChecked(new Set())}>Отмена</Button>
         </div>
       </div>

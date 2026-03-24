@@ -50,7 +50,7 @@ interface Props {
   exercise: Exercise;
   mode: "student" | "teacher";
   onAnswer?: (exerciseId: string, answersJson: any) => Promise<any>;
-  existingAnswer?: { status: string; score?: number } | null;
+  existingAnswer?: { status: string; score?: number; teacherComment?: string | null } | null;
 }
 
 // ===== Главный компонент =====
@@ -134,6 +134,9 @@ export function ExercisePreview({ exercise, mode, onAnswer, existingAnswer }: Pr
           ) : answerStatus === "GRADED" ? (
             <div className="px-4 py-3 rounded-lg border bg-emerald-50 border-emerald-200">
               <p className="font-medium text-emerald-700">✅ Проверено учителем ({scoreToGrade(answerScore)})</p>
+              {submitted?.teacherComment && (
+                <p className="text-sm text-emerald-800 mt-1">💬 {submitted.teacherComment}</p>
+              )}
             </div>
           ) : (
             <div className="px-4 py-3 rounded-lg border bg-blue-50 border-blue-200">

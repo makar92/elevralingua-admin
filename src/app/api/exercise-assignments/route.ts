@@ -34,7 +34,7 @@ export async function POST(req: Request) {
   try {
     const session = await auth();
     if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    const { classroomId, exerciseIds, studentIds, isFromBank } = await req.json();
+    const { classroomId, exerciseIds, studentIds, isFromBank, type } = await req.json();
     if (!classroomId || !exerciseIds?.length) return NextResponse.json({ error: "Missing fields" }, { status: 400 });
 
     const targets = studentIds?.length ? studentIds : ["_ALL_"];
@@ -42,7 +42,7 @@ export async function POST(req: Request) {
     for (const exerciseId of exerciseIds) {
       for (const studentId of targets) {
         await prisma.exerciseAssignment.create({
-          data: { exerciseId, classroomId, studentId, isFromBank: isFromBank || false },
+          data: { exerciseId, classroomId, studentId, isFromBank: isFromBank || false, type: type || "CLASS_WORK" },
         });
         count++;
       }

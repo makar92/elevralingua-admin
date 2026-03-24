@@ -357,7 +357,7 @@ export default function TeacherDashboard() {
                 <div className="space-y-2.5">
                   {pending.slice(0, 8).map((p: any) => (
                     <Link key={p.id}
-                      href={`/teacher/classrooms/${p.homework?.classroomId}/homework/${p.homework?.id}`}
+                      href={`/teacher/classrooms/${p.homework?.classroomId}/workbook`}
                       className="flex items-center gap-2.5 p-2.5 rounded-lg border border-border hover:bg-accent transition-colors">
                       <Avatar className="h-7 w-7 flex-shrink-0">
                         <AvatarImage src={p.student?.image} />
