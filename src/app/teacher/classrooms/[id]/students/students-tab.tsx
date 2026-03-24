@@ -56,19 +56,6 @@ export function StudentsTab({ classroomId, enrollments, onUpdate }: { classroomI
     else window.location.reload();
   };
 
-  const deleteClassroom = async () => {
-    if (busy) return;
-    if (!confirm("Удалить этот класс? Это действие нельзя отменить. Все данные класса (журнал, оценки, прогресс) будут удалены.")) return;
-    setBusy(true);
-    const res = await fetch(`/api/classrooms/${classroomId}`, { method: "DELETE" });
-    if (res.ok) {
-      router.push("/teacher/classrooms");
-    } else {
-      alert("Ошибка удаления класса");
-      setBusy(false);
-    }
-  };
-
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
@@ -131,15 +118,6 @@ export function StudentsTab({ classroomId, enrollments, onUpdate }: { classroomI
           ))}
         </div>
       )}
-
-      {/* Удаление класса */}
-      <div className="mt-8 pt-6 border-t border-border">
-        <h3 className="text-sm font-semibold text-red-600 mb-2">Опасная зона</h3>
-        <p className="text-xs text-muted-foreground mb-3">Удаление класса невозможно отменить. Будут удалены все данные: журнал, оценки, прогресс учеников.</p>
-        <Button variant="destructive" size="sm" onClick={deleteClassroom} disabled={busy} className="cursor-pointer">
-          {busy ? "Удаляем..." : "Удалить класс"}
-        </Button>
-      </div>
     </div>
   );
 }

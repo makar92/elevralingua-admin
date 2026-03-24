@@ -32,7 +32,7 @@ export const TEACHER_TABS = (n?: number) => [
   { id: "journal", name: "Журнал", href: "" },
   { id: "textbook", name: "Учебник", href: "/textbook" },
   { id: "workbook", name: "Тетрадь", href: "/workbook" },
-  { id: "bank", name: "Банк", href: "/bank" },
+  { id: "bank", name: "Банк упражнений", href: "/bank" },
   { id: "students", name: `Ученики${n != null ? ` (${n})` : ""}`, href: "/students" },
 ];
 

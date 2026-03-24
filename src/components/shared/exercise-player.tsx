@@ -10,6 +10,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { GradeBadge } from "@/components/shared/grade-badge";
 
 interface ExercisePlayerProps {
   exercise: any;
@@ -77,16 +78,16 @@ export function ExercisePlayer({ exercise, onSubmit }: ExercisePlayerProps) {
         ) : (
           <div className={`p-4 rounded-lg ${
             result.status === "AUTO_GRADED"
-              ? result.score >= 7 ? "bg-emerald-50 border border-emerald-200" : "bg-red-50 border border-red-200"
+              ? ["A","B"].includes(result.grade) ? "bg-emerald-50 border border-emerald-200" : "bg-red-50 border border-red-200"
               : "bg-blue-50 border border-blue-200"
           }`}>
             {result.status === "AUTO_GRADED" ? (
               <div>
-                <p className={`font-medium ${result.score >= 7 ? "text-emerald-700" : "text-red-700"}`}>
-                  {result.score >= 7 ? "✅ Правильно!" : "❌ Неправильно"}
-                  <span className="text-sm font-normal ml-2">({result.score}/10)</span>
-                </p>
-                {result.score < 7 && result.exercise?.correctAnswers && (
+                <div className={`flex items-center gap-2 font-medium ${["A","B"].includes(result.grade) ? "text-emerald-700" : "text-red-700"}`}>
+                  {["A","B"].includes(result.grade) ? "✅ Правильно!" : "❌ Неправильно"}
+                  <GradeBadge grade={result.grade} size="md" />
+                </div>
+                {!["A","B"].includes(result.grade) && result.exercise?.correctAnswers && (
                   <p className="text-sm text-muted-foreground mt-2">
                     Правильный ответ: <span className="font-medium text-foreground">{result.exercise.correctAnswers.join(", ")}</span>
                   </p>

@@ -7,6 +7,7 @@ import { PreviewTextbook } from "@/components/preview-textbook";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { GradeBadge, GradePicker } from "@/components/shared/grade-badge";
 
 export default function TeacherTextbook() {
   const { id } = useParams();
@@ -173,12 +174,30 @@ export default function TeacherTextbook() {
         <div className="flex-1 min-w-0">
           {blocksLoading?<div className="text-muted-foreground animate-pulse py-8 text-center">Загрузка...</div>:
           selSec?(<div>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-foreground">{secTitle}</h2>
-              {(()=>{const sa=assigns.filter((a:any)=>a.sectionId===selSec);const sts=sa.flatMap((a:any)=>a.students||[]);if(!sts.length)return null;return(<div className="flex gap-1.5 flex-wrap">{sts.map((s:any)=>(<div key={s.id} className="relative">
-                <button onClick={()=>setEditingGrade(editingGrade===s.id?null:s.id)} title={`${s.student?.name}: ${s.status}${s.grade?` (${s.grade})`:""}`} className={`w-7 h-7 rounded-full text-[9px] font-bold flex items-center justify-center cursor-pointer hover:ring-2 hover:ring-primary ${s.status==="COMPLETED"?"bg-emerald-100 text-emerald-700":s.status==="HAS_QUESTION"?"bg-amber-100 text-amber-700":"bg-red-100 text-red-700"}`}>{s.grade||s.student?.name?.[0]}</button>
-                {editingGrade===s.id&&(<div className="absolute top-8 right-0 z-20 bg-card border border-border rounded-lg shadow-lg p-2 space-y-1"><p className="text-[10px] text-muted-foreground mb-1 whitespace-nowrap">{s.student?.name}</p><div className="flex gap-1">{["A","B","C","D","F"].map(g=>(<button key={g} onClick={()=>updateGrade(s.id,g)} className={`w-6 h-6 rounded text-[10px] font-bold ${g==="A"?"bg-emerald-100 text-emerald-800":g==="B"?"bg-blue-100 text-blue-800":g==="C"?"bg-amber-100 text-amber-800":g==="D"?"bg-orange-100 text-orange-800":"bg-red-100 text-red-800"} ${s.grade===g?"ring-2 ring-primary":""} hover:opacity-80`}>{g}</button>))}</div>{s.comment&&<p className="text-[10px] text-amber-700 mt-1 max-w-32 truncate">💬 {s.comment}</p>}</div>)}
-              </div>))}</div>);})()}
+            <div className="mb-6">
+              <h2 className="text-xl font-bold text-foreground mb-3">{secTitle}</h2>
+              {(()=>{const sa=assigns.filter((a:any)=>a.sectionId===selSec);const sts=sa.flatMap((a:any)=>a.students||[]);if(!sts.length)return null;
+                const completed=sts.filter((s:any)=>s.status==="COMPLETED").length;
+                const questions=sts.filter((s:any)=>s.status==="HAS_QUESTION").length;
+                const assigned=sts.filter((s:any)=>s.status==="ASSIGNED").length;
+                return(<div>
+                  <button onClick={()=>setEditingGrade(editingGrade?"":selSec)} className="text-[11px] text-primary hover:underline flex items-center gap-1 mb-2">
+                    <span>{editingGrade===selSec?"▾":"▸"}</span>
+                    <span>Ученики ({sts.length})</span>
+                    {questions>0&&<span className="text-[10px] text-amber-600 ml-1">· {questions} вопр.</span>}
+                    {assigned>0&&<span className="text-[10px] text-red-600 ml-1">· {assigned} не изуч.</span>}
+                    {completed===sts.length&&sts.length>0&&<span className="text-[10px] text-emerald-600 ml-1">· все изучили</span>}
+                  </button>
+                  {editingGrade===selSec&&(<div className="border border-border rounded-lg p-3 bg-accent/20 space-y-1.5 mb-3">{sts.map((s:any)=>(
+                    <div key={s.id} className="flex items-center gap-2 py-1">
+                      <span className={`w-2 h-2 rounded-full flex-shrink-0 ${s.status==="COMPLETED"?"bg-emerald-400":s.status==="HAS_QUESTION"?"bg-amber-400":"bg-red-400"}`}/>
+                      <span className="text-sm text-foreground flex-1 truncate">{s.student?.name}</span>
+                      <span className="text-[10px] text-muted-foreground">{s.status==="COMPLETED"?"Изучено":s.status==="HAS_QUESTION"?"Вопрос":"Не начал"}</span>
+                      <GradePicker value={s.grade} onChange={(g:string)=>updateGrade(s.id,g)} size="sm"/>
+                      {s.comment&&<p className="text-[10px] text-amber-600 truncate max-w-48 ml-1">💬 {s.comment}</p>}
+                    </div>
+                  ))}</div>)}
+                </div>);})()}
             </div>
             <div className="bg-card rounded-xl shadow-sm border border-border/50 px-10 py-8 max-w-4xl">
               {secBlocks.length===0?<p className="text-muted-foreground text-center py-8">Нет содержимого</p>:

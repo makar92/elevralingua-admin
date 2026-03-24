@@ -17,6 +17,41 @@ import { hash } from "bcryptjs";
 
 const prisma = new PrismaClient();
 
+// Генерирует answersJson в правильном формате для каждого типа упражнения
+function makeAnswerJson(ex: any): any {
+  const c = ex.contentJson;
+  switch (ex.exerciseType) {
+    case "MATCHING":
+      // ExercisePreview ожидает массив объектов из shuffledRight
+      return (c.pairs || []).map((p: any) => ({ left: p.left, right: p.right }));
+    case "MULTIPLE_CHOICE":
+      // Одна строка — выбранный вариант
+      return c.options?.[c.correctIndex] || c.options?.[0] || "hello";
+    case "TONE_PLACEMENT":
+      // Массив тонов: ["3", "3"] и т.д.
+      return (c.characters || []).flatMap((ch: any) => Object.values(ch.tones || {}));
+    case "WORD_ORDER":
+      // Строка — собранное предложение
+      return c.correctOrder || (c.words || []).join("");
+    case "FILL_BLANK":
+      // Массив заполненных пропусков
+      return [c.blankAnswer || ""];
+    case "WRITE_PINYIN":
+      // Массив пиньиней
+      return (c.characters || []).map((ch: any) => ch.pinyin || "");
+    case "TRANSLATION":
+      return c.acceptableAnswers?.[0] || "Translation answer";
+    case "DICTATION":
+      return c.correctText || "Dictation answer";
+    case "DESCRIBE_IMAGE":
+      return "Description of the image";
+    case "FREE_WRITING":
+      return "Free writing response from student";
+    default:
+      return ["answer"];
+  }
+}
+
 function addDays(date: Date, days: number): Date {
   const d = new Date(date);
   d.setDate(d.getDate() + days);
@@ -233,10 +268,10 @@ async function main() {
     for (const ex of hw1Ex) {
       const isAuto = ex.gradingType === "AUTO";
       await prisma.exerciseAnswer.create({ data: {
-        exerciseId: ex.id, studentId: st.id, homeworkId: hw1.id,
-        answersJson: isAuto ? ex.correctAnswers : ["你好，我叫" + st.name.split(" ")[0] + "。"],
+        exerciseId: ex.id, studentId: st.id, classroomId: classroom.id, homeworkId: hw1.id,
+        answersJson: makeAnswerJson(ex),
         status: isAuto ? "AUTO_GRADED" : "GRADED",
-        score: st.id === emma.id ? 9 : st.id === james.id ? 7 : 6,
+        grade: st.id === emma.id ? "A" : st.id === james.id ? "B" : "C",
         teacherComment: isAuto ? null : (st.id === emma.id ? "Excellent work!" : st.id === james.id ? "Watch your 3rd tone." : "Keep practicing!"),
         completedAt: addDays(now, -15),
       }});
@@ -260,10 +295,10 @@ async function main() {
     for (const ex of hw2Ex) {
       const isAuto = ex.gradingType === "AUTO";
       await prisma.exerciseAnswer.create({ data: {
-        exerciseId: ex.id, studentId: st.id, homeworkId: hw2.id,
-        answersJson: isAuto ? ex.correctAnswers : ["再见老师！谢谢你。"],
+        exerciseId: ex.id, studentId: st.id, classroomId: classroom.id, homeworkId: hw2.id,
+        answersJson: makeAnswerJson(ex),
         status: isAuto ? "AUTO_GRADED" : "PENDING",
-        score: isAuto ? (st.id === emma.id ? 10 : 8) : null,
+        grade: isAuto ? (st.id === emma.id ? "A" : "B") : null,
         completedAt: addDays(now, -6),
       }});
     }
@@ -283,10 +318,10 @@ async function main() {
   await prisma.homeworkStudent.create({ data: { homeworkId: hw3.id, studentId: maria.id, status: "ASSIGNED" } });
   if (hw3Ex[0]) {
     await prisma.exerciseAnswer.create({ data: {
-      exerciseId: hw3Ex[0].id, studentId: emma.id, homeworkId: hw3.id,
-      answersJson: hw3Ex[0].gradingType === "AUTO" ? hw3Ex[0].correctAnswers : ["一二三四五"],
+      exerciseId: hw3Ex[0].id, studentId: emma.id, classroomId: classroom.id, homeworkId: hw3.id,
+      answersJson: makeAnswerJson(hw3Ex[0]),
       status: hw3Ex[0].gradingType === "AUTO" ? "AUTO_GRADED" : "PENDING",
-      score: hw3Ex[0].gradingType === "AUTO" ? 10 : null,
+      grade: hw3Ex[0].gradingType === "AUTO" ? "A" : null,
       completedAt: addDays(now, -1),
     }});
   }
@@ -316,10 +351,10 @@ async function main() {
     await prisma.homeworkStudent.create({ data: { homeworkId: hw5.id, studentId: st.id, status: "REVIEWED" } });
     for (const ex of hw5Ex) {
       await prisma.exerciseAnswer.create({ data: {
-        exerciseId: ex.id, studentId: st.id, homeworkId: hw5.id,
-        answersJson: ex.gradingType === "AUTO" ? ex.correctAnswers : ["nǐ hǎo"],
+        exerciseId: ex.id, studentId: st.id, classroomId: classroom.id, homeworkId: hw5.id,
+        answersJson: makeAnswerJson(ex),
         status: ex.gradingType === "AUTO" ? "AUTO_GRADED" : "GRADED",
-        score: st.id === emma.id ? 10 : 8,
+        grade: st.id === emma.id ? "A" : "B",
         teacherComment: ex.gradingType === "TEACHER" ? "Good job!" : null,
         completedAt: addDays(now, -11),
       }});
@@ -384,13 +419,13 @@ async function main() {
   // ==================== Classwork answers (Emma) ====================
   const cwEx = assignableEx.filter(e => e.isDefaultInWorkbook).slice(0, 4);
   for (const ex of cwEx) {
-    const existing = await prisma.exerciseAnswer.findFirst({ where: { exerciseId: ex.id, studentId: emma.id, homeworkId: null } });
+    const existing = await prisma.exerciseAnswer.findFirst({ where: { exerciseId: ex.id, studentId: emma.id, classroomId: classroom.id, homeworkId: null } });
     if (!existing) {
       await prisma.exerciseAnswer.create({ data: {
-        exerciseId: ex.id, studentId: emma.id, homeworkId: null,
-        answersJson: ex.gradingType === "AUTO" ? ex.correctAnswers : ["我叫Emma。我是学生。"],
+        exerciseId: ex.id, studentId: emma.id, classroomId: classroom.id, homeworkId: null,
+        answersJson: makeAnswerJson(ex),
         status: ex.gradingType === "AUTO" ? "AUTO_GRADED" : "PENDING",
-        score: ex.gradingType === "AUTO" ? 10 : null,
+        grade: ex.gradingType === "AUTO" ? "A" : null,
         completedAt: addDays(now, -2),
       }});
     }

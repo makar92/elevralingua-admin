@@ -81,7 +81,7 @@ export default function StudentWorkbook() {
     const res = await fetch("/api/answers", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ exerciseId, answersJson }),
+      body: JSON.stringify({ exerciseId, answersJson, classroomId: id }),
     });
     if (res.ok) {
       const data = await res.json();
@@ -183,19 +183,7 @@ export default function StudentWorkbook() {
                     const types: Set<string> = ex._types || new Set();
                     return (
                       <div key={ex.id} className="bg-card rounded-xl border border-border p-6 shadow-sm">
-                        {/* Type & bank badges */}
-                        <div className="flex items-center gap-2 mb-2">
-                          {types.has("CLASS_WORK") && <Badge variant="outline" className="text-[10px] text-blue-600 border-blue-300">Классная</Badge>}
-                          {types.has("HOMEWORK") && <Badge variant="outline" className="text-[10px] text-purple-600 border-purple-300">Домашняя</Badge>}
-                          {ex._isFromBank && <Badge variant="outline" className="text-[10px] text-amber-600 border-amber-300">дополнительное</Badge>}
-                        </div>
-                        {/* Teacher comment if graded */}
-                        {existingAnswer?.status === "GRADED" && existingAnswer?.teacherComment && (
-                          <div className="mb-3 p-2.5 bg-emerald-50 border border-emerald-200 rounded-lg">
-                            <p className="text-[11px] font-semibold text-emerald-700 mb-0.5">Комментарий учителя:</p>
-                            <p className="text-sm text-emerald-900">{existingAnswer.teacherComment}</p>
-                          </div>
-                        )}
+                        {ex._isFromBank && <div className="mb-2"><Badge variant="outline" className="text-[10px] text-amber-600 border-amber-300">дополнительное</Badge></div>}
                         <ExercisePreview exercise={ex} mode="student" onAnswer={handleAnswer} existingAnswer={existingAnswer} />
                       </div>
                     );

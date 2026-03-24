@@ -252,9 +252,10 @@ model ExerciseAnswer {
   id              String        @id @default(cuid())
   exerciseId      String
   studentId       String
+  classroomId     String?
   homeworkId      String?
   answersJson     Json
-  score           Int?
+  grade           String?
   status          AnswerStatus  @default(PENDING)
   teacherComment  String?       @db.Text
   gradedBy        String?
@@ -264,13 +265,15 @@ model ExerciseAnswer {
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
-  exercise Exercise  @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
-  student  User      @relation(fields: [studentId], references: [id])
-  homework Homework? @relation(fields: [homeworkId], references: [id])
+  exercise  Exercise   @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  student   User       @relation(fields: [studentId], references: [id])
+  homework  Homework?  @relation(fields: [homeworkId], references: [id])
+  classroom Classroom? @relation(fields: [classroomId], references: [id])
 
   @@index([exerciseId])
   @@index([studentId])
   @@index([homeworkId])
+  @@index([classroomId])
 }
 
 enum AnswerStatus {
@@ -302,6 +305,7 @@ model Classroom {
   sectionVisibility    SectionVisibility[]
   studyAssignments     StudyAssignment[]
   exerciseAssignments  ExerciseAssignment[]
+  exerciseAnswers      ExerciseAnswer[]
 
   @@index([teacherId])
   @@index([courseId])

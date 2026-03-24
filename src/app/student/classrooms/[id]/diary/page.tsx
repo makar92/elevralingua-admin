@@ -4,6 +4,7 @@ import { useParams } from "next/navigation";
 import { ClassroomTabs, STUDENT_TABS } from "@/components/shared/classroom-tabs";
 import { ClassroomHeader } from "@/components/shared/classroom-header";
 import { Badge } from "@/components/ui/badge";
+import { GradeBadge } from "@/components/shared/grade-badge";
 
 const MO=["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
 const DW=["Пн","Вт","Ср","Чт","Пт","Сб","Вс"];
@@ -66,7 +67,7 @@ export default function StudentDiary(){
                   <Badge className={`text-xs ${selectedLog.status==="COMPLETED"?"bg-emerald-100 text-emerald-700":"bg-blue-100 text-blue-700"}`}>{selectedLog.status==="COMPLETED"?"Проведено":"Запланировано"}</Badge>
                 </div>
                 {selectedLog.attendance?.[0]&&<p className="text-sm text-muted-foreground">{selectedLog.attendance[0].status==="PRESENT"?"✓ Присутствовал(а)":selectedLog.attendance[0].status==="LATE"?"⏰ Опоздал(а)":"✗ Отсутствовал(а)"}</p>}
-                {selectedLog.grades?.length>0&&<div className="flex gap-1">{selectedLog.grades.map((g:any)=><span key={g.id} className={`px-2 py-0.5 rounded text-xs font-bold ${GC[g.grade]||"bg-gray-100"}`}>{g.grade}</span>)}</div>}
+                {selectedLog.grades?.length>0&&<div className="flex gap-1">{selectedLog.grades.map((g:any)=><GradeBadge key={g.id} grade={g.grade} size="sm"/>)}</div>}
                 {selectedLog.topics?.length>0&&<div><h3 className="text-xs font-semibold text-muted-foreground uppercase mb-1">Темы</h3>{selectedLog.topics.map((t:any)=><p key={t.id} className="text-sm text-foreground pl-3 border-l-2 border-emerald-500 mb-1">{t.lesson?.title}</p>)}</div>}
                 {selectedLog.homeworkAssigned?.length>0&&<div><h3 className="text-xs font-semibold text-muted-foreground uppercase mb-1">Домашнее задание</h3>{selectedLog.homeworkAssigned.map((hw:any)=><p key={hw.id} className="text-sm text-foreground">{hw.title}</p>)}</div>}
               </div>

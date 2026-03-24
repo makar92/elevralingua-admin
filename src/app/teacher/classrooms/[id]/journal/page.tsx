@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { GradePicker } from "@/components/shared/grade-badge";
 
 const MO = ["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
 const DW = ["Пн","Вт","Ср","Чт","Пт","Сб","Вс"];
@@ -208,7 +209,7 @@ export default function TeacherJournal() {
 
       <div className="flex gap-5">
         {/* === Левая панель: календарь === */}
-        <div className="w-52 flex-shrink-0">
+        <div className="w-60 flex-shrink-0">
           <div className="flex items-center justify-between mb-2">
             <button onClick={() => chM(-1)} className="text-sm text-muted-foreground hover:text-foreground px-1 cursor-pointer">&lt;</button>
             <span className="text-xs font-semibold text-foreground">{MO[month]} {year}</span>
@@ -273,11 +274,11 @@ export default function TeacherJournal() {
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <Label className="text-[11px]">Начало</Label>
-                  <Input type="time" value={newStartTime} onChange={e => setNewStartTime(e.target.value)} className="h-8 text-xs w-full" />
+                  <Input type="time" value={newStartTime} onChange={e => setNewStartTime(e.target.value)} className="h-9 text-sm w-full" />
                 </div>
                 <div>
                   <Label className="text-[11px]">Конец</Label>
-                  <Input type="time" value={newEndTime} onChange={e => setNewEndTime(e.target.value)} className="h-8 text-xs w-full" />
+                  <Input type="time" value={newEndTime} onChange={e => setNewEndTime(e.target.value)} className="h-9 text-sm w-full" />
                 </div>
               </div>
               <div>
@@ -418,14 +419,7 @@ export default function TeacherJournal() {
                   {/* Существующие оценки */}
                   {selectedLog.grades?.map((g: any) => (
                     <div key={g.id} className="flex items-center gap-2 mb-1">
-                      <div className="flex gap-0.5">
-                        {["A","B","C","D","F"].map(gr => (
-                          <button key={gr} onClick={() => updGrade(g.id, gr)} disabled={busy}
-                            className={`w-6 h-6 rounded text-[10px] font-bold cursor-pointer disabled:opacity-50 ${GC[gr] || "bg-gray-100"} ${
-                              g.grade === gr ? "ring-2 ring-primary" : "opacity-40 hover:opacity-100"
-                            }`}>{gr}</button>
-                        ))}
-                      </div>
+                      <GradePicker value={g.grade} onChange={(gr: string) => updGrade(g.id, gr)} size="sm" />
                       <span className="text-sm text-foreground">{g.student?.name}</span>
                     </div>
                   ))}
@@ -437,10 +431,7 @@ export default function TeacherJournal() {
                       return (
                         <div key={st?.id} className="flex items-center gap-1 text-xs">
                           <span className="text-muted-foreground">{st?.name}:</span>
-                          {["A","B","C","D","F"].map(g => (
-                            <button key={g} onClick={() => addG(st?.id, g)} disabled={busy}
-                              className={`w-6 h-6 rounded text-[10px] font-bold cursor-pointer disabled:opacity-50 ${GC[g]} hover:opacity-80`}>{g}</button>
-                          ))}
+                          <GradePicker value={null} onChange={(g: string) => addG(st?.id, g)} size="sm" />
                         </div>
                       );
                     })}

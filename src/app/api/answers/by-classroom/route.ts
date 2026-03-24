@@ -1,8 +1,7 @@
 // ===========================================
 // Файл: src/app/api/answers/by-classroom/route.ts
-// Описание: GET все ответы учеников по классу.
-//   Для учителя — видеть кто что ответил в тетради.
-//   Возвращает ответы сгруппированные по exerciseId.
+// Описание: GET все ответы учеников по классу (для учителя).
+//   Фильтрует по classroomId напрямую.
 // ===========================================
 
 import { auth } from "@/lib/auth";
@@ -17,7 +16,6 @@ export async function GET(req: Request) {
   const classroomId = url.searchParams.get("classroomId");
   if (!classroomId) return NextResponse.json([], { status: 200 });
 
-  // Проверяем что это учитель данного класса
   const classroom = await prisma.classroom.findUnique({
     where: { id: classroomId },
     select: { teacherId: true },
@@ -26,25 +24,8 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  // Получаем все ответы учеников на упражнения этого курса
-  // (и домашние, и классные — без homeworkId фильтра)
   const answers = await prisma.exerciseAnswer.findMany({
-    where: {
-      exercise: {
-        section: {
-          lesson: {
-            unit: {
-              course: {
-                classrooms: { some: { id: classroomId } },
-              },
-            },
-          },
-        },
-      },
-      student: {
-        enrollments: { some: { classroomId } },
-      },
-    },
+    where: { classroomId },
     include: {
       student: { select: { id: true, name: true, image: true } },
       exercise: { select: { id: true, title: true, exerciseType: true, gradingType: true, correctAnswers: true, referenceAnswer: true } },
