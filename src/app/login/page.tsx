@@ -68,7 +68,7 @@ export default function LoginPage() {
                   disabled={loading !== null}
                   className="w-full flex items-center gap-4 p-3.5 rounded-xl border-2 border-emerald-200 bg-white hover:bg-emerald-50 hover:border-emerald-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 >
-                  <div className="w-11 h-11 rounded-xl bg-emerald-100 flex items-center justify-center text-xl flex-shrink-0">🎓</div>
+                  <div className="w-11 h-11 rounded-xl bg-emerald-100 flex items-center justify-center text-xl flex-shrink-0">👩‍🏫</div>
                   <div className="text-left flex-1">
                     <p className="text-sm font-semibold text-foreground">
                       {loading === "teacher" ? "Входим..." : "Войти как Учитель"}
@@ -83,7 +83,7 @@ export default function LoginPage() {
                   disabled={loading !== null}
                   className="w-full flex items-center gap-4 p-3.5 rounded-xl border-2 border-blue-200 bg-white hover:bg-blue-50 hover:border-blue-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 >
-                  <div className="w-11 h-11 rounded-xl bg-blue-100 flex items-center justify-center text-xl flex-shrink-0">📖</div>
+                  <div className="w-11 h-11 rounded-xl bg-blue-100 flex items-center justify-center text-xl flex-shrink-0">🎓</div>
                   <div className="text-left flex-1">
                     <p className="text-sm font-semibold text-foreground">
                       {loading === "student" ? "Входим..." : "Войти как Ученик"}

@@ -100,11 +100,11 @@ export default function TeacherBank() {
           {selSectionTitle && <div className="flex items-center gap-3 mb-4"><h2 className="text-lg font-semibold text-foreground">{selSectionTitle}</h2><Badge variant="secondary" className="text-xs">Банк</Badge></div>}
           {exLoading ? <div className="text-muted-foreground animate-pulse text-center py-12">Загрузка...</div> :
             exercises.length === 0 ? <div className="text-center py-12"><p className="text-muted-foreground">Нет дополнительных упражнений</p></div> :
-              <div className="space-y-6">{exercises.map((ex: any) => {
+              <div className="space-y-5">{exercises.map((ex: any) => {
                 const ac = getAC(ex.id);
                 return (<div key={ex.id} className="relative pl-8">
                   <div className="absolute left-0 top-4"><input type="checkbox" checked={checked.has(ex.id)} onChange={() => toggleCheck(ex.id)} className="w-4 h-4 rounded cursor-pointer" /></div>
-                  <div className={`rounded-xl border p-5 ${checked.has(ex.id) ? "border-primary/50 bg-primary/5" : "border-border"}`}>
+                  <div className={`rounded-xl border p-5 shadow-sm ${checked.has(ex.id) ? "border-primary/50 bg-primary/5" : "border-border bg-card"}`}>
                     {ac > 0 && <div className="mb-2 flex items-center gap-2"><Badge variant="outline" className="text-[10px]">Назначено: {ac} из {total} уч.</Badge><button onClick={() => { setChecked(new Set([ex.id])); setShowPicker(true); }} className="text-[10px] text-primary hover:underline">Назначить повторно</button></div>}
                     <ExercisePreview exercise={ex} mode="teacher" />
                   </div>

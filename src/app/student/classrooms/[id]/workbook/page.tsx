@@ -17,14 +17,20 @@ export default function StudentWorkbook() {
   const [uCol, setUCol] = useState<Set<string>>(new Set());
   const [lCol, setLCol] = useState<Set<string>>(new Set());
   const [eaList, setEaList] = useState<any[]>([]);
+  const [answers, setAnswers] = useState<Record<string, any>>({});
 
   useEffect(() => {
     Promise.all([
       fetch(`/api/classrooms/${id}`).then(r => r.json()),
       fetch(`/api/exercise-assignments?classroomId=${id}`).then(r => r.ok ? r.json() : []),
-    ]).then(([c, ea]) => {
+      fetch(`/api/answers?classroomId=${id}`).then(r => r.ok ? r.json() : []),
+    ]).then(([c, ea, ans]) => {
       setClassroom(c);
       setEaList(Array.isArray(ea) ? ea : []);
+      // Index existing answers by exerciseId (only workbook answers, not homework)
+      const ansMap: Record<string, any> = {};
+      if (Array.isArray(ans)) ans.filter((a: any) => !a.homeworkId).forEach((a: any) => { ansMap[a.exerciseId] = a; });
+      setAnswers(ansMap);
       // Find first section that has assigned exercises
       const assignedSecIds = new Set((Array.isArray(ea) ? ea : []).map((a: any) => a.exercise?.section?.id).filter(Boolean));
       const allSecs = c.course?.units?.flatMap((u: any) => u.lessons?.flatMap((l: any) => l.sections || []) || []) || [];
@@ -48,6 +54,20 @@ export default function StudentWorkbook() {
       setExercises(assigned.map((e: any) => ({ ...e, _isFromBank: bankIds.has(e.id) })));
     } catch { setExercises([]); }
     setExLoading(false);
+  };
+
+  const handleAnswer = async (exerciseId: string, answersJson: any) => {
+    const res = await fetch("/api/answers", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ exerciseId, answersJson }),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      setAnswers(prev => ({ ...prev, [exerciseId]: data }));
+      return data;
+    }
+    return null;
   };
 
   const toggleU = (uid: string) => { setUCol(p => { const n = new Set(p); n.has(uid) ? n.delete(uid) : n.add(uid); return n; }); };
@@ -75,7 +95,7 @@ export default function StudentWorkbook() {
   return (
     <div className="p-6 max-w-7xl mx-auto">
       <ClassroomHeader classroom={classroom || {}} />
-      <ClassroomTabs basePath={`/student/classrooms/${id}`} tabs={STUDENT_TABS} />
+      <ClassroomTabs basePath={`/student/classrooms/${id}`} tabs={STUDENT_TABS()} />
 
       {!hasContent ? (
         <div className="text-center py-16">
@@ -122,11 +142,11 @@ export default function StudentWorkbook() {
             {selSectionTitle && <h2 className="text-lg font-semibold text-foreground mb-4">{selSectionTitle}</h2>}
             {exLoading ? <div className="text-muted-foreground animate-pulse text-center py-12">Загрузка...</div> :
               exercises.length === 0 ? <p className="text-muted-foreground text-center py-12">Нет назначенных упражнений</p> :
-                <div className="space-y-8">
+                <div className="space-y-5">
                   {exercises.map((ex: any) => (
-                    <div key={ex.id}>
+                    <div key={ex.id} className="bg-card rounded-xl border border-border p-6 shadow-sm">
                       {ex._isFromBank && <div className="mb-1"><Badge variant="outline" className="text-[10px] text-amber-600 border-amber-300">дополнительное</Badge></div>}
-                      <ExercisePreview exercise={ex} mode="student" />
+                      <ExercisePreview exercise={ex} mode="student" onAnswer={handleAnswer} existingAnswer={answers[ex.id] || null} />
                     </div>
                   ))}
                 </div>}

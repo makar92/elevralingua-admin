@@ -21,6 +21,18 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { AudioPlayer } from "@/components/audio-player";
 import { DifficultyBadge, applyTones, getVowelPositions, LANGUAGE_OPTIONS } from "@/components/exercise-form";
+import { LanguageLabel } from "@/components/shared/language-label";
+
+// Конвертация числового балла (0-10) в буквенную оценку
+function scoreToGrade(score: number | null | undefined): string {
+  if (score == null) return "";
+  if (score >= 9) return "A";
+  if (score >= 7) return "B";
+  if (score >= 5) return "C";
+  if (score >= 3) return "D";
+  return "F";
+}
+
 
 // ===== Знаки тонов =====
 const TONE_SYMBOLS: Record<string, string> = { "1": "ˉ", "2": "/", "3": "v", "4": "\\" };
@@ -34,12 +46,34 @@ interface Exercise {
   teacherComment: string | null; gradingCriteria: string | null;
   isDefaultInWorkbook: boolean;
 }
-interface Props { exercise: Exercise; mode: "student" | "teacher"; }
+interface Props {
+  exercise: Exercise;
+  mode: "student" | "teacher";
+  onAnswer?: (exerciseId: string, answersJson: any) => Promise<any>;
+  existingAnswer?: { status: string; score?: number } | null;
+}
 
 // ===== Главный компонент =====
-export function ExercisePreview({ exercise, mode }: Props) {
+export function ExercisePreview({ exercise, mode, onAnswer, existingAnswer }: Props) {
   const c = exercise.contentJson;
   const isTeacher = mode === "teacher";
+  const [submitted, setSubmitted] = useState(existingAnswer || null);
+  const [submitting, setSubmitting] = useState(false);
+
+  // Если есть существующий ответ — упражнение уже выполнено
+  const isAnswered = !!submitted;
+  const answerStatus = submitted?.status;
+  const answerScore = submitted?.score;
+
+  // Callback для отправки ответа на сервер
+  const handleSubmitAnswer = async (answersJson: any) => {
+    if (!onAnswer) return null;
+    setSubmitting(true);
+    const result = await onAnswer(exercise.id, answersJson);
+    if (result) setSubmitted(result);
+    setSubmitting(false);
+    return result;
+  };
 
   return (
     <div className="space-y-4">
@@ -53,7 +87,6 @@ export function ExercisePreview({ exercise, mode }: Props) {
         </div>
         <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
           <DifficultyBadge value={exercise.difficulty} />
-          {/* Тип проверки — только учителю */}
           {isTeacher && (
             <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${
               exercise.gradingType === "AUTO"
@@ -63,20 +96,69 @@ export function ExercisePreview({ exercise, mode }: Props) {
               {exercise.gradingType === "AUTO" ? "⚡ Авто" : "👩‍🏫 Вручную"}
             </span>
           )}
+          {/* Бейдж выполнено — для ученика */}
+          {!isTeacher && isAnswered && (
+            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${
+              answerStatus === "AUTO_GRADED"
+                ? (answerScore || 0) >= 7 ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-red-50 text-red-700 border-red-200"
+                : answerStatus === "GRADED"
+                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                  : "bg-blue-50 text-blue-700 border-blue-200"
+            }`}>
+              {answerStatus === "AUTO_GRADED"
+                ? (answerScore || 0) >= 7 ? `✅ ${scoreToGrade(answerScore)}` : `❌ ${scoreToGrade(answerScore)}`
+                : answerStatus === "GRADED"
+                  ? `✅ ${scoreToGrade(answerScore)}`
+                  : "📨 На проверке"
+              }
+            </span>
+          )}
         </div>
       </div>
 
-      {/* Интерактивная часть */}
-      {exercise.exerciseType === "MATCHING"        && <MatchingPreview        content={c} mode={mode} />}
-      {exercise.exerciseType === "MULTIPLE_CHOICE" && <MultipleChoicePreview  content={c} mode={mode} />}
-      {exercise.exerciseType === "FILL_BLANK"      && <FillBlankPreview       content={c} mode={mode} />}
-      {exercise.exerciseType === "TONE_PLACEMENT"  && <TonePlacementPreview   content={c} mode={mode} exercise={exercise} />}
-      {exercise.exerciseType === "WRITE_PINYIN"    && <WritePinyinPreview     content={c} mode={mode} />}
-      {exercise.exerciseType === "WORD_ORDER"      && <WordOrderPreview       content={c} mode={mode} />}
-      {exercise.exerciseType === "TRANSLATION"     && <TranslationPreview     content={c} mode={mode} exercise={exercise} />}
-      {exercise.exerciseType === "DICTATION"       && <DictationPreview       content={c} mode={mode} exercise={exercise} />}
-      {exercise.exerciseType === "DESCRIBE_IMAGE"  && <DescribeImagePreview   content={c} mode={mode} />}
-      {exercise.exerciseType === "FREE_WRITING"    && <FreeWritingPreview     content={c} mode={mode} />}
+      {/* Если уже отвечено — показываем результат */}
+      {!isTeacher && isAnswered && (
+        <div className="min-h-[48px] mb-4">
+          {answerStatus === "AUTO_GRADED" ? (
+            <div className={`px-4 py-3 rounded-lg border ${(answerScore || 0) >= 7 ? "bg-emerald-50 border-emerald-200" : "bg-red-50 border-red-200"}`}>
+              <p className={`font-medium ${(answerScore || 0) >= 7 ? "text-emerald-700" : "text-red-700"}`}>
+                {(answerScore || 0) >= 7 ? "✅ Правильно!" : "❌ Неправильно"}
+                <span className="text-sm font-normal ml-2">({scoreToGrade(answerScore)})</span>
+              </p>
+              {(answerScore || 0) < 7 && exercise.correctAnswers?.length > 0 && (
+                <p className="text-sm text-muted-foreground mt-1">
+                  Правильный ответ: <span className="font-medium text-foreground">{exercise.correctAnswers.join(", ")}</span>
+                </p>
+              )}
+            </div>
+          ) : answerStatus === "GRADED" ? (
+            <div className="px-4 py-3 rounded-lg border bg-emerald-50 border-emerald-200">
+              <p className="font-medium text-emerald-700">✅ Проверено учителем ({scoreToGrade(answerScore)})</p>
+            </div>
+          ) : (
+            <div className="px-4 py-3 rounded-lg border bg-blue-50 border-blue-200">
+              <p className="font-medium text-blue-700">📨 Отправлено учителю на проверку</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Интерактивная часть — всегда видна (disabled если уже отвечено) */}
+      {(!isTeacher || !isAnswered) && (
+        <>
+          {/* Интерактивная часть */}
+          {exercise.exerciseType === "MATCHING"        && <MatchingPreview        content={c} mode={mode} onSubmit={onAnswer ? handleSubmitAnswer : undefined} disabled={isAnswered} />}
+          {exercise.exerciseType === "MULTIPLE_CHOICE" && <MultipleChoicePreview  content={c} mode={mode} onSubmit={onAnswer ? handleSubmitAnswer : undefined} disabled={isAnswered} />}
+          {exercise.exerciseType === "FILL_BLANK"      && <FillBlankPreview       content={c} mode={mode} onSubmit={onAnswer ? handleSubmitAnswer : undefined} disabled={isAnswered} />}
+          {exercise.exerciseType === "TONE_PLACEMENT"  && <TonePlacementPreview   content={c} mode={mode} exercise={exercise} onSubmit={onAnswer ? handleSubmitAnswer : undefined} disabled={isAnswered} />}
+          {exercise.exerciseType === "WRITE_PINYIN"    && <WritePinyinPreview     content={c} mode={mode} onSubmit={onAnswer ? handleSubmitAnswer : undefined} disabled={isAnswered} />}
+          {exercise.exerciseType === "WORD_ORDER"      && <WordOrderPreview       content={c} mode={mode} onSubmit={onAnswer ? handleSubmitAnswer : undefined} disabled={isAnswered} />}
+          {exercise.exerciseType === "TRANSLATION"     && <TranslationPreview     content={c} mode={mode} exercise={exercise} onSubmit={onAnswer ? handleSubmitAnswer : undefined} disabled={isAnswered} />}
+          {exercise.exerciseType === "DICTATION"       && <DictationPreview       content={c} mode={mode} exercise={exercise} onSubmit={onAnswer ? handleSubmitAnswer : undefined} disabled={isAnswered} />}
+          {exercise.exerciseType === "DESCRIBE_IMAGE"  && <DescribeImagePreview   content={c} mode={mode} onSubmit={onAnswer ? handleSubmitAnswer : undefined} disabled={isAnswered} />}
+          {exercise.exerciseType === "FREE_WRITING"    && <FreeWritingPreview     content={c} mode={mode} onSubmit={onAnswer ? handleSubmitAnswer : undefined} disabled={isAnswered} />}
+        </>
+      )}
 
       {/* Комментарий учителя — только учителю */}
       {isTeacher && exercise.teacherComment && (
@@ -91,7 +173,7 @@ export function ExercisePreview({ exercise, mode }: Props) {
 // =====================================================================
 
 // ===== 1. MATCHING =====
-function MatchingPreview({ content, mode }: { content: any; mode: string }) {
+function MatchingPreview({ content, mode, onSubmit, disabled }: { content: any; mode: string; onSubmit?: (data: any) => Promise<any>; disabled?: boolean }) {
   const pairs = content.pairs || [];
   const [shuffledRight] = useState(() => [...pairs].sort(() => Math.random() - 0.5));
   // selectedLeft и selectedRight — можно начинать с любой стороны
@@ -279,11 +361,11 @@ function MatchingPreview({ content, mode }: { content: any; mode: string }) {
       </div>
 
       {/* Кнопка проверки — только когда все пары соединены */}
-      {!checked && allPaired && (
-        <Button size="sm" onClick={() => setChecked(true)}>Проверить</Button>
+      {!checked && allPaired && !disabled && (
+        <Button size="sm" onClick={async () => { setChecked(true); if (onSubmit) await onSubmit(Object.values(matched).map(ri => shuffledRight[ri])); }}>Ответить</Button>
       )}
 
-      {checked && <ResultBadge correct={allCorrect} />}
+      {checked && !onSubmit && <ResultBadge correct={allCorrect} correctAnswer={allCorrect ? undefined : pairs.map((p: any) => `${p.left} ↔ ${p.right}`).join(", ")} />}
 
       {mode === "teacher" && (
         <TeacherBox
@@ -296,7 +378,7 @@ function MatchingPreview({ content, mode }: { content: any; mode: string }) {
 }
 
 // ===== 2. MULTIPLE_CHOICE =====
-function MultipleChoicePreview({ content, mode }: { content: any; mode: string }) {
+function MultipleChoicePreview({ content, mode, onSubmit, disabled }: { content: any; mode: string; onSubmit?: (data: any) => Promise<any>; disabled?: boolean }) {
   const [selected, setSelected] = useState<number | null>(null);
   const [checked,  setChecked]  = useState(false);
   const isCorrect = selected === content.correctIndex;
@@ -323,8 +405,8 @@ function MultipleChoicePreview({ content, mode }: { content: any; mode: string }
           {checked && i === content.correctIndex && <span className="ml-2">✓</span>}
         </button>
       ))}
-      {!checked && selected !== null && <Button size="sm" onClick={() => setChecked(true)}>Проверить</Button>}
-      {checked && <ResultBadge correct={isCorrect} />}
+      {!checked && selected !== null && !disabled && <Button size="sm" onClick={async () => { setChecked(true); if (onSubmit) await onSubmit(content.options?.[selected]); }}>Ответить</Button>}
+      {checked && !onSubmit && <ResultBadge correct={isCorrect} correctAnswer={isCorrect ? undefined : content.options?.[content.correctIndex]} />}
       {mode === "teacher" && (
         <TeacherBox label="Правильный ответ" text={content.options?.[content.correctIndex] || ""} />
       )}
@@ -334,7 +416,7 @@ function MultipleChoicePreview({ content, mode }: { content: any; mode: string }
 
 // ===== 3. FILL_BLANK =====
 // Поддержка нескольких пропусков ___ в одном предложении
-function FillBlankPreview({ content, mode }: { content: any; mode: string }) {
+function FillBlankPreview({ content, mode, onSubmit, disabled }: { content: any; mode: string; onSubmit?: (data: any) => Promise<any>; disabled?: boolean }) {
   const sentence = content.sentence || "";
   // Разбиваем по ___ — получаем N+1 частей для N пропусков
   const parts = sentence.split("___");
@@ -363,6 +445,7 @@ function FillBlankPreview({ content, mode }: { content: any; mode: string }) {
               <input
                 value={answers[i] || ""}
                 onChange={(e) => setAnswer(i, e.target.value)}
+                disabled={disabled}
                 className="inline-block min-w-[60px] max-w-[160px] text-lg text-foreground bg-transparent border-0 border-b-2 border-primary/40 focus:border-primary outline-none px-1 text-center mx-0.5"
                 style={{ width: Math.max(60, (answers[i]?.length || 0) * 14 + 20) + "px" }}
                 placeholder="···"
@@ -371,7 +454,7 @@ function FillBlankPreview({ content, mode }: { content: any; mode: string }) {
           </span>
         ))}
       </div>
-      <Button variant="outline" size="sm" disabled>Отправить учителю на проверку</Button>
+      {!disabled && <Button variant="outline" size="sm" disabled={!onSubmit || Object.values(answers).every(v => !v)} onClick={onSubmit ? () => onSubmit(Object.values(answers)) : undefined}>Отправить учителю</Button>}
       {mode === "teacher" && content.blankAnswer && (
         <TeacherBox label="Правильный ответ" text={content.blankAnswer} />
       )}
@@ -384,8 +467,35 @@ function FillBlankPreview({ content, mode }: { content: any; mode: string }) {
 // — Иероглифы с пиньинем сверху (слоты-прямоугольники над гласными)
 // — Внизу 4 кнопки выбора тона
 // — Клик на слот → ставит выбранный тон
-function TonePlacementPreview({ content, mode, exercise }: { content: any; mode: string; exercise: any }) {
-  const characters = content.characters || [];
+function TonePlacementPreview({ content, mode, exercise, onSubmit, disabled }: { content: any; mode: string; exercise: any; onSubmit?: (data: any) => Promise<any>; disabled?: boolean }) {
+  // Поддержка двух форматов данных:
+  // Новый: { characters: [{hanzi, pinyin, tones}] }
+  // Старый (seed): { hanzi: "你好", pinyin: "ni hao", correctTones: "nǐ hǎo" }
+  const characters = content.characters?.length > 0
+    ? content.characters
+    : (() => {
+        if (!content.hanzi) return [];
+        const hanziArr = content.hanzi.split("");
+        const pinyinArr = (content.pinyin || "").split(" ");
+        const toneArr = (content.correctTones || "").split(" ");
+        const TONE_MAP: Record<string, string> = { "ā":"1","á":"2","ǎ":"3","à":"4","ē":"1","é":"2","ě":"3","è":"4","ī":"1","í":"2","ǐ":"3","ì":"4","ō":"1","ó":"2","ǒ":"3","ò":"4","ū":"1","ú":"2","ǔ":"3","ù":"4","ǖ":"1","ǘ":"2","ǚ":"3","ǜ":"4" };
+        return hanziArr.map((h: string, i: number) => {
+          const py = pinyinArr[i] || "";
+          const correctPy = toneArr[i] || "";
+          // Extract tones from correct pinyin
+          const tones: Record<number, string> = {};
+          let vowelIdx = 0;
+          for (const ch of correctPy) {
+            if (TONE_MAP[ch]) {
+              tones[vowelIdx] = TONE_MAP[ch];
+              vowelIdx++;
+            } else if ("aeiouü".includes(ch)) {
+              vowelIdx++;
+            }
+          }
+          return { hanzi: h, pinyin: py, tones };
+        });
+      })();
   // Текущий выбранный тон (нажатая кнопка снизу)
   const [activeTone, setActiveTone] = useState<string | null>(null);
   // Проставленные тоны ученика: { charIdx_vowelIdx: tone }
@@ -400,7 +510,7 @@ function TonePlacementPreview({ content, mode, exercise }: { content: any; mode:
   };
 
   // Проверка
-  const checkAnswers = () => setShowResult(true);
+  const checkAnswers = async () => { setShowResult(true); if (onSubmit) await onSubmit(Object.values(studentTones)); };
   const reset = () => { setStudentTones({}); setShowResult(false); setActiveTone(null); };
 
   // Считаем верность
@@ -445,7 +555,7 @@ function TonePlacementPreview({ content, mode, exercise }: { content: any; mode:
                       {/* Слот тона над гласной */}
                       <button
                         onClick={() => placeTone(charIdx, currentVowelIdx)}
-                        disabled={showResult}
+                        disabled={showResult || disabled}
                         title={activeTone ? `Поставить тон ${TONE_SYMBOLS[activeTone]}` : "Сначала выберите тон снизу"}
                         className={`w-8 h-7 rounded border-2 text-sm font-bold transition-all mb-0.5 ${
                           showResult
@@ -487,7 +597,7 @@ function TonePlacementPreview({ content, mode, exercise }: { content: any; mode:
       </div>
 
       {/* Кнопки выбора тона внизу */}
-      {!showResult && (
+      {!showResult && !disabled && (
         <div className="flex justify-center gap-3">
           {(["1","2","3","4"] as const).map((tone) => (
             <button key={tone} onClick={() => setActiveTone(tone === activeTone ? null : tone)}
@@ -502,12 +612,12 @@ function TonePlacementPreview({ content, mode, exercise }: { content: any; mode:
           ))}
         </div>
       )}
-      {!activeTone && !showResult && (
+      {!activeTone && !showResult && !disabled && (
         <p className="text-center text-sm text-muted-foreground">
           Выберите тон, затем нажмите на нужное место в пиньине
         </p>
       )}
-      {activeTone && !showResult && (
+      {activeTone && !showResult && !disabled && (
         <p className="text-center text-sm text-primary font-medium">
           Тон «{TONE_SYMBOLS[activeTone]}» выбран — нажмите на гласную в пиньине
         </p>
@@ -515,13 +625,13 @@ function TonePlacementPreview({ content, mode, exercise }: { content: any; mode:
 
       {/* Кнопки действий */}
       <div className="flex justify-center gap-3">
-        {!showResult && (
-          <Button size="sm" onClick={checkAnswers}>Проверить</Button>
+        {!showResult && !disabled && (
+          <Button size="sm" onClick={checkAnswers}>Ответить</Button>
         )}
-        {showResult && (
+        {showResult && !onSubmit && (
           <>
-            <ResultBadge correct={isCorrect} />
-            <Button variant="outline" size="sm" onClick={reset}>Попробовать снова</Button>
+            <ResultBadge correct={isCorrect} correctAnswer={isCorrect ? undefined : content.correctTones} />
+            
           </>
         )}
       </div>
@@ -531,7 +641,7 @@ function TonePlacementPreview({ content, mode, exercise }: { content: any; mode:
 
 // ===== 5. WRITE_PINYIN =====
 // Кнопка-заглушка над иероглифом → при клике появляется инпут
-function WritePinyinPreview({ content, mode }: { content: any; mode: string }) {
+function WritePinyinPreview({ content, mode, onSubmit, disabled }: { content: any; mode: string; onSubmit?: (data: any) => Promise<any>; disabled?: boolean }) {
   const characters = content.characters || [];
   const [answers,  setAnswers]  = useState<Record<number, string>>({});
   const [editing,  setEditing]  = useState<number | null>(null); // какой инпут открыт
@@ -558,7 +668,7 @@ function WritePinyinPreview({ content, mode }: { content: any; mode: string }) {
             ) : (
               // Кнопка-заглушка
               <button
-                onClick={() => setEditing(idx)}
+                onClick={() => !disabled && setEditing(idx)}
                 className={`h-8 min-w-[60px] px-2 rounded-lg border-2 border-dashed text-sm transition-all ${
                   answers[idx]
                     ? "border-primary/40 text-foreground bg-primary/5"
@@ -573,7 +683,7 @@ function WritePinyinPreview({ content, mode }: { content: any; mode: string }) {
           </div>
         ))}
       </div>
-      <Button variant="outline" size="sm" disabled>Отправить учителю на проверку</Button>
+      {!disabled && <Button variant="outline" size="sm" disabled={!onSubmit || Object.values(answers).every(v => !v)} onClick={onSubmit ? () => onSubmit(Object.values(answers)) : undefined}>Отправить учителю</Button>}
       {mode === "teacher" && content.referenceAnswer && (
         <TeacherBox label="Правильный ответ" text={content.referenceAnswer} />
       )}
@@ -582,7 +692,7 @@ function WritePinyinPreview({ content, mode }: { content: any; mode: string }) {
 }
 
 // ===== 6. WORD_ORDER =====
-function WordOrderPreview({ content, mode }: { content: any; mode: string }) {
+function WordOrderPreview({ content, mode, onSubmit, disabled }: { content: any; mode: string; onSubmit?: (data: any) => Promise<any>; disabled?: boolean }) {
   const [available, setAvailable] = useState<string[]>(
     () => [...(content.words || [])].filter(Boolean).sort(() => Math.random() - 0.5)
   );
@@ -599,7 +709,7 @@ function WordOrderPreview({ content, mode }: { content: any; mode: string }) {
       {/* Зона сборки */}
       <div className="min-h-[52px] px-4 py-3 rounded-xl border-2 border-dashed border-border bg-white flex flex-wrap gap-2 items-center">
         {selected.map((w, i) => (
-              <button key={i} onClick={() => removeWord(i)}
+              <button key={i} onClick={() => !disabled && removeWord(i)}
                 className="px-3 py-1.5 rounded-lg text-base font-medium bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors">
                 {w}
               </button>
@@ -609,14 +719,14 @@ function WordOrderPreview({ content, mode }: { content: any; mode: string }) {
       {/* Слова для выбора */}
       <div className="flex flex-wrap gap-2">
         {available.map((w, i) => (
-          <button key={i} onClick={() => addWord(w, i)}
+          <button key={i} onClick={() => !disabled && addWord(w, i)}
             className="px-3 py-1.5 rounded-xl border-2 border-border bg-white text-base font-medium text-foreground hover:border-primary/60 shadow-sm transition-colors">
             {w}
           </button>
         ))}
       </div>
-      {selected.length > 0 && available.length === 0 && (
-        <Button variant="outline" size="sm" disabled>Отправить учителю на проверку</Button>
+      {selected.length > 0 && available.length === 0 && !disabled && (
+        <Button variant="outline" size="sm" disabled={!onSubmit} onClick={onSubmit ? async () => { await onSubmit(selected.join("")); } : undefined}>Отправить учителю</Button>
       )}
       {mode === "teacher" && content.referenceAnswer && (
         <TeacherBox label="Один из правильных вариантов" text={content.referenceAnswer + " (возможны другие)"} />
@@ -626,25 +736,24 @@ function WordOrderPreview({ content, mode }: { content: any; mode: string }) {
 }
 
 // ===== 7. TRANSLATION =====
-function TranslationPreview({ content, mode, exercise }: { content: any; mode: string; exercise: any }) {
+function TranslationPreview({ content, mode, exercise, onSubmit, disabled }: { content: any; mode: string; exercise: any; onSubmit?: (data: any) => Promise<any>; disabled?: boolean }) {
   const [answer, setAnswer] = useState("");
-  // Отображаем языки по label из LANGUAGE_OPTIONS если есть
-  const srcLabel = LANGUAGE_OPTIONS.find(l => l.value === content.sourceLanguage)?.label || content.sourceLanguage || "";
-  const tgtLabel = LANGUAGE_OPTIONS.find(l => l.value === content.targetLanguage)?.label || content.targetLanguage || "";
 
   return (
     <div className="space-y-4">
-      {(srcLabel || tgtLabel) && (
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <span>{srcLabel}</span><span>→</span><span>{tgtLabel}</span>
+      {(content.sourceLanguage || content.targetLanguage) && (
+        <div className="flex items-center gap-2">
+          <LanguageLabel code={content.sourceLanguage} size="sm" />
+          <span className="text-muted-foreground">→</span>
+          <LanguageLabel code={content.targetLanguage} size="sm" />
         </div>
       )}
       <div className="px-4 py-4 bg-muted rounded-xl text-lg text-foreground font-medium leading-relaxed">
         {content.sourceText}
       </div>
       <Textarea value={answer} onChange={(e) => setAnswer(e.target.value)}
-        placeholder="Введите перевод..." rows={3} className="text-base" />
-      <Button variant="outline" size="sm" disabled>Отправить учителю на проверку</Button>
+        placeholder="Введите перевод..." rows={3} className="text-base" disabled={disabled} />
+      {!disabled && <Button variant="outline" size="sm" disabled={!onSubmit || !answer.trim()} onClick={onSubmit ? () => onSubmit(answer) : undefined}>Отправить учителю</Button>}
       {mode === "teacher" && content.acceptableAnswers?.filter(Boolean).length > 0 && (
         <TeacherBox label="Эталонные переводы" text={content.acceptableAnswers.filter(Boolean).join(" / ")} />
       )}
@@ -653,7 +762,7 @@ function TranslationPreview({ content, mode, exercise }: { content: any; mode: s
 }
 
 // ===== 8. DICTATION =====
-function DictationPreview({ content, mode, exercise }: { content: any; mode: string; exercise: any }) {
+function DictationPreview({ content, mode, exercise, onSubmit, disabled }: { content: any; mode: string; exercise: any; onSubmit?: (data: any) => Promise<any>; disabled?: boolean }) {
   const [answer, setAnswer] = useState("");
   return (
     <div className="space-y-4">
@@ -663,7 +772,7 @@ function DictationPreview({ content, mode, exercise }: { content: any; mode: str
       }
       <Textarea value={answer} onChange={(e) => setAnswer(e.target.value)}
         placeholder="Запишите услышанное..." rows={3} className="text-base" />
-      <Button variant="outline" size="sm" disabled>Отправить учителю на проверку</Button>
+      {!disabled && <Button variant="outline" size="sm" disabled={!onSubmit || !answer.trim()} onClick={onSubmit ? () => onSubmit(answer) : undefined}>Отправить учителю</Button>}
       {mode === "teacher" && content.correctText && (
         <TeacherBox label="Правильный текст" text={content.correctText} />
       )}
@@ -672,7 +781,7 @@ function DictationPreview({ content, mode, exercise }: { content: any; mode: str
 }
 
 // ===== 9. DESCRIBE_IMAGE =====
-function DescribeImagePreview({ content, mode }: { content: any; mode: string }) {
+function DescribeImagePreview({ content, mode, onSubmit, disabled }: { content: any; mode: string; onSubmit?: (data: any) => Promise<any>; disabled?: boolean }) {
   const [answer, setAnswer] = useState("");
   return (
     <div className="space-y-4">
@@ -683,20 +792,20 @@ function DescribeImagePreview({ content, mode }: { content: any; mode: string })
       {content.promptText && <p className="text-base text-muted-foreground">{content.promptText}</p>}
       <Textarea value={answer} onChange={(e) => setAnswer(e.target.value)}
         placeholder="Опишите картинку..." rows={4} className="text-base" />
-      <Button variant="outline" size="sm" disabled>Отправить учителю на проверку</Button>
+      {!disabled && <Button variant="outline" size="sm" disabled={!onSubmit} onClick={onSubmit ? () => onSubmit(answer || "submitted") : undefined}>Отправить учителю</Button>}
     </div>
   );
 }
 
 // ===== 10. FREE_WRITING =====
-function FreeWritingPreview({ content, mode }: { content: any; mode: string }) {
+function FreeWritingPreview({ content, mode, onSubmit, disabled }: { content: any; mode: string; onSubmit?: (data: any) => Promise<any>; disabled?: boolean }) {
   const [answer, setAnswer] = useState("");
   return (
     <div className="space-y-4">
       {content.promptText && <p className="text-base text-muted-foreground">{content.promptText}</p>}
       <Textarea value={answer} onChange={(e) => setAnswer(e.target.value)}
-        placeholder="Напишите здесь..." rows={5} className="text-base" />
-      <Button variant="outline" size="sm" disabled>Отправить учителю на проверку</Button>
+        placeholder="Напишите здесь..." rows={5} className="text-base" disabled={disabled} />
+      {!disabled && <Button variant="outline" size="sm" disabled={!onSubmit} onClick={onSubmit ? () => onSubmit(answer || "submitted") : undefined}>Отправить учителю</Button>}
     </div>
   );
 }
@@ -705,12 +814,17 @@ function FreeWritingPreview({ content, mode }: { content: any; mode: string }) {
 // ВСПОМОГАТЕЛЬНЫЕ КОМПОНЕНТЫ
 // =====================================================================
 
-function ResultBadge({ correct, message }: { correct: boolean; message?: string }) {
+function ResultBadge({ correct, message, correctAnswer }: { correct: boolean; message?: string; correctAnswer?: string }) {
   return (
-    <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border ${
+    <div className={`px-4 py-3 rounded-lg text-sm font-medium border min-h-[48px] ${
       correct ? "bg-green-50 text-green-700 border-green-200" : "bg-red-50 text-red-700 border-red-200"
     }`}>
-      {correct ? "✓ " : "✗ "}{message || (correct ? "Правильно!" : "Попробуйте ещё раз")}
+      <div className="flex items-center gap-2">
+        {correct ? "✅ " : "❌ "}{message || (correct ? "Правильно!" : "Неправильно")}
+      </div>
+      {!correct && correctAnswer && (
+        <p className="mt-1.5 text-sm text-muted-foreground">Правильный ответ: <span className="font-medium text-foreground">{correctAnswer}</span></p>
+      )}
     </div>
   );
 }

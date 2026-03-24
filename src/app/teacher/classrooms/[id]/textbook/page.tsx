@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { ClassroomTabs, TEACHER_TABS } from "@/components/shared/classroom-tabs";
 import { ClassroomHeader } from "@/components/shared/classroom-header";
-import { BlockRenderer } from "@/components/block-renderer";
+import { PreviewTextbook } from "@/components/preview-textbook";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -182,7 +182,7 @@ export default function TeacherTextbook() {
             </div>
             <div className="bg-card rounded-xl shadow-sm border border-border/50 px-10 py-8 max-w-4xl">
               {secBlocks.length===0?<p className="text-muted-foreground text-center py-8">Нет содержимого</p>:
-              <div className="space-y-4">{secBlocks.map((b:any)=>(<div key={b.id}><BlockRenderer block={b}/>{b.teacherNote&&(<div className="mt-2 ml-4 pl-4 border-l-3 border-amber-400 bg-amber-50/80 rounded-r-lg py-2 pr-3"><p className="text-xs font-semibold text-amber-700 mb-1">📝 Заметка</p><div className="text-sm text-amber-900" dangerouslySetInnerHTML={{__html:b.teacherNote.noteHtml}}/></div>)}</div>))}</div>}
+              <PreviewTextbook blocks={secBlocks} isTeacher={true}/>}
             </div>
           </div>):<p className="text-muted-foreground text-center py-16">Выберите секцию</p>}
         </div>

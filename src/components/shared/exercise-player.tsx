@@ -71,8 +71,8 @@ export function ExercisePlayer({ exercise, onSubmit }: ExercisePlayerProps) {
       {/* Submit / Result */}
       <div className="mt-6">
         {!result ? (
-          <Button onClick={handleSubmit} disabled={answer == null || submitting}>
-            {submitting ? "Отправка..." : "Отправить ответ"}
+          <Button onClick={handleSubmit} disabled={answer == null || submitting} className="cursor-pointer">
+            {submitting ? "Отправка..." : "Ответить"}
           </Button>
         ) : (
           <div className={`p-4 rounded-lg ${
@@ -83,16 +83,17 @@ export function ExercisePlayer({ exercise, onSubmit }: ExercisePlayerProps) {
             {result.status === "AUTO_GRADED" ? (
               <div>
                 <p className={`font-medium ${result.score >= 7 ? "text-emerald-700" : "text-red-700"}`}>
-                  Балл: {result.score}/10
+                  {result.score >= 7 ? "✅ Правильно!" : "❌ Неправильно"}
+                  <span className="text-sm font-normal ml-2">({result.score}/10)</span>
                 </p>
-                {result.exercise?.correctAnswers && (
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Правильный ответ: {result.exercise.correctAnswers.join(", ")}
+                {result.score < 7 && result.exercise?.correctAnswers && (
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Правильный ответ: <span className="font-medium text-foreground">{result.exercise.correctAnswers.join(", ")}</span>
                   </p>
                 )}
               </div>
             ) : (
-              <p className="text-blue-700 font-medium">Отправлено! Ожидайте проверки учителем.</p>
+              <p className="text-blue-700 font-medium">📨 Отправлено учителю на проверку</p>
             )}
           </div>
         )}

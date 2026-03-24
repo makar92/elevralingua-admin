@@ -41,8 +41,7 @@ export function PreviewTextbook({ blocks, isTeacher }: Props) {
   }
 
   return (
-    <div className="bg-card rounded-2xl border border-border shadow-sm px-10 py-8">
-      <div className="space-y-3">
+    <div className="space-y-3">
         {blocks.map((block) => (
           <div key={block.id}>
             {/* Рендер блока */}
@@ -58,7 +57,6 @@ export function PreviewTextbook({ blocks, isTeacher }: Props) {
           </div>
         ))}
       </div>
-    </div>
   );
 }
 

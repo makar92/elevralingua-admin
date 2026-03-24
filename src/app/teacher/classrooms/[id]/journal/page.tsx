@@ -268,25 +268,22 @@ export default function TeacherJournal() {
             <div className="mt-3 p-3 border border-border rounded-lg bg-card space-y-2.5">
               <div>
                 <Label className="text-[11px]">Дата</Label>
-                <Input type="date" value={newDate} onChange={e => setNewDate(e.target.value)} className="h-8 text-xs" />
+                <Input type="date" value={newDate} onChange={e => setNewDate(e.target.value)} className="h-8 text-xs w-full" />
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <Label className="text-[11px]">Начало</Label>
-                  <Input type="time" value={newStartTime} onChange={e => setNewStartTime(e.target.value)} className="h-8 text-xs" />
+                  <Input type="time" value={newStartTime} onChange={e => setNewStartTime(e.target.value)} className="h-8 text-xs w-full" />
                 </div>
                 <div>
                   <Label className="text-[11px]">Конец</Label>
-                  <Input type="time" value={newEndTime} onChange={e => setNewEndTime(e.target.value)} className="h-8 text-xs" />
+                  <Input type="time" value={newEndTime} onChange={e => setNewEndTime(e.target.value)} className="h-8 text-xs w-full" />
                 </div>
               </div>
               <div>
                 <Label className="text-[11px]">Место</Label>
                 <Input value={newLocation} onChange={e => setNewLocation(e.target.value)} className="h-8 text-xs" placeholder="Zoom, кабинет 301..." />
               </div>
-              <p className="text-[10px] text-muted-foreground">
-                Прошлая дата → проведено. Будущая → запланировано.
-              </p>
               <div className="flex gap-2">
                 <Button size="sm" onClick={createLesson} disabled={busy || !newDate} className="flex-1 cursor-pointer">
                   {busy ? "Создаём..." : "Создать"}
@@ -337,7 +334,7 @@ export default function TeacherJournal() {
                   <div className="flex items-center gap-2">
                     {selectedLog.status === "SCHEDULED" && (
                       <Button size="sm" onClick={compL} disabled={busy} className="cursor-pointer">
-                        {busy ? "..." : "Занятие проведено"}
+                        {busy ? "..." : "Отметить проведённым"}
                       </Button>
                     )}
                     <Badge className={`text-xs ${

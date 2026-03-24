@@ -169,13 +169,13 @@ export default function TeacherWorkbook() {
           {selSectionTitle && <h2 className="text-lg font-semibold text-foreground mb-4">{selSectionTitle}</h2>}
           {exLoading ? <div className="text-muted-foreground animate-pulse text-center py-12">Загрузка...</div> :
             exercises.length === 0 ? <p className="text-muted-foreground text-center py-12">Нет упражнений в этой секции</p> :
-              <div className="space-y-6">{exercises.map((ex: any) => {
+              <div className="space-y-5">{exercises.map((ex: any) => {
                 const ac = getAC(ex.id);
                 return (<div key={ex.id} className="relative pl-8">
                   <div className="absolute left-0 top-4">
                     <input type="checkbox" checked={checkedExercises.has(ex.id)} onChange={() => toggleCheckEx(ex.id)} className="w-4 h-4 rounded border-gray-300 cursor-pointer" />
                   </div>
-                  <div className={`rounded-xl border transition-colors ${checkedExercises.has(ex.id) ? "border-primary/50 bg-primary/5" : "border-border"} p-5`}>
+                  <div className={`rounded-xl border transition-colors shadow-sm ${checkedExercises.has(ex.id) ? "border-primary/50 bg-primary/5" : "border-border bg-card"} p-5`}>
                     {ac > 0 && <div className="mb-2 flex items-center gap-2">
                       <Badge variant="secondary" className="text-[10px]">Назначено: {ac}</Badge>
                       <button onClick={() => { setCheckedExercises(new Set([ex.id])); setAssignType("HOMEWORK"); setShowPicker(true); setPicked(new Set()); }} className="text-[10px] text-primary hover:underline">Назначить повторно</button>

@@ -27,9 +27,13 @@ import { ExercisePreview } from "@/components/exercise-preview";
 export const LANGUAGE_OPTIONS = [
   { value: "Mandarin Chinese", label: "Китайский (мандаринский)" },
   { value: "English",          label: "Английский" },
-  // --- добавляй новые языки сюда ---
-  // { value: "French",        label: "Французский" },
-  // { value: "Spanish",       label: "Испанский" },
+  { value: "zh",               label: "Китайский (мандаринский)" },
+  { value: "en",               label: "Английский" },
+  { value: "fr",               label: "Французский" },
+  { value: "es",               label: "Испанский" },
+  { value: "de",               label: "Немецкий" },
+  { value: "ja",               label: "Японский" },
+  { value: "ko",               label: "Корейский" },
 ];
 
 // ===== Цветной индикатор сложности =====

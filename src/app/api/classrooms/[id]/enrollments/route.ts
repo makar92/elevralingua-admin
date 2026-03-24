@@ -33,3 +33,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
   return NextResponse.json(enrollment, { status: 201 });
 }
+
+export async function DELETE(req: Request) {
+  const session = await auth();
+  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { enrollmentId } = await req.json();
+  await prisma.classroomEnrollment.delete({ where: { id: enrollmentId } });
+  return NextResponse.json({ success: true });
+}

@@ -63,14 +63,20 @@ export async function GET(req: Request) {
   const url = new URL(req.url);
   const exerciseId = url.searchParams.get("exerciseId");
   const homeworkId = url.searchParams.get("homeworkId");
+  const classroomId = url.searchParams.get("classroomId");
 
   const where: any = { studentId: session.user.id };
   if (exerciseId) where.exerciseId = exerciseId;
   if (homeworkId) where.homeworkId = homeworkId;
+  if (classroomId) {
+    where.exercise = {
+      section: { lesson: { unit: { course: { classrooms: { some: { id: classroomId } } } } } }
+    };
+  }
 
   const answers = await prisma.exerciseAnswer.findMany({
     where,
-    include: { exercise: { select: { title: true, exerciseType: true } } },
+    include: { exercise: { select: { id: true, title: true, exerciseType: true, gradingType: true } } },
     orderBy: { createdAt: "desc" },
   });
 

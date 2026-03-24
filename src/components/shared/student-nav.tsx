@@ -5,6 +5,7 @@
 
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
@@ -20,12 +21,19 @@ const navItems = [
   { name: "Мои классы",     href: "/student/classrooms" },
   { name: "Найти класс",    href: "/student/search" },
   { name: "Приглашения",    href: "/student/invitations" },
-  { name: "Расписание",     href: "/student/schedule" },
 ];
 
 export function StudentNav({ user }: { user: any }) {
   const pathname = usePathname();
   const initials = user.name?.[0] || user.email?.[0] || "S";
+  const [pendingInvCount, setPendingInvCount] = useState(0);
+
+  useEffect(() => {
+    fetch("/api/invitations?direction=received&type=TEACHER_INVITES")
+      .then(r => r.ok ? r.json() : [])
+      .then(d => setPendingInvCount(Array.isArray(d) ? d.filter((i: any) => i.status === "PENDING").length : 0))
+      .catch(() => {});
+  }, [pathname]);
 
   return (
     <header className="bg-card border-b-2 border-border sticky top-0 z-50">
@@ -43,12 +51,15 @@ export function StudentNav({ user }: { user: any }) {
                 (item.href !== "/student" && pathname.startsWith(item.href));
               return (
                 <Link key={item.href} href={item.href}
-                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors relative ${
                     isActive
                       ? "bg-primary text-primary-foreground"
                       : "text-foreground hover:bg-accent"
                   }`}>
                   {item.name}
+                  {item.href === "/student/invitations" && pendingInvCount > 0 && (
+                    <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">{pendingInvCount}</span>
+                  )}
                 </Link>
               );
             })}

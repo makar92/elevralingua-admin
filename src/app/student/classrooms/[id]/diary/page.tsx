@@ -34,7 +34,7 @@ export default function StudentDiary(){
   return(
     <div className="p-6 max-w-7xl mx-auto">
       <ClassroomHeader classroom={classroom||{}}/>
-      <ClassroomTabs basePath={`/student/classrooms/${id}`} tabs={STUDENT_TABS}/>
+      <ClassroomTabs basePath={`/student/classrooms/${id}`} tabs={STUDENT_TABS()}/>
       <div className="flex gap-5">
         <div className="w-52 flex-shrink-0">
           <div className="flex items-center justify-between mb-2"><button onClick={()=>chM(-1)} className="text-sm text-muted-foreground hover:text-foreground px-1">&lt;</button><span className="text-xs font-semibold text-foreground">{MO[month]} {year}</span><button onClick={()=>chM(1)} className="text-sm text-muted-foreground hover:text-foreground px-1">&gt;</button></div>

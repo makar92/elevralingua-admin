@@ -28,13 +28,18 @@ export default function StudentInvitations() {
 
   useEffect(() => { loadData(); }, []);
 
+  const [busy, setBusy] = useState(false);
+
   const handleResponse = async (invId: string, status: "ACCEPTED" | "DECLINED") => {
+    if (busy) return;
+    setBusy(true);
     await fetch(`/api/invitations/${invId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status }),
     });
-    loadData();
+    await loadData();
+    setBusy(false);
   };
 
   if (loading) return <div className="p-6 text-muted-foreground">Загрузка...</div>;
@@ -81,8 +86,8 @@ export default function StudentInvitations() {
                 </div>
                 {inv.status === "PENDING" && tab === "incoming" ? (
                   <div className="flex gap-2">
-                    <Button size="sm" onClick={() => handleResponse(inv.id, "ACCEPTED")}>Принять</Button>
-                    <Button size="sm" variant="outline" onClick={() => handleResponse(inv.id, "DECLINED")}>Отклонить</Button>
+                    <Button size="sm" onClick={() => handleResponse(inv.id, "ACCEPTED")} disabled={busy} className="cursor-pointer">Принять</Button>
+                    <Button size="sm" variant="outline" onClick={() => handleResponse(inv.id, "DECLINED")} disabled={busy} className="cursor-pointer">Отклонить</Button>
                   </div>
                 ) : (
                   <Badge variant={inv.status === "ACCEPTED" ? "secondary" : inv.status === "DECLINED" ? "destructive" : "outline"}

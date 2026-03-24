@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { ClassroomTabs, STUDENT_TABS } from "@/components/shared/classroom-tabs";
 import { ClassroomHeader } from "@/components/shared/classroom-header";
-import { BlockRenderer } from "@/components/block-renderer";
+import { PreviewTextbook } from "@/components/preview-textbook";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -66,12 +66,12 @@ export default function StudentTextbook(){
     if(tl===0)return null;return{completed:cl,total:tl};
   };
 
-  if(filtered.length===0)return(<div className="p-6 max-w-6xl mx-auto"><ClassroomHeader classroom={classroom||{}}/><ClassroomTabs basePath={`/student/classrooms/${id}`} tabs={STUDENT_TABS}/><div className="text-center py-16"><p className="text-lg text-muted-foreground">Учебник пока пуст</p><p className="text-sm text-muted-foreground mt-1">Учитель ещё не открыл материалы</p></div></div>);
+  if(filtered.length===0)return(<div className="p-6 max-w-6xl mx-auto"><ClassroomHeader classroom={classroom||{}}/><ClassroomTabs basePath={`/student/classrooms/${id}`} tabs={STUDENT_TABS()}/><div className="text-center py-16"><p className="text-lg text-muted-foreground">Учебник пока пуст</p><p className="text-sm text-muted-foreground mt-1">Учитель ещё не открыл материалы</p></div></div>);
 
   return(
     <div className="p-6 max-w-7xl mx-auto">
       <ClassroomHeader classroom={classroom||{}}/>
-      <ClassroomTabs basePath={`/student/classrooms/${id}`} tabs={STUDENT_TABS}/>
+      <ClassroomTabs basePath={`/student/classrooms/${id}`} tabs={STUDENT_TABS()}/>
       <div className="flex gap-6">
         <div className="w-72 flex-shrink-0 border-r border-border pr-4">
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">{classroom?.course?.title}</p>
@@ -90,7 +90,7 @@ export default function StudentTextbook(){
             {commenting&&<div className="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-lg space-y-2"><textarea value={comment} onChange={e=>setComment(e.target.value)} className="w-full h-16 rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="Ваш вопрос..."/><div className="flex gap-2"><Button size="sm" onClick={askQ}>Отправить</Button><Button size="sm" variant="ghost" onClick={()=>setCommenting(false)}>Отмена</Button></div></div>}
             <div className="bg-card rounded-xl shadow-sm border border-border/50 px-10 py-8 max-w-4xl">
               {secBlocks.length===0?<p className="text-muted-foreground text-center py-8">Нет содержимого</p>:
-              <div className="space-y-4">{secBlocks.map((b:any)=>(<div key={b.id}><BlockRenderer block={b}/></div>))}</div>}
+              <PreviewTextbook blocks={secBlocks} isTeacher={false}/>}
             </div>
           </div>):<p className="text-muted-foreground text-center py-16">Выберите секцию</p>}
         </div>

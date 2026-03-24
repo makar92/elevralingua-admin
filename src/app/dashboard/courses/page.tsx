@@ -1,24 +1,38 @@
 // ===========================================
 // Файл: src/app/dashboard/courses/page.tsx
-// Путь:  linguamethod-admin/src/app/dashboard/courses/page.tsx
-//
-// Описание:
-//   Страница списка курсов.
-//   Показывает все курсы с мета-информацией (язык, уровень, кол-во юнитов/уроков).
-//   Кнопка создания нового курса. Карточки кликабельные — переход в редактор.
+// Описание: Страница списка курсов с удалением.
 // ===========================================
 
-import { prisma } from "@/lib/prisma";
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
-export default async function CoursesPage() {
-  const courses = await prisma.course.findMany({
-    include: { units: { include: { lessons: true } } },
-    orderBy: { order: "asc" },
-  });
+export default function CoursesPage() {
+  const [courses, setCourses] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
+
+  const load = async () => {
+    const data = await fetch("/api/courses").then(r => r.ok ? r.json() : []);
+    setCourses(Array.isArray(data) ? data : []);
+    setLoading(false);
+  };
+  useEffect(() => { load(); }, []);
+
+  const deleteCourse = async (id: string, title: string) => {
+    if (busy) return;
+    if (!confirm(`Удалить курс "${title}"? Все юниты, уроки, секции и упражнения будут удалены.`)) return;
+    setBusy(true);
+    await fetch(`/api/courses/${id}`, { method: "DELETE" });
+    await load();
+    setBusy(false);
+  };
+
+  if (loading) return <div className="text-muted-foreground animate-pulse">Загрузка...</div>;
 
   return (
     <div>
@@ -33,42 +47,49 @@ export default async function CoursesPage() {
         <Card>
           <CardContent className="py-12 text-center">
             <p className="text-foreground text-lg">Курсов пока нет</p>
-            <p className="text-muted-foreground text-sm mt-1">Создайте первый курс</p>
-            <Button asChild className="mt-4">
-              <Link href="/dashboard/courses/new">Создать курс</Link>
-            </Button>
+            <Button asChild className="mt-4"><Link href="/dashboard/courses/new">Создать курс</Link></Button>
           </CardContent>
         </Card>
       ) : (
         <div className="flex flex-col gap-4">
-          {courses.map((course) => {
-            const lessonCount = course.units.reduce((sum, u) => sum + u.lessons.length, 0);
+          {courses.map((course: any) => {
+            const lessonCount = (course.units || []).reduce((sum: number, u: any) => sum + (u.lessons?.length || 0), 0);
             return (
-              <Link key={course.id} href={`/dashboard/courses/${course.id}`} className="block">
-                <Card className="hover:border-primary/50 hover:shadow-md transition-all cursor-pointer">
-                  <CardContent className="py-5 px-6">
-                    <div className="flex items-center justify-between">
+              <Card key={course.id} className="hover:border-primary/50 transition-all">
+                <CardContent className="py-5 px-6">
+                  <div className="flex items-center justify-between">
+                    <Link href={`/dashboard/courses/${course.id}`} className="flex-1">
                       <div>
                         <div className="flex items-center gap-3">
-                          {/* Название курса — БЕЛЫЙ */}
                           <h2 className="text-lg font-semibold text-foreground">{course.title}</h2>
                           <Badge variant={course.isPublished ? "default" : "secondary"}>
                             {course.isPublished ? "Опубликован" : "Черновик"}
                           </Badge>
                         </div>
-                        {/* Мета-инфо — серый */}
                         <p className="text-sm text-muted-foreground mt-1">
-                          {course.language.toUpperCase()} → {course.targetLanguage.toUpperCase()}
+                          {course.language?.toUpperCase()} → {course.targetLanguage?.toUpperCase()}
                           {" · "}{course.level}
-                          {" · "}{course.units.length} юнитов
+                          {" · "}{(course.units || []).length} юнитов
                           {" · "}{lessonCount} уроков
                         </p>
                       </div>
-                      <span className="text-muted-foreground text-xl">→</span>
+                    </Link>
+                    <div className="flex items-center gap-2">
+                      <Link href={`/dashboard/courses/${course.id}`} className="text-muted-foreground text-xl hover:text-primary">→</Link>
+                      <button
+                        onClick={() => deleteCourse(course.id, course.title)}
+                        disabled={busy}
+                        className="text-muted-foreground hover:text-red-500 transition-colors p-1 disabled:opacity-50"
+                        title="Удалить курс"
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M3 6h18"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                        </svg>
+                      </button>
                     </div>
-                  </CardContent>
-                </Card>
-              </Link>
+                  </div>
+                </CardContent>
+              </Card>
             );
           })}
         </div>

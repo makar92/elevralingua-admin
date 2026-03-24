@@ -9,7 +9,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 
 // ===== Типы =====
@@ -30,6 +30,19 @@ export function CourseTree({ course, selectedId, onSelect, onAddLesson, onAddSec
   const [expandedUnits, setExpandedUnits] = useState<Set<string>>(new Set(course.units.map((u) => u.id)));
   // Уроки свёрнуты по умолчанию
   const [expandedLessons, setExpandedLessons] = useState<Set<string>>(new Set());
+
+  // Авто-разворачиваем родителей при выборе элемента
+  useEffect(() => {
+    if (!selectedId) return;
+    for (const u of course.units) {
+      for (const l of u.lessons) {
+        if (l.id === selectedId || l.sections.some(s => s.id === selectedId)) {
+          setExpandedUnits(prev => new Set(prev).add(u.id));
+          setExpandedLessons(prev => new Set(prev).add(l.id));
+        }
+      }
+    }
+  }, [selectedId, course]);
 
   // Переключить развёрнутость элемента
   const toggle = (set: Set<string>, id: string) => {

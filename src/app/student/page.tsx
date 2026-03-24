@@ -131,28 +131,6 @@ export default function StudentDashboard() {
         {getGreeting()}{userName ? `, ${userName.split(" ")[0]}` : ""}! 👋
       </h1>
 
-      {/* === Продолжить обучение === */}
-      {classrooms.length > 0 && (
-        <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-transparent">
-          <CardContent className="py-5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-2xl">📖</div>
-                <div>
-                  <p className="font-semibold text-foreground">Продолжить обучение</p>
-                  <p className="text-sm text-muted-foreground mt-0.5">
-                    {classrooms[0]?.name} — {classrooms[0]?.course?.title}
-                  </p>
-                </div>
-              </div>
-              <Link href={`/student/classrooms/${classrooms[0]?.id}/textbook`}>
-                <Button className="cursor-pointer">Открыть учебник →</Button>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       {/* === Статистика === */}
       <div className="grid grid-cols-3 gap-4">
         <Card>

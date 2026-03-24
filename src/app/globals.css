@@ -132,3 +132,10 @@ textarea::placeholder {
     color: oklch(0.65 0.008 265);
     font-style: italic;
 }
+
+/* Интерактивные элементы — курсор pointer */
+button:not(:disabled),
+select:not(:disabled),
+[role="button"] {
+    cursor: pointer;
+}

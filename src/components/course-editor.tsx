@@ -59,6 +59,7 @@ export function CourseEditor({ course: initialCourse }: { course: Course }) {
       const unit = await res.json();
       // Обновляем локальное состояние курса
       setCourse((p) => ({ ...p, units: [...p.units, { ...unit, lessons: [] }] }));
+      setSelected({ type: "unit", id: unit.id, data: { ...unit, lessons: [] } });
       setAddUnitOpen(false); setNewTitle("");
     }
     setSaving(false);
@@ -85,6 +86,7 @@ export function CourseEditor({ course: initialCourse }: { course: Course }) {
         ),
       }));
       setAddLessonOpen(false); setNewTitle("");
+      setSelected({ type: "lesson", id: lesson.id, data: { ...lesson, sections: lesson.sections || [] } });
     }
     setSaving(false);
   };
@@ -113,6 +115,7 @@ export function CourseEditor({ course: initialCourse }: { course: Course }) {
         })),
       }));
       setAddSectionOpen(false); setNewTitle("");
+      setSelected({ type: "section", id: section.id, data: section });
     }
     setSaving(false);
   };

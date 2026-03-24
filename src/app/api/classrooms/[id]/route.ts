@@ -44,3 +44,18 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const classroom = await prisma.classroom.update({ where: { id }, data });
   return NextResponse.json(classroom);
 }
+
+export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const session = await auth();
+  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  // Verify ownership
+  const classroom = await prisma.classroom.findUnique({ where: { id } });
+  if (!classroom || classroom.teacherId !== session.user.id) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  await prisma.classroom.delete({ where: { id } });
+  return NextResponse.json({ success: true });
+}
