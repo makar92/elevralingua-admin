@@ -1,6 +1,6 @@
 // ===========================================
 // Файл: src/app/dashboard/layout.tsx
-// Путь:  linguamethod-admin/src/app/dashboard/layout.tsx
+// Путь:  elevralingua-admin/src/app/dashboard/layout.tsx
 //
 // Описание:
 //   Layout дашборда. Проверка авторизации, TopNav, основной контейнер.

@@ -1,6 +1,6 @@
 // ===========================================
 // Файл: src/app/error.tsx
-// Путь:  linguamethod-admin/src/app/error.tsx
+// Путь:  elevralingua-admin/src/app/error.tsx
 //
 // Описание:
 //   Глобальная страница ошибки Next.js.

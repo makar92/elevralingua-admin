@@ -1,6 +1,6 @@
 // ===========================================
 // Файл: src/components/audio-player.tsx
-// Путь:  linguamethod-admin/src/components/audio-player.tsx
+// Путь:  elevralingua-admin/src/components/audio-player.tsx
 //
 // Описание:
 //   Кастомный аудио-плеер. Только play/pause + прогресс.

@@ -1,6 +1,6 @@
 // ===========================================
 // Файл: src/components/section-editor.tsx
-// Путь:  linguamethod-admin/src/components/section-editor.tsx
+// Путь:  elevralingua-admin/src/components/section-editor.tsx
 //
 // Описание:
 //   Редактор раздела с тремя вкладками:

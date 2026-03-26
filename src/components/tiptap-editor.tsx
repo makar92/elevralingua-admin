@@ -1,6 +1,6 @@
 // ===========================================
 // Файл: src/components/tiptap-editor.tsx
-// Путь:  linguamethod-admin/src/components/tiptap-editor.tsx
+// Путь:  elevralingua-admin/src/components/tiptap-editor.tsx
 //
 // Описание:
 //   Полноценный WYSIWYG-редактор на базе Tiptap.

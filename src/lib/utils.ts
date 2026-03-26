@@ -1,6 +1,6 @@
 // ===========================================
 // Файл: src/lib/utils.ts
-// Путь:  linguamethod-admin/src/lib/utils.ts
+// Путь:  elevralingua-admin/src/lib/utils.ts
 //
 // Описание:
 //   Утилита cn() для объединения CSS-классов (clsx + tailwind-merge).

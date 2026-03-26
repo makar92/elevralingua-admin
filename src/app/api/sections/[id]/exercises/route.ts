@@ -1,6 +1,6 @@
 // ===========================================
 // Файл: src/app/api/sections/[id]/exercises/route.ts
-// Путь:  linguamethod-admin/src/app/api/sections/[id]/exercises/route.ts
+// Путь:  elevralingua-admin/src/app/api/sections/[id]/exercises/route.ts
 //
 // Описание:
 //   GET — все упражнения раздела, отсортированные по order.

@@ -1,6 +1,6 @@
 // ===========================================
 // Файл: src/components/preview-textbook.tsx
-// Путь:  linguamethod-admin/src/components/preview-textbook.tsx
+// Путь:  elevralingua-admin/src/components/preview-textbook.tsx
 //
 // Описание:
 //   Красивый рендер учебника для режима просмотра.

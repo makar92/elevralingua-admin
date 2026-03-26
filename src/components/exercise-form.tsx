@@ -1,6 +1,6 @@
 // ===========================================
 // Файл: src/components/exercise-form.tsx
-// Путь:  linguamethod-admin/src/components/exercise-form.tsx
+// Путь:  elevralingua-admin/src/components/exercise-form.tsx
 //
 // Описание:
 //   Формы создания/редактирования упражнений (10 типов).

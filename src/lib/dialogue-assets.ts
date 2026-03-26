@@ -1,6 +1,6 @@
 // ===========================================
 // Файл: src/lib/dialogue-assets.ts
-// Путь:  linguamethod-admin/src/lib/dialogue-assets.ts
+// Путь:  elevralingua-admin/src/lib/dialogue-assets.ts
 //
 // Описание:
 //   Аватарки участников и фоны ситуаций для диалогов.

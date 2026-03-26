@@ -1,6 +1,6 @@
 // ===========================================
 // Файл: src/components/katex-formula.tsx
-// Путь:  linguamethod-admin/src/components/katex-formula.tsx
+// Путь:  elevralingua-admin/src/components/katex-formula.tsx
 //
 // Описание:
 //   Рендерит формулу с помощью KaTeX.

@@ -1,6 +1,6 @@
 // ===========================================
 // Файл: src/app/dashboard/roadmap/page.tsx
-// Описание: Дорожная карта развития платформы LinguaMethod.
+// Описание: Дорожная карта развития платформы ElevraLingua.
 //   Обновлённая: Phase 1-2 соответствуют реализованному,
 //   Phase 3-6 — будущие планы.
 // ===========================================
@@ -106,7 +106,7 @@ export default function RoadmapPage() {
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-foreground mb-2">Product Roadmap</h1>
         <p className="text-base text-muted-foreground">
-          LinguaMethod — B2B SaaS платформа для преподавателей иностранных языков.
+          ElevraLingua — B2B SaaS платформа для преподавателей иностранных языков.
           Авторские учебные материалы, интерактивные упражнения, инструменты для учителей.
           Первый язык: мандаринский китайский для англоговорящих.
         </p>

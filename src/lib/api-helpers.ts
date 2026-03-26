@@ -1,6 +1,6 @@
 // ===========================================
 // Файл: src/lib/api-helpers.ts
-// Путь:  linguamethod-admin/src/lib/api-helpers.ts
+// Путь:  elevralingua-admin/src/lib/api-helpers.ts
 //
 // Описание:
 //   Вспомогательные функции для API-роутов.

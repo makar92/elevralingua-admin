@@ -106,7 +106,7 @@ export default function ChooseRolePage() {
       <div className="w-full max-w-lg px-4">
         <Card>
           <CardHeader className="text-center">
-            <CardTitle className="text-xl">Добро пожаловать в LinguaMethod!</CardTitle>
+            <CardTitle className="text-xl">Добро пожаловать в ElevraLingua!</CardTitle>
             <CardDescription>Как вы будете использовать платформу?</CardDescription>
           </CardHeader>
           <CardContent>

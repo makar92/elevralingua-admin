@@ -1,6 +1,6 @@
 // ===========================================
 // Файл: src/app/api/courses/[id]/modules/route.ts
-// Путь:  linguamethod-admin/src/app/api/courses/[id]/modules/route.ts
+// Путь:  elevralingua-admin/src/app/api/courses/[id]/modules/route.ts
 //
 // Описание:
 //   POST — создать модуль в курсе.

@@ -1,6 +1,6 @@
 // ===========================================
 // Файл: src/components/block-renderer.tsx
-// Путь:  linguamethod-admin/src/components/block-renderer.tsx
+// Путь:  elevralingua-admin/src/components/block-renderer.tsx
 //
 // Описание:
 //   Отображение контент-блоков в режиме редактирования.

@@ -103,7 +103,7 @@ export function StudentsTab({ classroomId, enrollments, onUpdate }: { classroomI
         <div className="space-y-2">
           {enrollments.map((e: any) => (
             <div key={e.id} className="flex items-center justify-between p-3 rounded-lg border border-border">
-              <UserBadge user={e.student || {}} role="student" size="md" showStatus showRole />
+              <UserBadge user={e.student || {}} role="STUDENT" size="md" showStatus showRole />
               <button
                 onClick={() => removeStudent(e.id, e.student?.name || "ученика")}
                 disabled={busy}

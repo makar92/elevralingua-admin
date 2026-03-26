@@ -1,6 +1,6 @@
 // ===========================================
 // Файл: src/app/api/courses/route.ts
-// Путь:  linguamethod-admin/src/app/api/courses/route.ts
+// Путь:  elevralingua-admin/src/app/api/courses/route.ts
 //
 // Описание:
 //   GET — список курсов. POST — создать курс.

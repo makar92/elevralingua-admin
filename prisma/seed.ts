@@ -17,11 +17,11 @@ async function main() {
   // ==================== Админ ====================
   const pw = await hash("admin123", 12);
   await prisma.user.upsert({
-    where: { email: "ksenia@linguamethod.com" },
+    where: { email: "ksenia@elevralingua.com" },
     update: {},
-    create: { email: "ksenia@linguamethod.com", name: "Ксения", passwordHash: pw, role: "SUPER_ADMIN" },
+    create: { email: "ksenia@elevralingua.com", name: "Ксения", passwordHash: pw, role: "SUPER_ADMIN" },
   });
-  console.log("Админ: ksenia@linguamethod.com / admin123");
+  console.log("Админ: ksenia@elevralingua.com / admin123");
 
   // ==================== Курс ====================
   const course = await prisma.course.create({
@@ -238,7 +238,7 @@ async function main() {
   ]);
   console.log(`\nСоздано: ${counts[0]} курс, ${counts[1]} юнита, ${counts[2]} уроков`);
   console.log(`  ${counts[3]} секций, ${counts[4]} блоков контента, ${counts[5]} упражнений`);
-  console.log("\nГотово! Логин: ksenia@linguamethod.com / admin123");
+  console.log("\nГотово! Логин: ksenia@elevralingua.com / admin123");
 }
 
 main()

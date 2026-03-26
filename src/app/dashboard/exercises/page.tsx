@@ -1,6 +1,6 @@
 // ===========================================
 // Файл: src/app/dashboard/exercises/page.tsx
-// Путь:  linguamethod-admin/src/app/dashboard/exercises/page.tsx
+// Путь:  elevralingua-admin/src/app/dashboard/exercises/page.tsx
 //
 // Описание:
 //   Страница «Банк упражнений» в навигации.

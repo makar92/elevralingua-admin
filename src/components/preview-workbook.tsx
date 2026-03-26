@@ -1,6 +1,6 @@
 // ===========================================
 // Файл: src/components/preview-workbook.tsx
-// Путь:  linguamethod-admin/src/components/preview-workbook.tsx
+// Путь:  elevralingua-admin/src/components/preview-workbook.tsx
 //
 // Описание:
 //   Красивый рендер рабочей тетради для режима просмотра.

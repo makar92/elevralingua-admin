@@ -1,6 +1,6 @@
 // ===========================================
 // Файл: src/app/dashboard/media/page.tsx
-// Путь:  linguamethod-admin/src/app/dashboard/media/page.tsx
+// Путь:  elevralingua-admin/src/app/dashboard/media/page.tsx
 //
 // Описание:
 //   Страница «Медиа-библиотека» — roadmap будущей реализации.

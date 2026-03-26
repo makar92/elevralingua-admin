@@ -1,6 +1,6 @@
 // ===========================================
 // Файл: src/types/next-auth.d.ts
-// Путь:  linguamethod-admin/src/types/next-auth.d.ts
+// Путь:  elevralingua-admin/src/types/next-auth.d.ts
 //
 // Описание:
 //   Расширение типов NextAuth — добавление role к сессии.

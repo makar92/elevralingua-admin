@@ -1,6 +1,6 @@
 // ===========================================
 // Файл: src/components/block-form.tsx
-// Путь:  linguamethod-admin/src/components/block-form.tsx
+// Путь:  elevralingua-admin/src/components/block-form.tsx
 //
 // Описание:
 //   Формы создания/редактирования контент-блоков (10 типов).

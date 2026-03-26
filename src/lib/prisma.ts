@@ -1,6 +1,6 @@
 // ===========================================
 // Файл: src/lib/prisma.ts
-// Путь:  linguamethod-admin/src/lib/prisma.ts
+// Путь:  elevralingua-admin/src/lib/prisma.ts
 //
 // Описание:
 //   Единственный экземпляр подключения к базе данных.

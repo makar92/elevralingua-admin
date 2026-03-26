@@ -1,6 +1,6 @@
 // ===========================================
 // Файл: src/components/top-nav.tsx
-// Описание: Навигация. Все цвета для тёмной темы.
+// Описание: Навигация админки.
 // ===========================================
 
 "use client";
@@ -8,12 +8,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Logo } from "@/components/shared/logo";
+import { UserBadge } from "@/components/shared/user-badge";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
-  DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
+  DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
 const navItems = [
@@ -23,17 +22,15 @@ const navItems = [
   { name: "Roadmap",      href: "/dashboard/roadmap" },
 ];
 
-export function TopNav({ user }: { user: { name?: string | null; email?: string | null } }) {
+export function TopNav({ user }: { user: { name?: string | null; email?: string | null; role?: string | null; image?: string | null } }) {
   const pathname = usePathname();
-  const initials = user.name?.[0] || user.email?.[0] || "A";
 
   return (
     <header className="bg-card border-b-2 border-border sticky top-0 z-50">
       <div className="px-6 flex items-center justify-between h-14">
         <div className="flex items-center gap-8">
-          <Link href="/dashboard" className="flex items-center gap-2">
-            <span className="flex items-center gap-1.5"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="6" className="fill-primary"/><text x="12" y="17" textAnchor="middle" className="fill-primary-foreground" fontSize="14" fontWeight="bold" fontFamily="Arial">L</text></svg><span className="text-lg font-bold text-primary">LinguaMethod</span></span>
-            <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-muted-foreground">admin</Badge>
+          <Link href="/dashboard">
+            <Logo height={36} showSlogan={false} />
           </Link>
           <nav className="flex items-center gap-1">
             {navItems.map((item) => {
@@ -53,22 +50,19 @@ export function TopNav({ user }: { user: { name?: string | null; email?: string 
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-accent transition-colors">
-              <Avatar className="h-7 w-7">
-                <AvatarFallback className="text-xs bg-primary text-primary-foreground">{initials}</AvatarFallback>
-              </Avatar>
-              <span className="text-sm text-foreground">{user.name || "Админ"}</span>
+            <button className="px-2 py-1.5 rounded-md hover:bg-accent transition-colors cursor-pointer">
+              <UserBadge user={user} size="sm" showStatus={false} showRole={true} />
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuLabel>
-              <p className="text-sm font-medium text-foreground">{user.name || "Админ"}</p>
-              <p className="text-xs text-muted-foreground truncate">{user.email}</p>
-            </DropdownMenuLabel>
+            <div className="px-2 py-2">
+              <UserBadge user={user} size="md" showStatus={false} showRole={true} />
+              <p className="text-xs text-muted-foreground truncate mt-1 pl-10">{user.email}</p>
+            </div>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => signOut({ callbackUrl: "/login" })}
               className="text-red-600 focus:text-red-600 cursor-pointer">
-              Выйти
+              Sign out
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

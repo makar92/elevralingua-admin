@@ -1,6 +1,6 @@
 // ===========================================
 // Файл: src/components/exercise-bank-client.tsx
-// Путь:  linguamethod-admin/src/components/exercise-bank-client.tsx
+// Путь:  elevralingua-admin/src/components/exercise-bank-client.tsx
 //
 // Описание:
 //   Клиентский компонент страницы «Банк упражнений».

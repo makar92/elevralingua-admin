@@ -1,6 +1,6 @@
 // ===========================================
 // Файл: src/app/api/courses/[id]/units/route.ts
-// Путь:  linguamethod-admin/src/app/api/courses/[id]/units/route.ts
+// Путь:  elevralingua-admin/src/app/api/courses/[id]/units/route.ts
 //
 // Описание:
 //   POST — создать юнит в курсе.

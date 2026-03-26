@@ -1,6 +1,6 @@
 // ===========================================
 // Файл: src/components/course-editor.tsx
-// Путь:  linguamethod-admin/src/components/course-editor.tsx
+// Путь:  elevralingua-admin/src/components/course-editor.tsx
 //
 // Описание:
 //   Редактор курса. Дерево слева, контент справа.

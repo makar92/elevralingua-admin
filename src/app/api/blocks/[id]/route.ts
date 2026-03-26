@@ -1,6 +1,6 @@
 // ===========================================
 // Файл: src/app/api/blocks/[id]/route.ts
-// Путь:  linguamethod-admin/src/app/api/blocks/[id]/route.ts
+// Путь:  elevralingua-admin/src/app/api/blocks/[id]/route.ts
 //
 // Описание:
 //   PATCH — обновить содержимое блока (+ очистка старых файлов из Vercel Blob).

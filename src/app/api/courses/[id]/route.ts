@@ -1,6 +1,6 @@
 // ===========================================
 // Файл: src/app/api/courses/[id]/route.ts
-// Путь:  linguamethod-admin/src/app/api/courses/[id]/route.ts
+// Путь:  elevralingua-admin/src/app/api/courses/[id]/route.ts
 //
 // Описание:
 //   GET — один курс. PATCH — обновить. DELETE — удалить.

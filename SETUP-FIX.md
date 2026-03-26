@@ -1,4 +1,4 @@
-# LinguaMethod Classroom Fix — ОБЯЗАТЕЛЬНО ВЫПОЛНИТЬ
+# ElevraLingua Classroom Fix — ОБЯЗАТЕЛЬНО ВЫПОЛНИТЬ
 
 ## После распаковки архива ОБЯЗАТЕЛЬНО выполни:
 

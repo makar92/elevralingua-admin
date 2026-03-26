@@ -1,6 +1,6 @@
 // ===========================================
 // Файл: src/components/workbook-editor.tsx
-// Путь:  linguamethod-admin/src/components/workbook-editor.tsx
+// Путь:  elevralingua-admin/src/components/workbook-editor.tsx
 //
 // Описание:
 //   Редактор рабочей тетради урока.

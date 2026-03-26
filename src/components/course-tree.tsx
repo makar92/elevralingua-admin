@@ -1,6 +1,6 @@
 // ===========================================
 // Файл: src/components/course-tree.tsx
-// Путь:  linguamethod-admin/src/components/course-tree.tsx
+// Путь:  elevralingua-admin/src/components/course-tree.tsx
 //
 // Описание:
 //   Дерево курса. Иерархия: Course → Unit → Lesson → Section.

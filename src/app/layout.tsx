@@ -1,6 +1,6 @@
 // ===========================================
 // Файл: src/app/layout.tsx
-// Путь:  linguamethod-admin/src/app/layout.tsx
+// Путь:  elevralingua-admin/src/app/layout.tsx
 //
 // Описание:
 //   Корневой layout. Подключение шрифтов, тема, провайдеры.
@@ -14,8 +14,8 @@ import { cn } from "@/lib/utils";
 const figtree = Figtree({subsets:['latin'],variable:'--font-sans'});
 
 export const metadata: Metadata = {
-  title: "LinguaMethod Admin",
-  description: "Панель управления контентом LinguaMethod",
+  title: "ElevraLingua Admin",
+  description: "Панель управления контентом ElevraLingua",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -1,4 +1,4 @@
-# Деплой LinguaMethod Admin на Vercel + Neon
+# Деплой ElevraLingua Admin на Vercel + Neon
 
 ## Что изменено для деплоя
 
@@ -15,7 +15,7 @@
 ## Шаг 1: Создай базу данных в Neon
 
 1. Зайди на [neon.tech](https://neon.tech) → Sign Up (через GitHub)
-2. **Create Project** → имя: `linguamethod`, регион: `eu-central-1` (ближе к Европе)
+2. **Create Project** → имя: `elevralingua`, регион: `eu-central-1` (ближе к Европе)
 3. Скопируй **Connection string** — это твой `DATABASE_URL`
    - Формат: `postgresql://user:pass@ep-xxx.eu-central-1.aws.neon.tech/neondb?sslmode=require`
 
@@ -48,7 +48,7 @@ git push
 ## Шаг 5: Подключи Vercel Blob
 
 1. В Vercel Dashboard → твой проект → **Storage**
-2. **Create** → **Blob** → имя: `linguamethod-uploads`
+2. **Create** → **Blob** → имя: `elevralingua-uploads`
 3. Токен `BLOB_READ_WRITE_TOKEN` добавится автоматически
 
 ## Шаг 6: Деплой!
@@ -80,10 +80,10 @@ npm run db:seed
 
 ## Шаг 8: Проверка
 
-Открой URL от Vercel (формат: `https://linguamethod-admin-xxx.vercel.app`).
+Открой URL от Vercel (формат: `https://elevralingua-admin-xxx.vercel.app`).
 
 Логин:
-- **Email:** `ksenia@linguamethod.com`
+- **Email:** `ksenia@elevralingua.com`
 - **Пароль:** `admin123`
 
 ---

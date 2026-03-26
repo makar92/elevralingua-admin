@@ -1,6 +1,6 @@
 // ===========================================
 // Файл: src/app/dashboard/users/page.tsx
-// Путь:  linguamethod-admin/src/app/dashboard/users/page.tsx
+// Путь:  elevralingua-admin/src/app/dashboard/users/page.tsx
 //
 // Описание:
 //   Страница «Пользователи» — управление командой админ-панели.

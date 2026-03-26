@@ -74,7 +74,7 @@ export function ClassroomCard({ classroom, href }: ClassroomCardProps) {
         <div className="px-5 py-2.5 border-t border-border/50">
           <UserBadge
             user={teacher}
-            role="teacher"
+            role="TEACHER"
             size="sm"
             showStatus={true}
             showRole={true}
@@ -95,7 +95,7 @@ export function ClassroomCard({ classroom, href }: ClassroomCardProps) {
               <UserBadge
                 key={student.id}
                 user={student}
-                role="student"
+                role="STUDENT"
                 size="sm"
                 showStatus={true}
                 showRole={true}

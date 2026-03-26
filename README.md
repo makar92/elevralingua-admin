@@ -1,15 +1,15 @@
 # ===========================================
 # Файл: README.md
-# Путь:  linguamethod-admin/README.md
+# Путь:  elevralingua-admin/README.md
 #
 # Описание:
-#   Документация проекта LinguaMethod Admin Panel.
+#   Документация проекта ElevraLingua Admin Panel.
 #   Как запустить, архитектура, технологии.
 # ===========================================
 
-# LinguaMethod Admin Panel
+# ElevraLingua Admin Panel
 
-Админ-панель для управления учебными материалами LinguaMethod — B2B SaaS платформы для преподавателей иностранных языков.
+Админ-панель для управления учебными материалами ElevraLingua — B2B SaaS платформы для преподавателей иностранных языков.
 
 ## Архитектура
 
@@ -49,4 +49,4 @@ npm run db:seed        # Демо-данные
 npm run dev            # http://localhost:3000
 ```
 
-Логин: `ksenia@linguamethod.com` / `admin123`
+Логин: `ksenia@elevralingua.com` / `admin123`

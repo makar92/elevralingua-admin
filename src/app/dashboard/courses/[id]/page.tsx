@@ -1,6 +1,6 @@
 // ===========================================
 // Файл: src/app/dashboard/courses/[id]/page.tsx
-// Путь:  linguamethod-admin/src/app/dashboard/courses/[id]/page.tsx
+// Путь:  elevralingua-admin/src/app/dashboard/courses/[id]/page.tsx
 //
 // Описание:
 //   Страница редактирования курса. Загружает курс с сервера

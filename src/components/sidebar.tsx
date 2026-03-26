@@ -1,6 +1,6 @@
 // ===========================================
 // Файл: src/components/sidebar.tsx
-// Путь:  linguamethod-admin/src/components/sidebar.tsx
+// Путь:  elevralingua-admin/src/components/sidebar.tsx
 //
 // Описание:
 //   Боковое меню приложения.
@@ -13,6 +13,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Logo } from "@/components/shared/logo";
 import { signOut } from "next-auth/react";
 
 // Пункты навигации
@@ -33,8 +34,7 @@ export function Sidebar({ user }: { user: { name?: string | null; email?: string
     >
       {/* Логотип */}
       <div className="p-6 border-b border-border">
-        <h1 className="text-xl font-bold text-primary">LinguaMethod</h1>
-        <p className="text-xs text-muted-foreground mt-0.5">Admin Panel</p>
+        <Logo height={32} showSlogan={false} />
       </div>
 
       {/* Навигация */}
