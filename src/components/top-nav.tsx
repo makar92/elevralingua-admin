@@ -18,7 +18,6 @@ import {
 const navItems = [
   { name: "Главная",      href: "/dashboard" },
   { name: "Курсы",        href: "/dashboard/courses" },
-  { name: "Пользователи", href: "/dashboard/users" },
   { name: "Roadmap",      href: "/dashboard/roadmap" },
 ];
 
