@@ -26,7 +26,7 @@ export function TopNav({ user }: { user: { name?: string | null; email?: string 
   const pathname = usePathname();
 
   return (
-    <header className="bg-card border-b-2 border-border sticky top-0 z-50">
+    <header className="bg-card border-b border-border shadow-sm sticky top-0 z-50">
       <div className="px-6 flex items-center justify-between h-14">
         <div className="flex items-center gap-8">
           <Link href="/dashboard">

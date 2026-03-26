@@ -13,6 +13,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { UserMultipleIcon, Mortarboard01Icon, CheckListIcon, Calendar01Icon, CheckmarkCircle02Icon } from "@hugeicons/core-free-icons";
 
 const MO = ["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
 const DW_CAL = ["Пн","Вт","Ср","Чт","Пт","Сб","Вс"];
@@ -128,7 +130,7 @@ export default function StudentDashboard() {
     <div className="p-6 max-w-7xl mx-auto space-y-6">
       {/* === Приветствие === */}
       <h1 className="text-2xl font-bold text-foreground">
-        {getGreeting()}{userName ? `, ${userName.split(" ")[0]}` : ""}! 👋
+        {getGreeting()}{userName ? `, ${userName.split(" ")[0]}` : ""}
       </h1>
 
       {/* === Статистика === */}
@@ -136,7 +138,7 @@ export default function StudentDashboard() {
         <Card>
           <CardContent className="pt-5 pb-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center text-lg flex-shrink-0">👥</div>
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0"><HugeiconsIcon icon={UserMultipleIcon} size={22} className="text-primary" /></div>
               <div>
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Преподавателей</p>
                 <p className="text-2xl font-bold text-foreground">{new Set(classrooms.map((c: any) => c.teacherId)).size}</p>
@@ -147,7 +149,7 @@ export default function StudentDashboard() {
         <Card>
           <CardContent className="pt-5 pb-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center text-lg flex-shrink-0">📝</div>
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0"><HugeiconsIcon icon={CheckListIcon} size={22} className="text-primary" /></div>
               <div>
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Активные задания</p>
                 <p className="text-2xl font-bold text-foreground">{activeHomeworks.length}</p>
@@ -158,7 +160,7 @@ export default function StudentDashboard() {
         <Card>
           <CardContent className="pt-5 pb-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center text-lg flex-shrink-0">🎓</div>
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0"><HugeiconsIcon icon={Mortarboard01Icon} size={22} className="text-primary" /></div>
               <div>
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Мои классы</p>
                 <p className="text-2xl font-bold text-foreground">{classrooms.length}</p>
@@ -235,7 +237,7 @@ export default function StudentDashboard() {
             <CardContent>
               {!selectedDay ? (
                 <div className="text-center py-8">
-                  <span className="text-3xl block mb-2">📅</span>
+                  <div className="flex justify-center mb-2"><HugeiconsIcon icon={Calendar01Icon} size={36} className="text-muted-foreground" /></div>
                   <p className="text-sm text-muted-foreground">Нажмите на день с занятиями</p>
                 </div>
               ) : selectedLogs.length === 0 ? (
@@ -310,7 +312,7 @@ export default function StudentDashboard() {
             <CardContent>
               {activeHomeworks.length === 0 ? (
                 <div className="text-center py-4">
-                  <span className="text-2xl block mb-2">🎉</span>
+                  <div className="flex justify-center mb-2"><HugeiconsIcon icon={CheckmarkCircle02Icon} size={28} className="text-primary" /></div>
                   <p className="text-sm text-muted-foreground">Нет активных заданий</p>
                 </div>
               ) : (

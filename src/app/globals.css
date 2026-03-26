@@ -1,10 +1,9 @@
 /* ===========================================
    Файл: src/app/globals.css
 
-   Светлая тема v1.
-   Профессиональная, чистая. Хорошо читается
-   в документах и на чёрно-белой печати.
-   Акцент: синий (primary). Фон: белый/серый.
+   Светлая тема v2 — ElevraLingua brand.
+   Акцент: фиолетовый (в тон логотипу #530666).
+   Фон: тёплый светло-серый. Карточки: белые.
    =========================================== */
 
 @import "tailwindcss";
@@ -14,46 +13,46 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-    /* Фон: лёгкий серый (не сливается с карточками) */
-    --background: oklch(0.955 0.003 265);
-    /* Текст: тёмно-серый (не чистый чёрный — мягче для глаз) */
-    --foreground: oklch(0.15 0.005 265);
+    /* Фон: тёплый светло-серый */
+    --background: oklch(0.955 0.006 300);
+    /* Текст: тёмный с лёгким тёплым оттенком */
+    --foreground: oklch(0.15 0.01 300);
 
-    /* Карточки: чисто белые (контраст с фоном) */
+    /* Карточки: чисто белые */
     --card: oklch(1.0 0 0);
-    --card-foreground: oklch(0.15 0.005 265);
+    --card-foreground: oklch(0.15 0.01 300);
 
     /* Попапы */
     --popover: oklch(1.0 0 0);
-    --popover-foreground: oklch(0.15 0.005 265);
+    --popover-foreground: oklch(0.15 0.01 300);
 
-    /* Кнопки: насыщенный синий + белый текст */
-    --primary: oklch(0.50 0.20 255);
+    /* Primary: фиолетовый (бренд ElevraLingua) */
+    --primary: oklch(0.45 0.20 305);
     --primary-foreground: oklch(0.98 0 0);
 
-    /* Вторичные */
-    --secondary: oklch(0.94 0.005 265);
-    --secondary-foreground: oklch(0.25 0.005 265);
+    /* Вторичные: тёплый серый */
+    --secondary: oklch(0.94 0.008 300);
+    --secondary-foreground: oklch(0.25 0.01 300);
 
     /* Приглушённые */
-    --muted: oklch(0.95 0.003 265);
-    --muted-foreground: oklch(0.45 0.01 265);
+    --muted: oklch(0.95 0.006 300);
+    --muted-foreground: oklch(0.45 0.015 300);
 
-    /* Акцент (hover) */
-    --accent: oklch(0.94 0.008 265);
-    --accent-foreground: oklch(0.15 0.005 265);
+    /* Акцент (hover): лёгкий фиолетовый оттенок */
+    --accent: oklch(0.94 0.012 300);
+    --accent-foreground: oklch(0.15 0.01 300);
 
     /* Деструктивный */
     --destructive: oklch(0.55 0.22 25);
 
-    /* Границы */
-    --border: oklch(0.88 0.005 265);
-    --input: oklch(0.90 0.005 265);
-    --ring: oklch(0.50 0.20 255);
+    /* Границы: тёплые */
+    --border: oklch(0.88 0.008 300);
+    --input: oklch(0.90 0.008 300);
+    --ring: oklch(0.45 0.20 305);
 
     /* Графики */
-    --chart-1: oklch(0.50 0.20 255);
-    --chart-2: oklch(0.55 0.18 200);
+    --chart-1: oklch(0.45 0.20 305);
+    --chart-2: oklch(0.55 0.18 270);
     --chart-3: oklch(0.60 0.18 150);
     --chart-4: oklch(0.65 0.16 60);
     --chart-5: oklch(0.55 0.20 330);
@@ -61,14 +60,14 @@
     --radius: 0.5rem;
 
     /* Сайдбар */
-    --sidebar: oklch(0.97 0.003 265);
-    --sidebar-foreground: oklch(0.15 0.005 265);
-    --sidebar-primary: oklch(0.50 0.20 255);
+    --sidebar: oklch(0.97 0.006 300);
+    --sidebar-foreground: oklch(0.15 0.01 300);
+    --sidebar-primary: oklch(0.45 0.20 305);
     --sidebar-primary-foreground: oklch(0.98 0 0);
-    --sidebar-accent: oklch(0.94 0.008 265);
-    --sidebar-accent-foreground: oklch(0.15 0.005 265);
-    --sidebar-border: oklch(0.88 0.005 265);
-    --sidebar-ring: oklch(0.50 0.20 255);
+    --sidebar-accent: oklch(0.94 0.012 300);
+    --sidebar-accent-foreground: oklch(0.15 0.01 300);
+    --sidebar-border: oklch(0.88 0.008 300);
+    --sidebar-ring: oklch(0.45 0.20 305);
 }
 
 @theme inline {

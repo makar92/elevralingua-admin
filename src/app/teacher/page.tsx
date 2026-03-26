@@ -13,6 +13,8 @@ import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { UserMultipleIcon, Mortarboard01Icon, CheckListIcon, BookOpen01Icon, Calendar01Icon, CheckmarkCircle02Icon, MailSend01Icon } from "@hugeicons/core-free-icons";
 
 // ===== Константы =====
 const MO = ["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
@@ -133,7 +135,7 @@ export default function TeacherDashboard() {
     <div className="p-6 max-w-7xl mx-auto space-y-6">
       {/* === Приветствие === */}
       <h1 className="text-2xl font-bold text-foreground">
-        {getGreeting()}{userName ? `, ${userName.split(" ")[0]}` : ""}! 👋
+        {getGreeting()}{userName ? `, ${userName.split(" ")[0]}` : ""}
       </h1>
 
       {/* === Статистика === */}
@@ -141,7 +143,7 @@ export default function TeacherDashboard() {
         <Card>
           <CardContent className="pt-5 pb-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center text-lg flex-shrink-0">👥</div>
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0"><HugeiconsIcon icon={UserMultipleIcon} size={22} className="text-primary" /></div>
               <div>
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Учеников</p>
                 <p className="text-2xl font-bold text-foreground">{totalStudents}</p>
@@ -152,7 +154,7 @@ export default function TeacherDashboard() {
         <Card>
           <CardContent className="pt-5 pb-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center text-lg flex-shrink-0">🎓</div>
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0"><HugeiconsIcon icon={Mortarboard01Icon} size={22} className="text-primary" /></div>
               <div>
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Классов</p>
                 <p className="text-2xl font-bold text-foreground">{activeClasses}</p>
@@ -163,7 +165,7 @@ export default function TeacherDashboard() {
         <Card>
           <CardContent className="pt-5 pb-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center text-lg flex-shrink-0">📝</div>
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0"><HugeiconsIcon icon={CheckListIcon} size={22} className="text-primary" /></div>
               <div>
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Ожидает проверки</p>
                 <p className="text-2xl font-bold text-foreground">{pending.length}</p>
@@ -255,7 +257,7 @@ export default function TeacherDashboard() {
             <CardContent>
               {!selectedDay ? (
                 <div className="text-center py-8">
-                  <span className="text-3xl block mb-2">📅</span>
+                  <div className="flex justify-center mb-2"><HugeiconsIcon icon={Calendar01Icon} size={36} className="text-muted-foreground" /></div>
                   <p className="text-sm text-muted-foreground">Нажмите на день с занятиями чтобы увидеть детали</p>
                 </div>
               ) : selectedLogs.length === 0 ? (
@@ -303,7 +305,7 @@ export default function TeacherDashboard() {
             <CardContent>
               {classrooms.length === 0 ? (
                 <div className="text-center py-6">
-                  <span className="text-2xl block mb-2">🎓</span>
+                  <div className="flex justify-center mb-2"><HugeiconsIcon icon={Mortarboard01Icon} size={28} className="text-muted-foreground" /></div>
                   <p className="text-muted-foreground mb-2">Нет классов</p>
                   <Link href="/teacher/classrooms/new" className="text-sm text-primary hover:underline">Создать первый класс →</Link>
                 </div>
@@ -316,7 +318,7 @@ export default function TeacherDashboard() {
                     return (
                       <Link key={c.id} href={`/teacher/classrooms/${c.id}`}
                         className="flex items-center gap-4 p-3 rounded-lg border border-border hover:bg-accent transition-colors">
-                        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-lg flex-shrink-0">🎓</div>
+                        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0"><HugeiconsIcon icon={BookOpen01Icon} size={20} className="text-primary" /></div>
                         <div className="flex-1 min-w-0">
                           <p className="font-medium text-sm text-foreground">{c.name}</p>
                           <p className="text-xs text-muted-foreground mt-0.5">{c.course?.title}</p>
@@ -350,7 +352,7 @@ export default function TeacherDashboard() {
             <CardContent>
               {pending.length === 0 ? (
                 <div className="text-center py-6">
-                  <span className="text-2xl block mb-2">✅</span>
+                  <div className="flex justify-center mb-2"><HugeiconsIcon icon={CheckmarkCircle02Icon} size={28} className="text-primary" /></div>
                   <p className="text-sm text-muted-foreground">Все работы проверены!</p>
                 </div>
               ) : (
@@ -369,7 +371,7 @@ export default function TeacherDashboard() {
                         <p className="text-[10px] text-muted-foreground/70 truncate">{p.homework?.classroom?.name}</p>
                       </div>
                       <Badge variant={p.status === "HAS_QUESTIONS" ? "destructive" : "secondary"} className="text-[10px] flex-shrink-0">
-                        {p.status === "HAS_QUESTIONS" ? "❓" : "📨"}
+                        {p.status === "HAS_QUESTIONS" ? "?" : "→"}
                       </Badge>
                     </Link>
                   ))}

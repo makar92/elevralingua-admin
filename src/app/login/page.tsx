@@ -13,6 +13,8 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Logo } from "@/components/shared/logo";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { TeacherIcon, StudentIcon, Settings01Icon } from "@hugeicons/core-free-icons";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -39,7 +41,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5">
       <div className="w-full max-w-md px-4">
         <Card>
           <CardHeader className="text-center pb-2">
@@ -65,7 +67,7 @@ export default function LoginPage() {
                   disabled={loading !== null}
                   className="w-full flex items-center gap-4 p-3.5 rounded-xl border-2 border-emerald-200 bg-white hover:bg-emerald-50 hover:border-emerald-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 >
-                  <div className="w-11 h-11 rounded-xl bg-emerald-100 flex items-center justify-center text-xl flex-shrink-0">👩‍🏫</div>
+                  <div className="w-11 h-11 rounded-xl bg-emerald-100 flex items-center justify-center flex-shrink-0"><HugeiconsIcon icon={TeacherIcon} size={24} className="text-emerald-700" /></div>
                   <div className="text-left flex-1">
                     <p className="text-sm font-semibold text-foreground">
                       {loading === "teacher" ? "Входим..." : "Войти как Учитель"}
@@ -80,7 +82,7 @@ export default function LoginPage() {
                   disabled={loading !== null}
                   className="w-full flex items-center gap-4 p-3.5 rounded-xl border-2 border-blue-200 bg-white hover:bg-blue-50 hover:border-blue-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 >
-                  <div className="w-11 h-11 rounded-xl bg-blue-100 flex items-center justify-center text-xl flex-shrink-0">🎓</div>
+                  <div className="w-11 h-11 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0"><HugeiconsIcon icon={StudentIcon} size={24} className="text-blue-700" /></div>
                   <div className="text-left flex-1">
                     <p className="text-sm font-semibold text-foreground">
                       {loading === "student" ? "Входим..." : "Войти как Ученик"}
@@ -95,7 +97,7 @@ export default function LoginPage() {
                   disabled={loading !== null}
                   className="w-full flex items-center gap-4 p-3.5 rounded-xl border-2 border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 >
-                  <div className="w-11 h-11 rounded-xl bg-gray-100 flex items-center justify-center text-xl flex-shrink-0">⚙️</div>
+                  <div className="w-11 h-11 rounded-xl bg-gray-100 flex items-center justify-center flex-shrink-0"><HugeiconsIcon icon={Settings01Icon} size={24} className="text-gray-600" /></div>
                   <div className="text-left flex-1">
                     <p className="text-sm font-semibold text-foreground">
                       {loading === "admin" ? "Входим..." : "Войти как Админ"}
