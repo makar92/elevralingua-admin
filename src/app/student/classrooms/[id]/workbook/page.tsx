@@ -25,6 +25,7 @@ export default function StudentWorkbook() {
   const [lCol, setLCol] = useState<Set<string>>(new Set());
   const [eaList, setEaList] = useState<any[]>([]);
   const [answers, setAnswers] = useState<Record<string, any>>({});
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   useEffect(() => {
     Promise.all([
@@ -120,60 +121,73 @@ export default function StudentWorkbook() {
   })).filter((u: any) => u.lessons.length > 0);
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      <ClassroomHeader classroom={classroom || {}} />
-      <ClassroomTabs basePath={`/student/classrooms/${id}`} tabs={STUDENT_TABS()} />
+    <div className="flex flex-col h-[calc(100vh-57px)]">
+      <div className="flex-shrink-0 px-6 pt-6">
+        <ClassroomHeader classroom={classroom || {}} />
+        <ClassroomTabs basePath={`/student/classrooms/${id}`} tabs={STUDENT_TABS()} />
+      </div>
 
       {filtered.length === 0 ? (
-        <div className="text-center py-16">
+        <div className="text-center py-16 px-6">
           <p className="text-lg text-muted-foreground">Тетрадь пуста</p>
           <p className="text-sm text-muted-foreground mt-1">Учитель ещё не назначил упражнения</p>
         </div>
       ) : (
-        <div className="flex gap-6">
-          {/* Sidebar */}
-          <div className="w-80 flex-shrink-0 bg-muted rounded-xl p-4 max-h-[calc(100vh-200px)] overflow-y-auto">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">{classroom?.course?.title}</p>
-            {filtered.map((u: any) => {
-              const uh = uCol.has(u.id);
-              return (<div key={u.id}>
-                <button onClick={() => toggleU(u.id)} className="w-full text-left flex items-center gap-2 px-2 py-2 rounded-md hover:bg-accent">
-                  <span className="text-muted-foreground text-xs">{uh ? "▸" : "▾"}</span>
-                  <span className="text-sm font-semibold text-foreground truncate flex-1">{u.title}</span>
-                </button>
-                {!uh && u.lessons.map((l: any) => {
-                  const lh = lCol.has(l.id);
-                  return (<div key={l.id}>
-                    <button onClick={() => toggleL(l.id)} className="w-full text-left pl-5 pr-2 py-1.5 text-sm text-foreground hover:bg-accent/50 rounded-md flex items-center gap-1.5">
-                      <span className="text-muted-foreground text-[10px]">{lh ? "▸" : "▾"}</span>
-                      <span className="truncate font-medium flex-1">{l.title}</span>
-                    </button>
-                    {!lh && l.sections.map((s: any) => {
-                      const st = getSecAnswerStats(s.id);
-                      return (
-                        <button key={s.id} onClick={() => loadExBySec(s.id, s.title)}
-                          className={`w-full text-left pl-10 pr-2 py-1 rounded-md text-sm transition-colors truncate flex items-center gap-1 ${selSection === s.id ? "bg-primary/10 text-primary font-medium" : "text-muted-foreground hover:text-foreground hover:bg-accent/50"}`}>
-                          <span className="truncate flex-1">{s.title}</span>
-                          {st && st.answered === st.total && st.total > 0 && (
-                            <span className="w-2 h-2 rounded-full bg-emerald-400 flex-shrink-0" />
-                          )}
-                          {st && st.answered > 0 && st.answered < st.total && (
-                            <span className="text-[10px] text-muted-foreground flex-shrink-0">{st.answered}/{st.total}</span>
-                          )}
-                          {st && st.answered === 0 && (
-                            <span className="text-[10px] text-muted-foreground flex-shrink-0">{st.total}</span>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>);
-                })}
-              </div>);
-            })}
-          </div>
+        <div className="flex flex-1 min-h-0 gap-4 px-6 pb-6">
+          {!sidebarOpen && (
+          <button onClick={() => setSidebarOpen(true)} className="flex-shrink-0 self-start w-8 h-8 flex items-center justify-center rounded-lg bg-muted hover:bg-accent text-muted-foreground hover:text-foreground transition-colors" title="Развернуть панель">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        )}
+        {sidebarOpen && (
+            <div className="w-1/4 min-w-[240px] max-w-[360px] flex-shrink-0 bg-muted rounded-xl p-4 overflow-y-auto">
+            <button onClick={() => setSidebarOpen(false)} className="w-full flex items-center justify-between mb-3 px-2 py-1.5 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground transition-colors" title="Свернуть панель">
+              <span className="text-xs font-semibold uppercase tracking-wide">Содержание</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+              <p className="text-xs text-muted-foreground mb-2 truncate" title={classroom?.course?.title}>{classroom?.course?.title}</p>
+              {filtered.map((u: any) => {
+                const uh = uCol.has(u.id);
+                return (<div key={u.id}>
+                  <button onClick={() => toggleU(u.id)} className="w-full text-left flex items-center gap-2 px-2 py-2 rounded-md hover:bg-accent" title={u.title}>
+                    <span className="text-muted-foreground text-xs">{uh ? "▸" : "▾"}</span>
+                    <span className="text-sm font-semibold text-foreground truncate flex-1">{u.title}</span>
+                  </button>
+                  {!uh && u.lessons.map((l: any) => {
+                    const lh = lCol.has(l.id);
+                    return (<div key={l.id}>
+                      <button onClick={() => toggleL(l.id)} className="w-full text-left pl-5 pr-2 py-1.5 text-sm text-foreground hover:bg-accent/50 rounded-md flex items-center gap-1.5" title={l.title}>
+                        <span className="text-muted-foreground text-[10px]">{lh ? "▸" : "▾"}</span>
+                        <span className="truncate font-medium flex-1">{l.title}</span>
+                      </button>
+                      {!lh && l.sections.map((s: any) => {
+                        const st = getSecAnswerStats(s.id);
+                        return (
+                          <button key={s.id} onClick={() => loadExBySec(s.id, s.title)} title={s.title}
+                            className={`w-full text-left pl-10 pr-2 py-1 rounded-md text-sm transition-colors truncate flex items-center gap-1 ${selSection === s.id ? "bg-primary/10 text-primary font-medium" : "text-muted-foreground hover:text-foreground hover:bg-accent/50"}`}>
+                            <span className="truncate flex-1">{s.title}</span>
+                            {st && st.answered === st.total && st.total > 0 && (
+                              <span className="w-2 h-2 rounded-full bg-emerald-400 flex-shrink-0" />
+                            )}
+                            {st && st.answered > 0 && st.answered < st.total && (
+                              <span className="text-[10px] text-muted-foreground flex-shrink-0">{st.answered}/{st.total}</span>
+                            )}
+                            {st && st.answered === 0 && (
+                              <span className="text-[10px] text-muted-foreground flex-shrink-0">{st.total}</span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>);
+                  })}
+                </div>);
+              })}
+            </div>
+          )}
+          </button>
 
           {/* Exercises */}
-          <div className="flex-1 min-w-0 overflow-hidden">
+          <div className="flex-1 min-w-0 overflow-y-auto pr-4">
             {selSectionTitle && <h2 className="text-lg font-semibold text-foreground mb-4">{selSectionTitle}</h2>}
             {exLoading ? <div className="text-muted-foreground animate-pulse text-center py-12">Загрузка...</div> :
               exercises.length === 0 ? <p className="text-muted-foreground text-center py-12">Нет назначенных упражнений</p> :

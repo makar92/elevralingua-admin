@@ -43,6 +43,7 @@ export default function TeacherWorkbook() {
   const [assignType, setAssignType] = useState("");
   const [picked, setPicked] = useState<Set<string>>(new Set());
   const [expandedEx, setExpandedEx] = useState<Set<string>>(new Set());
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [reviewExercise, setReviewExercise] = useState<any>(null);
   const [reviewAnswers, setReviewAnswers] = useState<AnswerData[]>([]);
   const [reviewGrades, setReviewGrades] = useState<Record<string, { grade: string; comment: string }>>({});
@@ -180,48 +181,60 @@ export default function TeacherWorkbook() {
   if (loading) return <div className="p-6 text-muted-foreground animate-pulse">Загрузка тетради...</div>;
 
   return (
-    <div className="p-6 max-w-7xl mx-auto pb-20">
-      <ClassroomHeader classroom={classroom || {}} />
-      <ClassroomTabs basePath={`/teacher/classrooms/${id}`} tabs={TEACHER_TABS(sc)} />
-      <div className="flex gap-6">
-        {/* Sidebar */}
-        <div className="w-80 flex-shrink-0 bg-muted rounded-xl p-4 max-h-[calc(100vh-200px)] overflow-y-auto">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">{classroom?.course?.title}</p>
-          {classroom?.course?.units?.map((unit: any) => {
-            const uh = uCol.has(unit.id);
-            return (<div key={unit.id}>
-              <button onClick={() => toggleU(unit.id)} className="w-full text-left flex items-center gap-2 px-2 py-2 rounded-md hover:bg-accent">
-                <span className="text-muted-foreground text-xs">{uh ? "▸" : "▾"}</span>
-                <span className="text-sm font-semibold text-foreground truncate flex-1">{unit.title}</span>
-              </button>
-              {!uh && unit.lessons?.map((lesson: any) => {
-                const lh = lCol.has(lesson.id); const secs = lesson.sections || [];
-                return (<div key={lesson.id}>
-                  <div className="group flex items-center gap-1.5 pl-4 pr-2 py-1.5 rounded-md hover:bg-accent/50">
-                    <input type="checkbox" className={`w-3.5 h-3.5 rounded cursor-pointer flex-shrink-0 transition-opacity ${secs.some((s: any) => checkedSections.has(s.id)) ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`} checked={secs.length > 0 && secs.every((s: any) => checkedSections.has(s.id))} onChange={() => checkLesson(lesson)} />
-                    <button onClick={() => toggleL(lesson.id)} className="text-sm text-foreground hover:text-primary truncate flex-1 text-left">{lesson.title}</button>
-                  </div>
-                  {!lh && secs.map((sec: any) => {
-                    const st = getSecStats(sec.id);
-                    return (
-                      <div key={sec.id} className="group flex items-center gap-1.5 pl-8 pr-2 py-1 rounded-md hover:bg-accent/50">
-                        <input type="checkbox" className={`w-3 h-3 rounded cursor-pointer flex-shrink-0 transition-opacity ${checkedSections.has(sec.id) ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`} checked={checkedSections.has(sec.id)} onChange={() => toggleCheckSection(sec.id)} />
-                        <button onClick={() => loadExBySec(sec.id, sec.title)} className={`text-sm truncate flex-1 text-left ${selSection === sec.id ? "text-primary font-medium" : "text-muted-foreground hover:text-foreground"}`}>{sec.title}</button>
-                        {st && st.pending > 0 && <span className="flex-shrink-0 px-1 py-0.5 rounded text-[9px] font-bold bg-red-100 text-red-700">{st.pending}</span>}
-                        {st && st.pending === 0 && st.answered > 0 && st.answered < st.total && <span className="text-[10px] text-amber-600 flex-shrink-0">{st.answered}/{st.total}</span>}
-                        {st && st.pending === 0 && st.answered >= st.total && st.total > 0 && <span className="w-2 h-2 rounded-full bg-emerald-400 flex-shrink-0" />}
-                        {st && st.answered === 0 && <span className="text-[10px] text-muted-foreground flex-shrink-0">{st.assigned}</span>}
-                      </div>
-                    );
-                  })}
-                </div>);
-              })}
-            </div>);
-          })}
-        </div>
+    <div className="flex flex-col h-[calc(100vh-57px)]">
+      <div className="flex-shrink-0 px-6 pt-6">
+        <ClassroomHeader classroom={classroom || {}} />
+        <ClassroomTabs basePath={`/teacher/classrooms/${id}`} tabs={TEACHER_TABS(sc)} />
+      </div>
+      <div className="flex flex-1 min-h-0 gap-4 px-6 pb-20">
+        {!sidebarOpen && (
+          <button onClick={() => setSidebarOpen(true)} className="flex-shrink-0 self-start w-8 h-8 flex items-center justify-center rounded-lg bg-muted hover:bg-accent text-muted-foreground hover:text-foreground transition-colors" title="Развернуть панель">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        )}
+        {sidebarOpen && (
+          <div className="w-1/4 min-w-[240px] max-w-[360px] flex-shrink-0 bg-muted rounded-xl p-4 overflow-y-auto">
+            <button onClick={() => setSidebarOpen(false)} className="w-full flex items-center justify-between mb-3 px-2 py-1.5 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground transition-colors" title="Свернуть панель">
+              <span className="text-xs font-semibold uppercase tracking-wide">Содержание</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <p className="text-xs text-muted-foreground mb-2 truncate" title={classroom?.course?.title}>{classroom?.course?.title}</p>
+            {classroom?.course?.units?.map((unit: any) => {
+              const uh = uCol.has(unit.id);
+              return (<div key={unit.id}>
+                <button onClick={() => toggleU(unit.id)} className="w-full text-left flex items-center gap-2 px-2 py-2 rounded-md hover:bg-accent" title={unit.title}>
+                  <span className="text-muted-foreground text-xs">{uh ? "▸" : "▾"}</span>
+                  <span className="text-sm font-semibold text-foreground truncate flex-1">{unit.title}</span>
+                </button>
+                {!uh && unit.lessons?.map((lesson: any) => {
+                  const lh = lCol.has(lesson.id); const secs = lesson.sections || [];
+                  return (<div key={lesson.id}>
+                    <div className="group flex items-center gap-1.5 pl-4 pr-2 py-1.5 rounded-md hover:bg-accent/50">
+                      <input type="checkbox" className={`w-3.5 h-3.5 rounded cursor-pointer flex-shrink-0 transition-opacity ${secs.some((s: any) => checkedSections.has(s.id)) ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`} checked={secs.length > 0 && secs.every((s: any) => checkedSections.has(s.id))} onChange={() => checkLesson(lesson)} />
+                      <button onClick={() => toggleL(lesson.id)} className="text-sm text-foreground hover:text-primary truncate flex-1 text-left" title={lesson.title}>{lesson.title}</button>
+                    </div>
+                    {!lh && secs.map((sec: any) => {
+                      const st = getSecStats(sec.id);
+                      return (
+                        <div key={sec.id} className="group flex items-center gap-1.5 pl-8 pr-2 py-1 rounded-md hover:bg-accent/50">
+                          <input type="checkbox" className={`w-3 h-3 rounded cursor-pointer flex-shrink-0 transition-opacity ${checkedSections.has(sec.id) ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`} checked={checkedSections.has(sec.id)} onChange={() => toggleCheckSection(sec.id)} />
+                          <button onClick={() => loadExBySec(sec.id, sec.title)} className={`text-sm truncate flex-1 text-left ${selSection === sec.id ? "text-primary font-medium" : "text-muted-foreground hover:text-foreground"}`} title={sec.title}>{sec.title}</button>
+                          {st && st.pending > 0 && <span className="flex-shrink-0 px-1 py-0.5 rounded text-[9px] font-bold bg-red-100 text-red-700">{st.pending}</span>}
+                          {st && st.pending === 0 && st.answered > 0 && st.answered < st.total && <span className="text-[10px] text-amber-600 flex-shrink-0">{st.answered}/{st.total}</span>}
+                          {st && st.pending === 0 && st.answered >= st.total && st.total > 0 && <span className="w-2 h-2 rounded-full bg-emerald-400 flex-shrink-0" />}
+                          {st && st.answered === 0 && <span className="text-[10px] text-muted-foreground flex-shrink-0">{st.assigned}</span>}
+                        </div>
+                      );
+                    })}
+                  </div>);
+                })}
+              </div>);
+            })}
+          </div>
+        )}
 
         {/* Exercises */}
-        <div className="flex-1 min-w-0 overflow-hidden">
+        <div className="flex-1 min-w-0 overflow-y-auto pr-4">
           {selSectionTitle && <h2 className="text-lg font-semibold text-foreground mb-4">{selSectionTitle}</h2>}
           {exLoading ? <div className="text-muted-foreground animate-pulse text-center py-12">Загрузка...</div> :
             exercises.length === 0 ? <p className="text-muted-foreground text-center py-12">Нет упражнений</p> :

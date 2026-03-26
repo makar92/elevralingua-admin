@@ -138,3 +138,27 @@ select:not(:disabled),
 [role="button"] {
     cursor: pointer;
 }
+
+/* Кастомный скроллбар — тонкий, в цветовой гамме приложения */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: oklch(0.75 0.015 305) transparent;
+}
+
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: oklch(0.75 0.015 305);
+    border-radius: 100px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: oklch(0.60 0.06 305);
+}
