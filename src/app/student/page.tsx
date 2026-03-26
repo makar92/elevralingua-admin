@@ -245,7 +245,7 @@ export default function StudentDashboard() {
               ) : (
                 <div className="space-y-3">
                   {selectedLogs.map((log: any) => (
-                    <div key={log.id} className="p-3 rounded-lg border border-border">
+                    <div key={log.id} className="p-3 rounded-lg border border-border bg-muted">
                       <div className="flex items-center gap-2 mb-1.5">
                         <span className={`w-2 h-2 rounded-full ${STATUS_COLORS[log.status]}`} />
                         <span className="text-xs font-medium text-muted-foreground uppercase">
@@ -284,7 +284,7 @@ export default function StudentDashboard() {
                 <div className="space-y-2.5">
                   {classrooms.map((c: any) => (
                     <Link key={c.id} href={`/student/classrooms/${c.id}`}
-                      className="flex items-center justify-between p-3 rounded-lg border border-border hover:bg-accent transition-colors">
+                      className="flex items-center justify-between p-3 rounded-lg border border-border bg-muted hover:bg-accent transition-colors">
                       <div className="flex items-center gap-3">
                         <Avatar className="h-9 w-9">
                           <AvatarImage src={c.teacher?.image} />
@@ -322,7 +322,7 @@ export default function StudentDashboard() {
                     const isUrgent = days !== null && days <= 2;
                     return (
                       <Link key={hw.id} href={`/student/classrooms/${hw.classroomId}/workbook`}
-                        className={`block p-3 rounded-lg border transition-colors hover:bg-accent ${
+                        className={`block p-3 rounded-lg border transition-colors hover:bg-accent bg-muted ${
                           isUrgent ? "border-red-200 bg-red-50/50" : "border-border"
                         }`}>
                         <div className="flex items-center justify-between">

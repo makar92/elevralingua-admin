@@ -99,7 +99,7 @@ export default function CreateClassroom() {
                       className={`text-left p-4 rounded-xl border-2 transition-all ${
                         isSelected
                           ? "border-primary bg-primary/5 shadow-sm"
-                          : "border-border hover:border-primary/30 hover:bg-accent/30"
+                          : "border-border bg-muted hover:border-primary/30 hover:bg-accent/50"
                       }`}
                     >
                       <div className="flex items-start justify-between gap-3">

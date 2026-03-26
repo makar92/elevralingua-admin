@@ -71,7 +71,7 @@ export function StudentsTab({ classroomId, enrollments, onUpdate }: { classroomI
               <div className="max-h-64 overflow-y-auto space-y-2">
                 {searching && <p className="text-sm text-muted-foreground">Поиск...</p>}
                 {sr.map((u: any) => (
-                  <div key={u.id} className="flex items-center justify-between p-2 rounded border border-border">
+                  <div key={u.id} className="flex items-center justify-between p-2 rounded border border-border bg-muted">
                     <div className="flex items-center gap-2">
                       <Avatar className="h-8 w-8">
                         <AvatarImage src={u.image} />
@@ -102,7 +102,7 @@ export function StudentsTab({ classroomId, enrollments, onUpdate }: { classroomI
       ) : (
         <div className="space-y-2">
           {enrollments.map((e: any) => (
-            <div key={e.id} className="flex items-center justify-between p-3 rounded-lg border border-border">
+            <div key={e.id} className="flex items-center justify-between p-3 rounded-lg border border-border bg-muted">
               <UserBadge user={e.student || {}} role="STUDENT" size="md" showStatus showRole />
               <button
                 onClick={() => removeStudent(e.id, e.student?.name || "ученика")}

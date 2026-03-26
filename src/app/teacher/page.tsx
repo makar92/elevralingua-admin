@@ -266,7 +266,7 @@ export default function TeacherDashboard() {
                 <div className="space-y-3">
                   {selectedLogs.map((log: any) => (
                     <Link key={log.id} href={`/teacher/classrooms/${log.classroomId}/journal`}
-                      className="block p-3 rounded-lg border border-border hover:bg-accent transition-colors">
+                      className="block p-3 rounded-lg border border-border bg-muted hover:bg-accent transition-colors">
                       <div className="flex items-center gap-2 mb-1.5">
                         <span className={`w-2 h-2 rounded-full ${STATUS_COLORS[log.status]}`} />
                         <span className="text-xs font-medium text-muted-foreground uppercase">
@@ -317,7 +317,7 @@ export default function TeacherDashboard() {
 
                     return (
                       <Link key={c.id} href={`/teacher/classrooms/${c.id}`}
-                        className="flex items-center gap-4 p-3 rounded-lg border border-border hover:bg-accent transition-colors">
+                        className="flex items-center gap-4 p-3 rounded-lg border border-border bg-muted hover:bg-accent transition-colors">
                         <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0"><HugeiconsIcon icon={BookOpen01Icon} size={20} className="text-primary" /></div>
                         <div className="flex-1 min-w-0">
                           <p className="font-medium text-sm text-foreground">{c.name}</p>
@@ -360,7 +360,7 @@ export default function TeacherDashboard() {
                   {pending.slice(0, 8).map((p: any) => (
                     <Link key={p.id}
                       href={`/teacher/classrooms/${p.homework?.classroomId}/workbook`}
-                      className="flex items-center gap-2.5 p-2.5 rounded-lg border border-border hover:bg-accent transition-colors">
+                      className="flex items-center gap-2.5 p-2.5 rounded-lg border border-border bg-muted hover:bg-accent transition-colors">
                       <Avatar className="h-7 w-7 flex-shrink-0">
                         <AvatarImage src={p.student?.image} />
                         <AvatarFallback className="text-[10px] bg-blue-100 text-blue-700">{p.student?.name?.[0]}</AvatarFallback>

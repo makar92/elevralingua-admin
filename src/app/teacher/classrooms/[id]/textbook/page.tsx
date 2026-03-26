@@ -135,13 +135,13 @@ export default function TeacherTextbook() {
       <ClassroomHeader classroom={classroom||{}}/>
       <ClassroomTabs basePath={`/teacher/classrooms/${id}`} tabs={TEACHER_TABS(sc)}/>
       <div className="flex gap-6">
-        <div className="w-80 flex-shrink-0 border-r border-border pr-4 max-h-[calc(100vh-200px)] overflow-y-auto">
+        <div className="w-80 flex-shrink-0 bg-muted rounded-xl p-4 max-h-[calc(100vh-200px)] overflow-y-auto">
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">{classroom?.course?.title}</p>
           {classroom?.course?.units?.map((unit:any)=>{
             const uh=uCol.has(unit.id);
             const up=getUnitProgress(unit);
             return(<div key={unit.id}>
-              <button onClick={()=>toggleU(unit.id)} className="w-full text-left flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-accent">
+              <button onClick={()=>toggleU(unit.id)} className="w-full text-left flex items-center gap-2 px-2 py-2 rounded-md hover:bg-accent">
                 <span className="text-muted-foreground text-xs">{uh?"▸":"▾"}</span>
                 <span className="text-sm font-semibold text-foreground truncate flex-1">{unit.title}</span>
                 {up&&<span className="text-[10px] text-muted-foreground flex-shrink-0">{up.completed}/{up.total}</span>}
@@ -150,16 +150,16 @@ export default function TeacherTextbook() {
                 const lh=lCol.has(lesson.id); const secs=lesson.sections||[];
                 const lp=getLessonProgress(lesson);
                 return(<div key={lesson.id}>
-                  <div className="flex items-center gap-1 pl-4 pr-2 py-1">
-                    <input type="checkbox" className="w-3.5 h-3.5 rounded cursor-pointer flex-shrink-0" checked={secs.length>0&&secs.every((s:any)=>checked.has(s.id))} onChange={()=>checkLesson(lesson)}/>
+                  <div className="group flex items-center gap-1.5 pl-4 pr-2 py-1.5 rounded-md hover:bg-accent/50">
+                    <input type="checkbox" className={`w-3.5 h-3.5 rounded cursor-pointer flex-shrink-0 transition-opacity ${secs.some((s:any)=>checked.has(s.id)) ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`} checked={secs.length>0&&secs.every((s:any)=>checked.has(s.id))} onChange={()=>checkLesson(lesson)}/>
                     <button onClick={()=>toggleL(lesson.id)} className="text-sm text-foreground hover:text-primary truncate flex-1 text-left">{lesson.title}</button>
                     {lp&&<span className={`text-[10px] flex-shrink-0 ${lp.completed===lp.total?"text-emerald-600 font-semibold":"text-muted-foreground"}`}>{lp.completed}/{lp.total}</span>}
                   </div>
                   {!lh&&secs.map((sec:any)=>{
                     const st=getSecStatus(sec.id); const isOpen=openIds.has(sec.id);
-                    return(<div key={sec.id} className="flex items-center gap-1 pl-8 pr-2 py-0.5">
-                      <input type="checkbox" className="w-3 h-3 rounded cursor-pointer flex-shrink-0" checked={checked.has(sec.id)} onChange={()=>toggleCheck(sec.id)}/>
-                      <button onClick={()=>loadSec(sec.id,sec.title)} className={`text-xs truncate flex-1 text-left ${selSec===sec.id?"text-primary font-medium":"text-muted-foreground hover:text-foreground"}`}>{sec.title}</button>
+                    return(<div key={sec.id} className="group flex items-center gap-1.5 pl-8 pr-2 py-1 rounded-md hover:bg-accent/50">
+                      <input type="checkbox" className={`w-3 h-3 rounded cursor-pointer flex-shrink-0 transition-opacity ${checked.has(sec.id) ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`} checked={checked.has(sec.id)} onChange={()=>toggleCheck(sec.id)}/>
+                      <button onClick={()=>loadSec(sec.id,sec.title)} className={`text-sm truncate flex-1 text-left ${selSec===sec.id?"text-primary font-medium":"text-muted-foreground hover:text-foreground"}`}>{sec.title}</button>
                       {isOpen&&!st&&<span className="w-2 h-2 rounded-full bg-gray-300 flex-shrink-0" title="Открыто"/>}
                       {st&&st.questions>0&&<span className="w-2 h-2 rounded-full bg-amber-400 flex-shrink-0" title={`${st.questions} вопросов`}/>}
                       {st&&st.questions===0&&st.assigned>0&&<span className="w-2 h-2 rounded-full bg-red-400 flex-shrink-0" title={`${st.assigned} не изучили`}/>}

@@ -72,7 +72,7 @@ export default function TeacherInvitations() {
           {items.map((inv: any) => {
             const person = tab === "sent" ? inv.receiver : inv.sender;
             return (
-              <div key={inv.id} className="flex items-center justify-between p-4 rounded-lg border border-border">
+              <div key={inv.id} className="flex items-center justify-between p-4 rounded-lg border border-border bg-muted">
                 <div className="flex items-center gap-3">
                   <Avatar className="h-9 w-9">
                     <AvatarImage src={person?.image} />

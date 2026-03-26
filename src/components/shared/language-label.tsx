@@ -147,7 +147,7 @@ export function LanguageLabel({ code, size = "md", showName = true, className = 
   const s = sizeConfig[size];
 
   return (
-    <span className={`inline-flex items-center ${s.gap} ${s.px} rounded-full bg-accent/80 border border-border/50 ${className}`}>
+    <span className={`inline-flex items-center ${s.gap} ${s.px} rounded-full bg-primary/8 border border-primary/15 ${className}`}>
       <FlagSVG code={lang.code} w={s.w} h={s.h} />
       {showName && (
         <span className={`${s.text} font-medium text-foreground`}>{lang.name}</span>

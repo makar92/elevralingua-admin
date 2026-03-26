@@ -58,7 +58,7 @@ export default function StudentSearch() {
 
       <div className="space-y-3">
         {results.map((c: any) => (
-          <div key={c.id} className="flex items-center justify-between p-4 rounded-lg border border-border">
+          <div key={c.id} className="flex items-center justify-between p-4 rounded-lg border border-border bg-muted">
             <div className="flex items-center gap-3">
               <Avatar className="h-10 w-10">
                 <AvatarImage src={c.teacher?.image} />

@@ -283,7 +283,7 @@ function TonePlacementPreview({ content, mode, exercise, onSubmit, disabled, sav
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap gap-8 justify-center px-4 py-6 bg-muted/40 rounded-2xl border border-border">
+      <div className="flex flex-wrap gap-8 justify-center px-4 py-6 bg-muted rounded-2xl border border-border">
         {characters.map((char:any,ci:number)=>{const pChars=(char.pinyin||"").split("");let vc=0;return(
           <div key={ci} className="flex flex-col items-center gap-2"><div className="flex items-end gap-0.5">
             {pChars.map((ch:string,li:number)=>{if(!VOWELS.includes(ch))return<span key={li} className="text-lg text-muted-foreground leading-none pb-0.5">{ch}</span>;
@@ -312,7 +312,7 @@ function WritePinyinPreview({ content, mode, onSubmit, disabled, savedAnswer }: 
   const [editing, setEditing] = useState<number|null>(null);
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap gap-8 justify-center px-4 py-6 bg-muted/40 rounded-2xl border border-border">
+      <div className="flex flex-wrap gap-8 justify-center px-4 py-6 bg-muted rounded-2xl border border-border">
         {characters.map((char:any,idx:number)=>(<div key={idx} className="flex flex-col items-center gap-2">
           {editing===idx&&!disabled?(<input autoFocus value={answers[idx]||""} onChange={e=>setAnswers(p=>({...p,[idx]:e.target.value}))} onBlur={()=>setEditing(null)} onKeyDown={e=>e.key==="Enter"&&setEditing(null)} className="w-20 h-8 text-sm text-center border-b-2 border-primary bg-transparent outline-none text-foreground" placeholder="pīnyīn"/>
           ):(<button onClick={()=>!disabled&&setEditing(idx)} className={`h-8 min-w-[60px] px-2 rounded-lg border-2 border-dashed text-sm transition-all ${disabled?(answers[idx]?"border-muted-foreground/40 text-foreground bg-muted/50":"border-border text-muted-foreground"):answers[idx]?"border-primary/40 text-foreground bg-primary/5":"border-border text-muted-foreground hover:border-primary/60"}`}>{answers[idx]||"···"}</button>)}

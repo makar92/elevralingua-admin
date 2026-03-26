@@ -70,12 +70,12 @@ export default function TeacherBank() {
       <ClassroomHeader classroom={classroom || {}} />
       <ClassroomTabs basePath={`/teacher/classrooms/${id}`} tabs={TEACHER_TABS(sc)} />
       <div className="flex gap-6">
-        <div className="w-80 flex-shrink-0 border-r border-border pr-4 max-h-[calc(100vh-200px)] overflow-y-auto">
+        <div className="w-80 flex-shrink-0 bg-muted rounded-xl p-4 max-h-[calc(100vh-200px)] overflow-y-auto">
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Банк упражнений</p>
           {classroom?.course?.units?.map((unit: any) => {
             const uh = uCol.has(unit.id);
             return (<div key={unit.id}>
-              <button onClick={() => toggleU(unit.id)} className="w-full text-left flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-accent">
+              <button onClick={() => toggleU(unit.id)} className="w-full text-left flex items-center gap-2 px-2 py-2 rounded-md hover:bg-accent">
                 <span className="text-muted-foreground text-xs">{uh ? "▸" : "▾"}</span>
                 <span className="text-sm font-semibold text-foreground truncate">{unit.title}</span>
               </button>
@@ -88,7 +88,7 @@ export default function TeacherBank() {
                   </button>
                   {!lh && secs.map((sec: any) => (
                     <button key={sec.id} onClick={() => loadBank(sec.id, sec.title)}
-                      className={`w-full text-left pl-10 pr-2 py-0.5 rounded-md text-xs transition-colors truncate ${selSection === sec.id ? "bg-primary/10 text-primary font-medium" : "text-muted-foreground hover:text-foreground hover:bg-accent"}`}>
+                      className={`w-full text-left pl-10 pr-2 py-1 rounded-md text-sm transition-colors truncate ${selSection === sec.id ? "bg-primary/10 text-primary font-medium" : "text-muted-foreground hover:text-foreground hover:bg-accent"}`}>
                       {sec.title}
                     </button>
                   ))}

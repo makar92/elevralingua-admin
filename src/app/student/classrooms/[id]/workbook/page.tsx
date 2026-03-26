@@ -132,19 +132,19 @@ export default function StudentWorkbook() {
       ) : (
         <div className="flex gap-6">
           {/* Sidebar */}
-          <div className="w-72 flex-shrink-0 border-r border-border pr-4 max-h-[calc(100vh-200px)] overflow-y-auto">
+          <div className="w-80 flex-shrink-0 bg-muted rounded-xl p-4 max-h-[calc(100vh-200px)] overflow-y-auto">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">{classroom?.course?.title}</p>
             {filtered.map((u: any) => {
               const uh = uCol.has(u.id);
               return (<div key={u.id}>
-                <button onClick={() => toggleU(u.id)} className="w-full text-left flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-accent">
+                <button onClick={() => toggleU(u.id)} className="w-full text-left flex items-center gap-2 px-2 py-2 rounded-md hover:bg-accent">
                   <span className="text-muted-foreground text-xs">{uh ? "▸" : "▾"}</span>
                   <span className="text-sm font-semibold text-foreground truncate flex-1">{u.title}</span>
                 </button>
                 {!uh && u.lessons.map((l: any) => {
                   const lh = lCol.has(l.id);
                   return (<div key={l.id}>
-                    <button onClick={() => toggleL(l.id)} className="w-full text-left pl-5 pr-2 py-1 text-sm text-foreground hover:bg-accent flex items-center gap-1.5">
+                    <button onClick={() => toggleL(l.id)} className="w-full text-left pl-5 pr-2 py-1.5 text-sm text-foreground hover:bg-accent/50 rounded-md flex items-center gap-1.5">
                       <span className="text-muted-foreground text-[10px]">{lh ? "▸" : "▾"}</span>
                       <span className="truncate font-medium flex-1">{l.title}</span>
                     </button>
@@ -152,7 +152,7 @@ export default function StudentWorkbook() {
                       const st = getSecAnswerStats(s.id);
                       return (
                         <button key={s.id} onClick={() => loadExBySec(s.id, s.title)}
-                          className={`w-full text-left pl-10 pr-2 py-0.5 rounded-md text-xs transition-colors truncate flex items-center gap-1 ${selSection === s.id ? "bg-primary/10 text-primary font-medium" : "text-muted-foreground hover:text-foreground hover:bg-accent"}`}>
+                          className={`w-full text-left pl-10 pr-2 py-1 rounded-md text-sm transition-colors truncate flex items-center gap-1 ${selSection === s.id ? "bg-primary/10 text-primary font-medium" : "text-muted-foreground hover:text-foreground hover:bg-accent/50"}`}>
                           <span className="truncate flex-1">{s.title}</span>
                           {st && st.answered === st.total && st.total > 0 && (
                             <span className="w-2 h-2 rounded-full bg-emerald-400 flex-shrink-0" />

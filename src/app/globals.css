@@ -13,12 +13,12 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-    /* Фон: тёплый светло-серый */
-    --background: oklch(0.955 0.006 300);
+    /* Фон страницы: светлый */
+    --background: oklch(0.97 0.004 300);
     /* Текст: тёмный с лёгким тёплым оттенком */
     --foreground: oklch(0.15 0.01 300);
 
-    /* Карточки: чисто белые */
+    /* Карточки: чисто белые (контраст с фоном) */
     --card: oklch(1.0 0 0);
     --card-foreground: oklch(0.15 0.01 300);
 
@@ -30,24 +30,24 @@
     --primary: oklch(0.45 0.20 305);
     --primary-foreground: oklch(0.98 0 0);
 
-    /* Вторичные: тёплый серый */
-    --secondary: oklch(0.94 0.008 300);
+    /* Вторичные */
+    --secondary: oklch(0.92 0.008 300);
     --secondary-foreground: oklch(0.25 0.01 300);
 
-    /* Приглушённые */
-    --muted: oklch(0.95 0.006 300);
+    /* Приглушённые: заметно темнее фона */
+    --muted: oklch(0.91 0.008 300);
     --muted-foreground: oklch(0.45 0.015 300);
 
-    /* Акцент (hover): лёгкий фиолетовый оттенок */
-    --accent: oklch(0.94 0.012 300);
+    /* Акцент (hover): между muted и card */
+    --accent: oklch(0.93 0.010 300);
     --accent-foreground: oklch(0.15 0.01 300);
 
     /* Деструктивный */
     --destructive: oklch(0.55 0.22 25);
 
-    /* Границы: тёплые */
-    --border: oklch(0.88 0.008 300);
-    --input: oklch(0.90 0.008 300);
+    /* Границы */
+    --border: oklch(0.86 0.008 300);
+    --input: oklch(0.88 0.008 300);
     --ring: oklch(0.45 0.20 305);
 
     /* Графики */
@@ -60,13 +60,13 @@
     --radius: 0.5rem;
 
     /* Сайдбар */
-    --sidebar: oklch(0.97 0.006 300);
+    --sidebar: oklch(0.93 0.006 300);
     --sidebar-foreground: oklch(0.15 0.01 300);
     --sidebar-primary: oklch(0.45 0.20 305);
     --sidebar-primary-foreground: oklch(0.98 0 0);
-    --sidebar-accent: oklch(0.94 0.012 300);
+    --sidebar-accent: oklch(0.90 0.010 300);
     --sidebar-accent-foreground: oklch(0.15 0.01 300);
-    --sidebar-border: oklch(0.88 0.008 300);
+    --sidebar-border: oklch(0.86 0.008 300);
     --sidebar-ring: oklch(0.45 0.20 305);
 }
 
