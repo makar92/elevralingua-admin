@@ -8,7 +8,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,7 +18,6 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { TeacherIcon, StudentIcon } from "@hugeicons/core-free-icons";
 
 export default function ChooseRolePage() {
-  const router = useRouter();
   const [step, setStep] = useState<"role" | "teacher-details">("role");
   const [loading, setLoading] = useState(false);
   const [language, setLanguage] = useState("");
