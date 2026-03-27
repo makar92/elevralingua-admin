@@ -44,12 +44,20 @@ export function Logo({ height = 40, showSlogan = true, className = "" }: LogoPro
       <LogoIcon size={height} />
       {/* Название + слоган */}
       <div className="flex flex-col justify-center leading-none min-w-0">
-        <span
-          className="font-bold tracking-tight"
-          style={{ fontSize: nameSize, lineHeight: 1.15 }}
-        >
-          ElevraLingua
-        </span>
+        <div className="flex items-center gap-1.5">
+          <span
+            className="font-bold tracking-tight"
+            style={{ fontSize: nameSize, lineHeight: 1.15 }}
+          >
+            ElevraLingua
+          </span>
+          <span
+            className="inline-flex items-center rounded-md bg-primary/15 text-primary font-bold uppercase tracking-wider flex-shrink-0"
+            style={{ fontSize: Math.max(8, nameSize * 0.45), padding: `${Math.max(1, nameSize * 0.08)}px ${Math.max(3, nameSize * 0.2)}px`, lineHeight: 1.3 }}
+          >
+            beta
+          </span>
+        </div>
         {showSlogan && (
           <span
             className="font-medium tracking-wide opacity-70"

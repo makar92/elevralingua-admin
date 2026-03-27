@@ -1,17 +1,24 @@
 // ===========================================
 // Файл: src/app/page.tsx
-// Описание: Корневая страница. Редирект по роли.
+// Описание: Корневая страница. Читает роль из БД и редиректит.
 // ===========================================
 
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 
 export default async function Home() {
   const session = await auth();
-  if (!session) redirect("/login");
+  if (!session?.user?.id) redirect("/login");
 
-  const role = (session.user as any).role;
-  if (role === "TEACHER") redirect("/teacher");
-  if (role === "STUDENT") redirect("/student");
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { role: true },
+  });
+  if (!user) redirect("/login");
+
+  if (user.role === "PENDING") redirect("/choose-role");
+  if (user.role === "TEACHER") redirect("/teacher");
+  if (user.role === "STUDENT") redirect("/student");
   redirect("/dashboard");
 }

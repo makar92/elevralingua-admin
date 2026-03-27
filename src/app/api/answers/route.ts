@@ -5,7 +5,7 @@
 //   PATCH — учитель ставит оценку (A-F).
 // ===========================================
 
-import { auth } from "@/lib/auth";
+import { getAuthUser } from "@/lib/api-helpers";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
@@ -18,17 +18,16 @@ function percentToGrade(percent: number): string {
 }
 
 export async function POST(req: Request) {
-  const session = await auth();
-  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const user = await getAuthUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { exerciseId, homeworkId, answersJson, classroomId } = await req.json();
 
   const exercise = await prisma.exercise.findUnique({ where: { id: exerciseId } });
   if (!exercise) return NextResponse.json({ error: "Exercise not found" }, { status: 404 });
 
-  // Считаем попытки в рамках ЭТОГО класса
   const prevAttempts = await prisma.exerciseAnswer.count({
-    where: { exerciseId, studentId: session.user.id, classroomId: classroomId || undefined },
+    where: { exerciseId, studentId: user.id, classroomId: classroomId || undefined },
   });
 
   let status: "PENDING" | "AUTO_GRADED" = "PENDING";
@@ -51,7 +50,7 @@ export async function POST(req: Request) {
   const answer = await prisma.exerciseAnswer.create({
     data: {
       exerciseId,
-      studentId: session.user.id,
+      studentId: user.id,
       classroomId: classroomId || undefined,
       homeworkId,
       answersJson,
@@ -69,18 +68,17 @@ export async function POST(req: Request) {
 }
 
 export async function GET(req: Request) {
-  const session = await auth();
-  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const user = await getAuthUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const url = new URL(req.url);
   const exerciseId = url.searchParams.get("exerciseId");
   const homeworkId = url.searchParams.get("homeworkId");
   const classroomId = url.searchParams.get("classroomId");
 
-  const where: any = { studentId: session.user.id };
+  const where: any = { studentId: user.id };
   if (exerciseId) where.exerciseId = exerciseId;
   if (homeworkId) where.homeworkId = homeworkId;
-  // Фильтр по classroomId напрямую — не через цепочку course
   if (classroomId) where.classroomId = classroomId;
 
   const answers = await prisma.exerciseAnswer.findMany({
@@ -93,11 +91,10 @@ export async function GET(req: Request) {
 }
 
 export async function PATCH(req: Request) {
-  const session = await auth();
-  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const user = await getAuthUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const user = await prisma.user.findUnique({ where: { id: session.user.id } });
-  if (!user || user.role !== "TEACHER") {
+  if (user.role !== "TEACHER") {
     return NextResponse.json({ error: "Only teachers can grade answers" }, { status: 403 });
   }
 
@@ -110,7 +107,7 @@ export async function PATCH(req: Request) {
       grade: grade || undefined,
       teacherComment: teacherComment ?? undefined,
       status: "GRADED",
-      gradedBy: session.user.id,
+      gradedBy: user.id,
     },
   });
 

@@ -69,13 +69,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         let dbUser = await prisma.user.findUnique({ where: { email } });
 
         if (!dbUser) {
-          // Новый пользователь через Google — создаём как STUDENT (роль выберет при онбординге)
+          // Новый пользователь через Google — создаём с ролью PENDING (выберет на /choose-role)
           dbUser = await prisma.user.create({
             data: {
               email,
               name: user.name || email.split("@")[0],
               image: user.image,
-              role: "STUDENT",
+              role: "PENDING",
             },
           });
         } else {

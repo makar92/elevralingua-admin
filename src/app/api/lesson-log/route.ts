@@ -3,14 +3,14 @@
 // Описание: GET список занятий журнала, POST создание нового.
 // ===========================================
 
-import { auth } from "@/lib/auth";
+import { getAuthUser } from "@/lib/api-helpers";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 export async function GET(req: Request) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) return NextResponse.json([], { status: 200 });
+    const user = await getAuthUser();
+    if (!user) return NextResponse.json([], { status: 200 });
 
     const url = new URL(req.url);
     const classroomId = url.searchParams.get("classroomId");
@@ -23,12 +23,11 @@ export async function GET(req: Request) {
       where.classroomId = classroomId;
     } else {
       // Без classroomId — все классы текущего пользователя (для дашборда)
-      const role = (session.user as any).role;
-      if (role === "TEACHER") {
-        where.classroom = { teacherId: session.user.id };
-      } else if (role === "STUDENT") {
+      if (user.role === "TEACHER") {
+        where.classroom = { teacherId: user.id };
+      } else if (user.role === "STUDENT") {
         where.classroom = {
-          enrollments: { some: { studentId: session.user.id, status: "ACTIVE" } },
+          enrollments: { some: { studentId: user.id, status: "ACTIVE" } },
         };
       } else {
         return NextResponse.json([], { status: 200 });
@@ -87,8 +86,8 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const user = await getAuthUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { classroomId, date, startTime, endTime, location, status } = await req.json();
 

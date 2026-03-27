@@ -3,16 +3,14 @@
 // Описание: GET список classrooms, POST создание нового.
 // ===========================================
 
-import { auth } from "@/lib/auth";
+import { getAuthUser } from "@/lib/api-helpers";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 export async function GET(req: Request) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-    const role = (session.user as any).role;
+    const user = await getAuthUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     // Общий include для всех ролей
     const now = new Date();
@@ -37,16 +35,16 @@ export async function GET(req: Request) {
 
     let classrooms;
 
-    if (role === "TEACHER") {
+    if (user.role === "TEACHER") {
       classrooms = await prisma.classroom.findMany({
-        where: { teacherId: session.user.id },
+        where: { teacherId: user.id },
         include: commonInclude,
         orderBy: { updatedAt: "desc" },
       });
-    } else if (role === "STUDENT") {
+    } else if (user.role === "STUDENT") {
       classrooms = await prisma.classroom.findMany({
         where: {
-          enrollments: { some: { studentId: session.user.id, status: "ACTIVE" } },
+          enrollments: { some: { studentId: user.id, status: "ACTIVE" } },
         },
         include: commonInclude,
         orderBy: { updatedAt: "desc" },
@@ -67,9 +65,9 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    if ((session.user as any).role !== "TEACHER") {
+    const user = await getAuthUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (user.role !== "TEACHER") {
       return NextResponse.json({ error: "Only teachers can create classrooms" }, { status: 403 });
     }
 
@@ -79,26 +77,17 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Name and course are required" }, { status: 400 });
     }
 
-    // Проверяем что курс существует
     const course = await prisma.course.findUnique({ where: { id: courseId } });
     if (!course) {
       return NextResponse.json({ error: "Курс не найден. Попробуйте выбрать другой." }, { status: 400 });
     }
-
-    // Проверяем что учитель существует в БД (ID мог устареть после сброса БД)
-    const teacher = await prisma.user.findUnique({ where: { id: session.user.id } });
-    if (!teacher) {
-      return NextResponse.json({ error: "Ваш аккаунт не найден. Выйдите и войдите заново." }, { status: 400 });
-    }
-
-    console.log("[POST /api/classrooms] Creating:", { name, courseId, teacherId: session.user.id });
 
     const classroom = await prisma.classroom.create({
       data: {
         name,
         courseId,
         description,
-        teacherId: session.user.id,
+        teacherId: user.id,
       },
     });
 

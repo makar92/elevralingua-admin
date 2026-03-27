@@ -1,8 +1,9 @@
 // ===========================================
 // Файл: src/app/login/page.tsx
 // Описание: Страница входа.
-//   Демо-аккаунты — основной способ входа.
-//   Google OAuth — для желающих тестировать на своём аккаунте.
+//   Демо-аккаунты (учитель + ученик) для ознакомления.
+//   Google OAuth для регистрации новых пользователей.
+//   Админ-доступ — только по запросу.
 // ===========================================
 
 "use client";
@@ -11,10 +12,10 @@ import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardDescription } from "@/components/ui/card";
 import { Logo } from "@/components/shared/logo";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { TeacherIcon, StudentIcon, Settings01Icon } from "@hugeicons/core-free-icons";
+import { TeacherIcon, StudentIcon } from "@hugeicons/core-free-icons";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -91,21 +92,6 @@ export default function LoginPage() {
                   </div>
                   <span className="text-blue-500 text-lg flex-shrink-0">→</span>
                 </button>
-
-                <button
-                  onClick={() => quickLogin("ksenia@elevralingua.com", "admin123", "admin")}
-                  disabled={loading !== null}
-                  className="w-full flex items-center gap-4 p-3.5 rounded-xl border-2 border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                >
-                  <div className="w-11 h-11 rounded-xl bg-gray-100 flex items-center justify-center flex-shrink-0"><HugeiconsIcon icon={Settings01Icon} size={24} className="text-gray-600" /></div>
-                  <div className="text-left flex-1">
-                    <p className="text-sm font-semibold text-foreground">
-                      {loading === "admin" ? "Входим..." : "Войти как Админ"}
-                    </p>
-                    <p className="text-xs text-muted-foreground">Ксения — конструктор курсов, roadmap</p>
-                  </div>
-                  <span className="text-gray-400 text-lg flex-shrink-0">→</span>
-                </button>
               </div>
             </div>
 
@@ -113,7 +99,7 @@ export default function LoginPage() {
               <div className="text-sm text-red-600 bg-red-500/10 px-3 py-2 rounded-lg text-center">{error}</div>
             )}
 
-            {/* === Google — вторичный способ === */}
+            {/* === Google OAuth === */}
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <span className="w-full border-t border-border" />
@@ -136,8 +122,13 @@ export default function LoginPage() {
               </svg>
               Войти через Google
             </Button>
-            <p className="text-[11px] text-muted-foreground text-center">
-              Новые пользователи могут зарегистрироваться через Google
+
+            {/* === Admin contact === */}
+            <p className="text-sm text-muted-foreground text-center pt-3 border-t border-border">
+              Для доступа к админ-панели обращайтесь:{" "}
+              <a href="mailto:mkrvpvl92@gmail.com" className="text-primary hover:underline font-medium">
+                mkrvpvl92@gmail.com
+              </a>
             </p>
           </CardContent>
         </Card>

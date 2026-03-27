@@ -6,7 +6,7 @@
 //   DELETE удаляет слот и будущие SCHEDULED записи.
 // ===========================================
 
-import { auth } from "@/lib/auth";
+import { getAuthUser } from "@/lib/api-helpers";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
@@ -29,8 +29,8 @@ function generateDates(dayOfWeek: number, weeksAhead: number = 4): Date[] {
 }
 
 export async function GET(req: Request) {
-  const session = await auth();
-  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const user = await getAuthUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const url = new URL(req.url);
   const classroomId = url.searchParams.get("classroomId");
@@ -40,12 +40,11 @@ export async function GET(req: Request) {
   if (classroomId) {
     where.classroomId = classroomId;
   } else {
-    const role = (session.user as any).role;
-    if (role === "TEACHER") {
-      where.classroom = { teacherId: session.user.id };
-    } else if (role === "STUDENT") {
+    if (user.role === "TEACHER") {
+      where.classroom = { teacherId: user.id };
+    } else if (user.role === "STUDENT") {
       where.classroom = {
-        enrollments: { some: { studentId: session.user.id, status: "ACTIVE" } },
+        enrollments: { some: { studentId: user.id, status: "ACTIVE" } },
       };
     }
   }
@@ -60,8 +59,8 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const session = await auth();
-  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const user = await getAuthUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { classroomId, dayOfWeek, startTime, endTime, location } = await req.json();
 

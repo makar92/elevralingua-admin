@@ -1,23 +1,22 @@
-import { auth } from "@/lib/auth";
+import { getAuthUser } from "@/lib/api-helpers";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 export async function GET(req: Request) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) return NextResponse.json([], { status: 200 });
+    const user = await getAuthUser();
+    if (!user) return NextResponse.json([], { status: 200 });
     const url = new URL(req.url);
     const classroomId = url.searchParams.get("classroomId");
     if (!classroomId) return NextResponse.json([], { status: 200 });
 
-    const role = (session.user as any).role;
     const where: any = { classroomId };
 
     const assignments = await prisma.studyAssignment.findMany({
       where,
       include: {
         students: {
-          ...(role === "STUDENT" ? { where: { studentId: session.user.id } } : {}),
+          ...(user.role === "STUDENT" ? { where: { studentId: user.id } } : {}),
           include: { student: { select: { id: true, name: true, image: true } } },
         },
         section: { select: { id: true, title: true, lessonId: true } },
@@ -33,8 +32,8 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const user = await getAuthUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     const { classroomId, sectionIds, studentIds, type } = await req.json();
     if (!classroomId || !sectionIds?.length) return NextResponse.json({ error: "Missing fields" }, { status: 400 });
 
@@ -53,14 +52,14 @@ export async function POST(req: Request) {
           await prisma.sectionVisibility.upsert({
             where: { sectionId_classroomId_studentId: { sectionId, classroomId, studentId: sid } },
             update: {},
-            create: { sectionId, classroomId, studentId: sid, openedBy: session.user.id },
+            create: { sectionId, classroomId, studentId: sid, openedBy: user.id },
           });
         }
       } catch {}
 
       const assignment = await prisma.studyAssignment.create({
         data: {
-          sectionId, classroomId, assignedBy: session.user.id, type: type || "HOMEWORK",
+          sectionId, classroomId, assignedBy: user.id, type: type || "HOMEWORK",
           students: { create: targetIds.map((sid: string) => ({ studentId: sid })) },
         },
       });
@@ -75,8 +74,8 @@ export async function POST(req: Request) {
 
 export async function PATCH(req: Request) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const user = await getAuthUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     const { assignmentStudentId, status, grade, comment } = await req.json();
     if (!assignmentStudentId) return NextResponse.json({ error: "Missing id" }, { status: 400 });
 

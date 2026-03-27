@@ -1,19 +1,18 @@
-import { auth } from "@/lib/auth";
+import { getAuthUser } from "@/lib/api-helpers";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 export async function GET(req: Request) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) return NextResponse.json([], { status: 200 });
+    const user = await getAuthUser();
+    if (!user) return NextResponse.json([], { status: 200 });
     const url = new URL(req.url);
     const classroomId = url.searchParams.get("classroomId");
     if (!classroomId) return NextResponse.json([], { status: 200 });
 
-    const role = (session.user as any).role;
     const where: any = { classroomId };
-    if (role === "STUDENT") {
-      where.OR = [{ studentId: "_ALL_" }, { studentId: session.user.id }];
+    if (user.role === "STUDENT") {
+      where.OR = [{ studentId: "_ALL_" }, { studentId: user.id }];
     }
     const records = await prisma.sectionVisibility.findMany({ where, select: { id: true, sectionId: true, studentId: true } });
     return NextResponse.json(records);
@@ -25,8 +24,8 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const user = await getAuthUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     const { classroomId, sectionIds, studentIds } = await req.json();
     if (!classroomId || !sectionIds?.length) return NextResponse.json({ error: "Missing fields" }, { status: 400 });
 
@@ -38,7 +37,7 @@ export async function POST(req: Request) {
           await prisma.sectionVisibility.upsert({
             where: { sectionId_classroomId_studentId: { sectionId, classroomId, studentId } },
             update: {},
-            create: { sectionId, classroomId, studentId, openedBy: session.user.id },
+            create: { sectionId, classroomId, studentId, openedBy: user.id },
           });
           count++;
         } catch {}

@@ -26,6 +26,14 @@ const navItems = [
 export function TeacherNav({ user }: { user: any }) {
   const pathname = usePathname();
   const [pendingInvCount, setPendingInvCount] = useState(0);
+  const [showDelete, setShowDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDeleteAccount = async () => {
+    setDeleting(true);
+    await fetch("/api/auth/set-role", { method: "DELETE" });
+    signOut({ callbackUrl: "/login" });
+  };
 
   useEffect(() => {
     fetch("/api/invitations?direction=received&type=STUDENT_REQUESTS")
@@ -77,6 +85,31 @@ export function TeacherNav({ user }: { user: any }) {
               className="text-red-600 focus:text-red-600 cursor-pointer">
               Sign out
             </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            {!["sarah.chen@demo.com", "emma.wilson@demo.com", "ksenia@elevralingua.com"].includes(user.email) && (
+              <>
+                {!showDelete ? (
+                  <DropdownMenuItem onClick={(e) => { e.preventDefault(); setShowDelete(true); }}
+                    className="text-muted-foreground text-xs cursor-pointer">
+                    Delete account
+                  </DropdownMenuItem>
+                ) : (
+                  <div className="px-2 py-2 space-y-2">
+                    <p className="text-xs text-red-600">Delete account permanently?</p>
+                    <div className="flex gap-1">
+                      <button onClick={handleDeleteAccount} disabled={deleting}
+                        className="text-xs px-2 py-1 rounded bg-red-600 text-white hover:bg-red-700 disabled:opacity-50">
+                        {deleting ? "..." : "Delete"}
+                      </button>
+                      <button onClick={() => setShowDelete(false)}
+                        className="text-xs px-2 py-1 rounded hover:bg-accent">
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

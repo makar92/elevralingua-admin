@@ -20,11 +20,12 @@ export default function CreateClassroom() {
   const [courseId, setCourseId] = useState(searchParams.get("courseId") || "");
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
+  const [coursesLoading, setCoursesLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
     fetch("/api/courses").then(r => r.ok ? r.json() : []).catch(() => [])
-      .then(d => setCourses(Array.isArray(d) ? d : []));
+      .then(d => { setCourses(Array.isArray(d) ? d : []); setCoursesLoading(false); });
   }, []);
 
   const selectedCourse = courses.find(c => c.id === courseId);
@@ -83,7 +84,11 @@ export default function CreateClassroom() {
           <div className="space-y-3">
             <Label className="text-sm font-medium">Выберите курс</Label>
 
-            {courses.length === 0 ? (
+            {coursesLoading ? (
+              <div className="p-6 text-center border border-dashed border-border rounded-lg">
+                <p className="text-sm text-muted-foreground animate-pulse">Загрузка курсов...</p>
+              </div>
+            ) : courses.length === 0 ? (
               <div className="p-6 text-center border border-dashed border-border rounded-lg">
                 <p className="text-sm text-muted-foreground">Нет доступных курсов</p>
               </div>
