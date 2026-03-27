@@ -1,16 +1,22 @@
 // ===========================================
 // Файл: src/app/page.tsx
-// Описание: Корневая страница. Читает роль из БД и редиректит.
+// Описание: Корневая страница.
+//   Неавторизованные — лендинг.
+//   Авторизованные — редирект по роли (из БД).
 // ===========================================
 
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import LandingPage from "@/app/landing/page";
 
 export default async function Home() {
   const session = await auth();
-  if (!session?.user?.id) redirect("/login");
 
+  // Неавторизованный — показываем лендинг
+  if (!session?.user?.id) return <LandingPage />;
+
+  // Авторизованный — читаем роль из БД и редиректим
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
     select: { role: true },

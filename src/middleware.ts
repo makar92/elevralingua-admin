@@ -14,6 +14,8 @@ export default auth((req) => {
 
   // Публичные страницы — пропускаем
   if (
+    pathname === "/" ||
+    pathname === "/landing" ||
     pathname === "/login" ||
     pathname === "/register" ||
     pathname.startsWith("/api/auth") ||
