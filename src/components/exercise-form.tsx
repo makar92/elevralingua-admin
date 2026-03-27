@@ -105,7 +105,7 @@ interface ExerciseFormProps {
   initialData?: any;
   onSave: (data: any) => void;
   onCancel: () => void;
-  saveLabel?: string;  // Текст кнопки сохранения (по умолчанию "Добавить в банк")
+  saveLabel?: string;  // Текст кнопки сохранения (по умолчанию "Добавить в доп.")
 }
 
 export function ExerciseForm({ exerciseType, initialData, onSave, onCancel, saveLabel }: ExerciseFormProps) {
@@ -211,7 +211,7 @@ export function ExerciseForm({ exerciseType, initialData, onSave, onCancel, save
         <div className="space-y-1.5">
           <Label className="text-sm font-medium text-foreground">Название упражнения</Label>
           <Input value={title} onChange={(e) => setTitle(e.target.value)}
-            placeholder="Краткое название (видно в банке и студенту)"
+            placeholder="Краткое название (видно в списке и студенту)"
             className="h-10" />
         </div>
 
@@ -283,7 +283,7 @@ export function ExerciseForm({ exerciseType, initialData, onSave, onCancel, save
       <div className="flex justify-end gap-3 pt-2">
         <Button variant="outline" size="lg" onClick={onCancel}>Отмена</Button>
         <Button size="lg" onClick={handleSave} disabled={!instructionText.trim()}>
-          {initialData ? "Сохранить" : (saveLabel || "Добавить в банк")}
+          {initialData ? "Сохранить" : (saveLabel || "Добавить в доп.")}
         </Button>
       </div>
     </div>

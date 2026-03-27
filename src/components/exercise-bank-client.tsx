@@ -153,7 +153,7 @@ export function ExerciseBankClient({ courses, totalCount }: { courses: Course[];
 
   // Удалить упражнение
   const deleteExercise = async (id: string) => {
-    if (!confirm("Удалить упражнение из банка? Оно также удалится из всех тетрадей.")) return;
+    if (!confirm("Удалить упражнение? Оно также удалится из всех тетрадей.")) return;
     const res = await fetch(`/api/exercises/${id}`, { method: "DELETE" });
     if (res.ok) {
       setExercises((prev) => prev.filter((e) => e.id !== id));
@@ -166,7 +166,7 @@ export function ExerciseBankClient({ courses, totalCount }: { courses: Course[];
       <div className="w-72 flex-shrink-0 h-full">
         <Card className="h-full flex flex-col">
           <CardHeader className="pb-3 flex-shrink-0">
-            <CardTitle className="text-base text-foreground">Банк упражнений</CardTitle>
+            <CardTitle className="text-base text-foreground">Доп. задания</CardTitle>
             <p className="text-sm text-muted-foreground">Всего: {totalCount} упр.</p>
           </CardHeader>
           <Separator />
@@ -224,7 +224,7 @@ export function ExerciseBankClient({ courses, totalCount }: { courses: Course[];
           <Card>
             <CardContent className="py-16 text-center">
               <span className="text-5xl block mb-4">📝</span>
-              <p className="text-xl text-foreground">Банк упражнений</p>
+              <p className="text-xl text-foreground">Доп. задания</p>
               <p className="text-base text-muted-foreground mt-2">
                 Выберите урок в дереве слева, чтобы увидеть и создать упражнения
               </p>

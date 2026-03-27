@@ -13,7 +13,7 @@
 //   - Упражнение может быть ЛИБО в тетради (isDefaultInWorkbook=true),
 //     ЛИБО в банке (isDefaultInWorkbook=false). Не в обоих.
 //   - Создание из тетради → isDefaultInWorkbook=true
-//   - Создание из банка → isDefaultInWorkbook=false
+//   - Создание из доп. → isDefaultInWorkbook=false
 //   - Можно перемещать между тетрадью и банком
 //
 //   UI:
@@ -355,7 +355,7 @@ export function SectionEditor({ section }: { section: Section }) {
           <ExerciseForm exerciseType={selectedExType} initialData={editingExercise || undefined}
             onSave={editingExercise ? updateExercise : createExercise}
             onCancel={() => { setExMode(editingExercise ? "list" : "pickType"); setEditingExercise(null); }}
-            saveLabel={createFromWorkbook ? "Добавить в тетрадь" : "Добавить в банк"} />
+            saveLabel={createFromWorkbook ? "Добавить в тетрадь" : "Добавить в доп."} />
         </CardContent></Card>
       </div>
     );
@@ -408,20 +408,20 @@ export function SectionEditor({ section }: { section: Section }) {
           <Button variant="outline" size="sm" onClick={() => setViewMode("editor")}>✏️ Редактор</Button>
         </div>
 
-        {/* Вкладки: Учебник / Тетрадь / Банк */}
+        {/* Вкладки: Учебник / Тетрадь / Доп. задания */}
         <div className="flex gap-2 mb-8">
           <button onClick={() => setActiveTab("textbook")}
-            className={`px-6 py-3 rounded-xl text-base font-medium transition-colors ${
+            className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-colors ${
               activeTab === "textbook" ? "bg-primary text-primary-foreground" : "bg-card text-muted-foreground hover:text-foreground border border-border"
             }`}>📕 Учебник</button>
           <button onClick={() => setActiveTab("workbook")}
-            className={`px-6 py-3 rounded-xl text-base font-medium transition-colors ${
+            className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-colors ${
               activeTab === "workbook" ? "bg-primary text-primary-foreground" : "bg-card text-muted-foreground hover:text-foreground border border-border"
             }`}>📓 Тетрадь{workbookExercises.length > 0 ? ` (${workbookExercises.length})` : ""}</button>
           <button onClick={() => setActiveTab("bank")}
-            className={`px-6 py-3 rounded-xl text-base font-medium transition-colors ${
+            className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-colors ${
               activeTab === "bank" ? "bg-primary text-primary-foreground" : "bg-card text-muted-foreground hover:text-foreground border border-border"
-            }`}>🏦 Банк{bankExercises.length > 0 ? ` (${bankExercises.length})` : ""}</button>
+            }`}>🏦 Доп.{bankExercises.length > 0 ? ` (${bankExercises.length})` : ""}</button>
         </div>
 
         {/* Контент просмотра — режим учителя (видны комментарии и ответы) */}
@@ -445,7 +445,7 @@ export function SectionEditor({ section }: { section: Section }) {
           <div className="space-y-6">
             {bankExercises.length === 0 && (
               <div className="text-center py-20">
-                <p className="text-xl text-muted-foreground">Банк пуст</p>
+                <p className="text-xl text-muted-foreground">Нет доп. заданий</p>
               </div>
             )}
             {bankExercises.map((ex, idx) => (
@@ -476,7 +476,7 @@ export function SectionEditor({ section }: { section: Section }) {
         {([
           { key: "textbook" as const, label: "📕 Учебник", count: blocks.length || null },
           { key: "workbook" as const, label: "📓 Тетрадь", count: workbookExercises.length || null },
-          { key: "bank" as const, label: "🏦 Банк", count: bankExercises.length || null },
+          { key: "bank" as const, label: "🏦 Доп.", count: bankExercises.length || null },
         ]).map((tab) => (
           <button key={tab.key} onClick={() => { setActiveTab(tab.key); setExMode("list"); }}
             className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-colors ${
@@ -546,7 +546,7 @@ export function SectionEditor({ section }: { section: Section }) {
           {/* Кнопка создания упражнения прямо из тетради */}
           <div className="flex items-center justify-between mb-4">
             <p className="text-sm text-muted-foreground">
-              В тетради: {workbookExercises.length} · В банке: {bankExercises.length}
+              В тетради: {workbookExercises.length} · Доп.: {bankExercises.length}
             </p>
             <Button onClick={() => { setCreateFromWorkbook(true); setExMode("pickType"); }}>
               + Создать упражнение
@@ -560,14 +560,14 @@ export function SectionEditor({ section }: { section: Section }) {
             <Card><CardContent className="py-16 text-center">
               <span className="text-5xl block mb-4">📓</span>
               <p className="text-xl text-foreground">Тетрадь пуста</p>
-              <p className="text-base text-muted-foreground mt-2">Создайте упражнение или добавьте из банка</p>
+              <p className="text-base text-muted-foreground mt-2">Создайте упражнение или добавьте из доп.</p>
               <div className="flex gap-2 justify-center mt-4">
                 <Button onClick={() => { setCreateFromWorkbook(true); setExMode("pickType"); }}>
                   + Создать упражнение
                 </Button>
                 {bankExercises.length > 0 && (
                   <Button variant="outline" onClick={() => setActiveTab("bank")}>
-                    Перейти в банк ({bankExercises.length})
+                    Доп. задания ({bankExercises.length})
                   </Button>
                 )}
               </div>
@@ -582,7 +582,7 @@ export function SectionEditor({ section }: { section: Section }) {
                   onToggle={toggleWorkbook} showToggle
                   onEdit={() => { setEditingExercise(ex); setSelectedExType(ex.exerciseType); setCreateFromWorkbook(true); setExMode("form"); }}
                   onDelete={() => deleteExercise(ex.id)}
-                  toggleLabel="Убрать в банк"
+                  toggleLabel="В доп. задания"
                   onMoveUp={idx > 0 ? () => moveExercise(ex.id, "up") : undefined}
                   onMoveDown={idx < workbookExercises.length - 1 ? () => moveExercise(ex.id, "down") : undefined} />
               ))}
@@ -597,10 +597,10 @@ export function SectionEditor({ section }: { section: Section }) {
           {/* Шапка банка */}
           <div className="flex items-center justify-between mb-4">
             <p className="text-sm text-muted-foreground">
-              В банке: {bankExercises.length} · В тетради: {workbookExercises.length}
+              Доп.: {bankExercises.length} · В тетради: {workbookExercises.length}
             </p>
             <Button onClick={() => { setCreateFromWorkbook(false); setExMode("pickType"); }}>
-              + Добавить в банк
+              + Добавить в доп.
             </Button>
           </div>
 
@@ -610,7 +610,7 @@ export function SectionEditor({ section }: { section: Section }) {
           {!loadingExercises && bankExercises.length === 0 && (
             <Card><CardContent className="py-16 text-center">
               <span className="text-5xl block mb-4">🏦</span>
-              <p className="text-xl text-foreground">Банк пуст</p>
+              <p className="text-xl text-foreground">Нет доп. заданий</p>
               <p className="text-base text-muted-foreground mt-2">Все упражнения включены в тетрадь, или ещё нет упражнений</p>
             </CardContent></Card>
           )}
@@ -669,7 +669,7 @@ function ExerciseCard({ ex, idx, onToggle, onEdit, onDelete, showToggle, toggleL
                 ? "text-amber-600 hover:bg-amber-500/10"
                 : "text-green-600 hover:bg-green-500/10"
             }`}>
-            {ex.isDefaultInWorkbook ? "→ банк" : "→ тетрадь"}
+            {ex.isDefaultInWorkbook ? "→ доп." : "→ тетрадь"}
           </button>
         )}
         {/* Редактировать */}

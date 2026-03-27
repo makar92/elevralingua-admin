@@ -6,7 +6,7 @@
 //   Страница «Банк упражнений» в навигации.
 //   Показывает все упражнения всех курсов с фильтрами.
 //   Для создания/редактирования — переход в редактор курса,
-//   вкладка «Банк упражнений» нужного раздела.
+//   вкладка «Доп. задания» нужного раздела.
 // ===========================================
 
 import { prisma } from "@/lib/prisma";
@@ -76,7 +76,7 @@ export default async function ExercisesPage() {
       {/* Заголовок */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Банк упражнений</h1>
+          <h1 className="text-2xl font-bold text-foreground">Доп. задания</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Всего: {totalCount} · ⚡ Авто: {autoCount} · 👩‍🏫 Учитель: {teacherCount} · 📓 В тетради: {workbookCount}
           </p>
@@ -88,9 +88,9 @@ export default async function ExercisesPage() {
         <Card>
           <CardContent className="py-16 text-center">
             <span className="text-5xl block mb-4">🏦</span>
-            <p className="text-xl text-foreground">Банк упражнений пуст</p>
+            <p className="text-xl text-foreground">Нет дополнительных заданий</p>
             <p className="text-base text-muted-foreground mt-2">
-              Откройте курс → выберите раздел → вкладка «Банк упражнений»
+              Откройте курс → выберите раздел → вкладка «Доп. задания»
             </p>
             <Button asChild className="mt-4">
               <Link href="/dashboard/courses">Перейти к курсам</Link>

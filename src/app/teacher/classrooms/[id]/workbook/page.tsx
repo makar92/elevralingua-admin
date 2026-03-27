@@ -245,9 +245,10 @@ export default function TeacherWorkbook() {
                 const pendingReview = answered.filter(s => s.answer?.status === "PENDING");
                 const isExpanded = expandedEx.has(ex.id);
 
-                return (<div key={ex.id} className="relative pl-8">
-                  <div className="absolute left-0 top-4"><input type="checkbox" checked={checkedExercises.has(ex.id)} onChange={() => toggleCheckEx(ex.id)} className="w-4 h-4 rounded border-gray-300 cursor-pointer" /></div>
-                  <div className={`rounded-xl border transition-colors shadow-sm ${checkedExercises.has(ex.id) ? "border-primary/50 bg-primary/5" : "border-border bg-card"} p-5`}>
+                return (<div key={ex.id} className="group/card">
+                  <div className={`rounded-xl border transition-colors shadow-sm relative ${checkedExercises.has(ex.id) ? "border-primary/50 bg-primary/5" : "border-border bg-card"} p-5`}>
+                    <input type="checkbox" checked={checkedExercises.has(ex.id)} onChange={() => toggleCheckEx(ex.id)}
+                      className={`absolute top-3 left-3 w-4 h-4 rounded border-gray-300 cursor-pointer transition-opacity ${checkedExercises.has(ex.id) ? "opacity-100" : "opacity-0 group-hover/card:opacity-100"}`} />
 
                     {/* Unified student widget — one clickable summary line */}
                     {assigned.length > 0 && (

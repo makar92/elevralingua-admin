@@ -45,7 +45,7 @@ export const TEACHER_TABS = (n?: number) => [
   { id: "journal", name: "Журнал", href: "/journal" },
   { id: "textbook", name: "Учебник", href: "/textbook" },
   { id: "workbook", name: "Тетрадь", href: "/workbook" },
-  { id: "bank", name: "Банк упражнений", href: "/bank" },
+  { id: "bank", name: "Доп. задания", href: "/bank" },
   { id: "students", name: `Ученики${n != null ? ` (${n})` : ""}`, href: "/students" },
 ];
 

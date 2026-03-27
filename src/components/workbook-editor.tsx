@@ -115,7 +115,7 @@ export function WorkbookEditor({ lessonId }: { lessonId: string }) {
     return (
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-bold text-foreground">Добавить из банка</h3>
+          <h3 className="text-lg font-bold text-foreground">Добавить из доп.</h3>
           <Button variant="outline" size="sm" onClick={() => setMode("view")}>← Назад к тетради</Button>
         </div>
 
@@ -124,7 +124,7 @@ export function WorkbookEditor({ lessonId }: { lessonId: string }) {
             <CardContent className="py-8 text-center">
               <p className="text-base text-foreground">Все упражнения уже в тетради</p>
               <p className="text-sm text-muted-foreground mt-1">
-                Создайте новые упражнения на странице «Банк упражнений»
+                Создайте новые упражнения на странице «Доп. задания»
               </p>
             </CardContent>
           </Card>
@@ -167,13 +167,13 @@ export function WorkbookEditor({ lessonId }: { lessonId: string }) {
       <div className="flex items-center justify-between mb-4">
         <div>
           <p className="text-sm text-muted-foreground">
-            {entries.length} упр. в тетради · {bankExercises.length} всего в банке
+            {entries.length} упр. в тетради · {bankExercises.length} всего в доп.
           </p>
         </div>
         <div className="flex gap-2">
           {availableToAdd.length > 0 && (
             <Button variant="outline" size="sm" onClick={() => setMode("addFromBank")}>
-              + Из банка ({availableToAdd.length})
+              + Из доп. ({availableToAdd.length})
             </Button>
           )}
         </div>
@@ -187,13 +187,13 @@ export function WorkbookEditor({ lessonId }: { lessonId: string }) {
             <p className="text-xl text-foreground">Тетрадь пуста</p>
             <p className="text-base text-muted-foreground mt-2">
               {bankExercises.length > 0
-                ? "Добавьте упражнения из банка"
-                : "Сначала создайте упражнения на странице «Банк упражнений»"
+                ? "Добавьте из доп. заданий"
+                : "Сначала создайте упражнения на странице «Доп. задания»"
               }
             </p>
             {bankExercises.length > 0 && (
               <Button className="mt-4" onClick={() => setMode("addFromBank")}>
-                Добавить из банка
+                Добавить из доп.
               </Button>
             )}
           </CardContent>

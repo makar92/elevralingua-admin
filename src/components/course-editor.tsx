@@ -46,6 +46,54 @@ export function CourseEditor({ course: initialCourse }: { course: Course }) {
   const [newTitle, setNewTitle] = useState("");
   const [saving, setSaving] = useState(false);
 
+  // Состояние модалок переименования и удаления
+  const [renameOpen, setRenameOpen] = useState(false);
+  const [renameType, setRenameType] = useState<"unit" | "lesson" | "section">("unit");
+  const [renameId, setRenameId] = useState("");
+  const [renameTitle, setRenameTitle] = useState("");
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteType, setDeleteType] = useState<"unit" | "lesson" | "section">("unit");
+  const [deleteId, setDeleteId] = useState("");
+  const [deleteTitle, setDeleteTitle] = useState("");
+
+  // Перезагрузка курса с сервера
+  const reloadCourse = async () => {
+    const res = await fetch(`/api/courses/${course.id}`);
+    if (res.ok) {
+      const data = await res.json();
+      setCourse(data);
+    }
+  };
+
+  // ===== Переименовать =====
+  const handleRename = async () => {
+    if (!renameTitle.trim()) return;
+    setSaving(true);
+    const endpoint = renameType === "unit" ? `/api/units/${renameId}` : renameType === "lesson" ? `/api/lessons/${renameId}` : `/api/sections/${renameId}`;
+    await fetch(endpoint, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: renameTitle }) });
+    await reloadCourse();
+    setRenameOpen(false);
+    setSaving(false);
+  };
+
+  // ===== Переместить =====
+  const handleMove = async (type: "unit" | "lesson" | "section", id: string, direction: "up" | "down") => {
+    const endpoint = type === "unit" ? `/api/units/${id}` : type === "lesson" ? `/api/lessons/${id}` : `/api/sections/${id}`;
+    await fetch(endpoint, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ direction }) });
+    await reloadCourse();
+  };
+
+  // ===== Удалить =====
+  const handleDelete = async () => {
+    setSaving(true);
+    const endpoint = deleteType === "unit" ? `/api/units/${deleteId}` : deleteType === "lesson" ? `/api/lessons/${deleteId}` : `/api/sections/${deleteId}`;
+    await fetch(endpoint, { method: "DELETE" });
+    await reloadCourse();
+    setSelected({ type: "course", id: course.id, data: course });
+    setDeleteOpen(false);
+    setSaving(false);
+  };
+
   // ===== Добавить юнит =====
   const handleAddUnit = async () => {
     if (!newTitle.trim()) return;
@@ -144,6 +192,9 @@ export function CourseEditor({ course: initialCourse }: { course: Course }) {
                 onSelect={setSelected}
                 onAddLesson={(unitId) => { setAddLessonUnitId(unitId); setNewTitle(""); setAddLessonOpen(true); }}
                 onAddSection={(lessonId) => { setAddSectionLessonId(lessonId); setNewTitle(""); setAddSectionOpen(true); }}
+                onRename={(type, id, title) => { setRenameType(type); setRenameId(id); setRenameTitle(title); setRenameOpen(true); }}
+                onMove={handleMove}
+                onDelete={(type, id, title) => { setDeleteType(type); setDeleteId(id); setDeleteTitle(title); setDeleteOpen(true); }}
               />
             </CardContent>
           </Card>
@@ -211,6 +262,44 @@ export function CourseEditor({ course: initialCourse }: { course: Course }) {
             <Button variant="outline" size="lg" onClick={() => setAddSectionOpen(false)}>Отмена</Button>
             <Button size="lg" onClick={handleAddSection} disabled={saving || !newTitle.trim()}>
               {saving ? "..." : "Создать"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ===== Модалка: Переименовать ===== */}
+      <Dialog open={renameOpen} onOpenChange={setRenameOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle className="text-xl text-foreground">Переименовать</DialogTitle></DialogHeader>
+          <div className="space-y-2">
+            <Label className="text-base text-foreground">Новое название</Label>
+            <Input value={renameTitle} onChange={(e) => setRenameTitle(e.target.value)}
+              className="text-lg h-12"
+              onKeyDown={(e) => e.key === "Enter" && handleRename()} />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" size="lg" onClick={() => setRenameOpen(false)}>Отмена</Button>
+            <Button size="lg" onClick={handleRename} disabled={saving || !renameTitle.trim()}>
+              {saving ? "..." : "Сохранить"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ===== Модалка: Удалить ===== */}
+      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle className="text-xl text-foreground">Удалить?</DialogTitle></DialogHeader>
+          <p className="text-base text-muted-foreground">
+            Вы уверены, что хотите удалить <span className="text-foreground font-medium">{deleteTitle}</span>?
+            {deleteType === "unit" && " Все уроки и разделы внутри будут удалены."}
+            {deleteType === "lesson" && " Все разделы и блоки внутри будут удалены."}
+            {deleteType === "section" && " Все блоки и упражнения внутри будут удалены."}
+          </p>
+          <DialogFooter>
+            <Button variant="outline" size="lg" onClick={() => setDeleteOpen(false)}>Отмена</Button>
+            <Button size="lg" variant="destructive" onClick={handleDelete} disabled={saving}>
+              {saving ? "..." : "Удалить"}
             </Button>
           </DialogFooter>
         </DialogContent>

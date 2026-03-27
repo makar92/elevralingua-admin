@@ -64,7 +64,7 @@ export default function TeacherBank() {
 
   const getAC = (eid: string) => { const ea = eaList.filter((a: any) => a.exerciseId === eid); const hasAll = ea.some((a: any) => a.studentId === "_ALL_"); return hasAll ? total : new Set(ea.map((a: any) => a.studentId)).size; };
 
-  if (loading) return <div className="p-6 text-muted-foreground animate-pulse">Загрузка банка...</div>;
+  if (loading) return <div className="p-6 text-muted-foreground animate-pulse">Загрузка доп. заданий...</div>;
 
   return (
     <div className="flex flex-col h-[calc(100vh-57px)]">
@@ -112,14 +112,15 @@ export default function TeacherBank() {
           </div>
         )}
         <div className="flex-1 min-w-0 overflow-y-auto pr-4">
-          {selSectionTitle && <div className="flex items-center gap-3 mb-4"><h2 className="text-lg font-semibold text-foreground">{selSectionTitle}</h2><Badge variant="secondary" className="text-xs">Банк</Badge></div>}
+          {selSectionTitle && <div className="flex items-center gap-3 mb-4"><h2 className="text-lg font-semibold text-foreground">{selSectionTitle}</h2><Badge variant="secondary" className="text-xs">Доп.</Badge></div>}
           {exLoading ? <div className="text-muted-foreground animate-pulse text-center py-12">Загрузка...</div> :
             exercises.length === 0 ? <div className="text-center py-12"><p className="text-muted-foreground">Нет дополнительных упражнений</p></div> :
               <div className="space-y-5">{exercises.map((ex: any) => {
                 const ac = getAC(ex.id);
-                return (<div key={ex.id} className="relative pl-8">
-                  <div className="absolute left-0 top-4"><input type="checkbox" checked={checked.has(ex.id)} onChange={() => toggleCheck(ex.id)} className="w-4 h-4 rounded cursor-pointer" /></div>
-                  <div className={`rounded-xl border p-5 shadow-sm ${checked.has(ex.id) ? "border-primary/50 bg-primary/5" : "border-border bg-card"}`}>
+                return (<div key={ex.id} className="group/card">
+                  <div className={`rounded-xl border p-5 shadow-sm relative ${checked.has(ex.id) ? "border-primary/50 bg-primary/5" : "border-border bg-card"}`}>
+                    <input type="checkbox" checked={checked.has(ex.id)} onChange={() => toggleCheck(ex.id)}
+                      className={`absolute top-3 left-3 w-4 h-4 rounded cursor-pointer transition-opacity ${checked.has(ex.id) ? "opacity-100" : "opacity-0 group-hover/card:opacity-100"}`} />
                     {ac > 0 && <div className="mb-2 flex items-center gap-2"><Badge variant="outline" className="text-[10px]">Назначено: {ac} из {total} уч.</Badge><button onClick={() => { setChecked(new Set([ex.id])); setShowPicker(true); }} className="text-[10px] text-primary hover:underline">Назначить повторно</button></div>}
                     <ExercisePreview exercise={ex} mode="teacher" />
                   </div>
