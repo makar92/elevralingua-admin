@@ -56,14 +56,5 @@
     "prisma": "^6.9.0",
     "tsx": "^4.19.0",
     "typescript": "^5.8.0"
-  },
-  "browserslist": [
-    "> 0.5%",
-    "last 2 versions",
-    "not dead",
-    "Chrome >= 90",
-    "Firefox >= 90",
-    "Safari >= 14",
-    "Edge >= 90"
-  ]
+  }
 }
