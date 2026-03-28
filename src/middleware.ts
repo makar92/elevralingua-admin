@@ -30,7 +30,12 @@ export async function middleware(req: NextRequest) {
 
   // Проверяем JWT токен напрямую (без Prisma, без bcrypt)
   // const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+  const token = await getToken({
+    req,
+    secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
+    secureCookie: true,
+    cookieName: "__Secure-authjs.session-token",
+  });
 
   // Нет сессии — редирект на логин
   if (!token) {
