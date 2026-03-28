@@ -184,7 +184,6 @@ export default function StudentWorkbook() {
               })}
             </div>
           )}
-          </button>
 
           {/* Exercises */}
           <div className="flex-1 min-w-0 overflow-y-auto pr-4">
