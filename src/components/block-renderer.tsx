@@ -16,7 +16,7 @@
 import { AudioPlayer } from "@/components/audio-player";
 import { TIPTAP_CONTENT_STYLES } from "@/lib/utils";
 
-// ===== Типы =====
+// ===== Typeы =====
 interface ContentBlock {
   id: string;
   type: string;
@@ -33,7 +33,7 @@ export function BlockRenderer({ block }: { block: ContentBlock }) {
     case "TEXT":
       return (
         <div className={TIPTAP_CONTENT_STYLES}
-          dangerouslySetInnerHTML={{ __html: c.html || "<p>Пустой текст</p>" }} />
+          dangerouslySetInnerHTML={{ __html: c.html || "<p>Empty text</p>" }} />
       );
 
     // --- Картинка с подписью ---
@@ -43,7 +43,7 @@ export function BlockRenderer({ block }: { block: ContentBlock }) {
           {c.url ? (
             <img src={c.url} alt={c.alt || ""} className="max-w-full rounded-lg mx-auto" />
           ) : (
-            <div className="bg-muted rounded-lg p-8 text-muted-foreground">Картинка не загружена</div>
+            <div className="bg-muted rounded-lg p-8 text-muted-foreground">Image not uploaded</div>
           )}
           {c.caption && <p className="text-sm text-muted-foreground mt-2">{c.caption}</p>}
         </div>
@@ -54,7 +54,7 @@ export function BlockRenderer({ block }: { block: ContentBlock }) {
       return c.url ? (
         <AudioPlayer src={c.url} title={c.title} />
       ) : (
-        <div className="bg-muted rounded-lg p-4 text-muted-foreground text-center">Аудио не загружено</div>
+        <div className="bg-muted rounded-lg p-4 text-muted-foreground text-center">Audio not uploaded</div>
       );
 
     // --- YouTube видео (iframe) ---
@@ -70,7 +70,7 @@ export function BlockRenderer({ block }: { block: ContentBlock }) {
                 allowFullScreen />
             </div>
           ) : (
-            <div className="bg-muted rounded-lg p-8 text-center text-muted-foreground">Ссылка на YouTube не указана</div>
+            <div className="bg-muted rounded-lg p-8 text-center text-muted-foreground">YouTube link not provided</div>
           )}
           {c.title && <p className="text-sm text-muted-foreground mt-2">{c.title}</p>}
         </div>
@@ -98,7 +98,7 @@ export function BlockRenderer({ block }: { block: ContentBlock }) {
           {c.html ? (
             <div dangerouslySetInnerHTML={{ __html: c.html }} />
           ) : (
-            <div className="bg-muted p-4 text-muted-foreground text-center">HTML код пуст</div>
+            <div className="bg-muted p-4 text-muted-foreground text-center">HTML code is empty</div>
           )}
         </div>
       );
@@ -121,7 +121,7 @@ export function BlockRenderer({ block }: { block: ContentBlock }) {
             {/* Картинка */}
             {c.imageUrl && <img src={c.imageUrl} alt={c.word || ""} className="max-w-[200px] rounded-lg mt-3" />}
             {/* Аудио */}
-            {c.audioUrl && <div className="mt-3"><AudioPlayer src={c.audioUrl} title="Произношение" /></div>}
+            {c.audioUrl && <div className="mt-3"><AudioPlayer src={c.audioUrl} title="Pronunciation" /></div>}
             {/* Пример в предложении */}
             {(c.exampleSentence || c.exampleHanzi) && (
               <div className="mt-3 pt-3 border-t border-border">
@@ -148,12 +148,12 @@ export function BlockRenderer({ block }: { block: ContentBlock }) {
           <div className="space-y-3">
             {c.lines?.map((line: any, i: number) => (
               <div key={i} className="flex gap-3">
-                {/* Имя участника */}
+                {/* Speaker name */}
                 <span className="text-sm font-medium text-muted-foreground min-w-[80px] flex-shrink-0">
                   {c.speakers?.[line.speakerIndex] || "???"}:
                 </span>
                 <div>
-                  {/* Текст реплики */}
+                  {/* Line Text */}
                   <p className="text-xl text-foreground">{line.text || line.hanzi}</p>
                   {/* Транскрипция */}
                   {(line.transcription || line.pinyin) && (
@@ -170,6 +170,6 @@ export function BlockRenderer({ block }: { block: ContentBlock }) {
 
     // --- Неизвестный тип ---
     default:
-      return <p className="text-muted-foreground">Неизвестный тип: {block.type}</p>;
+      return <p className="text-muted-foreground">Unknown type: {block.type}</p>;
   }
 }

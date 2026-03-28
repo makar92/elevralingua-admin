@@ -8,99 +8,99 @@ import { Badge } from "@/components/ui/badge";
 
 const phases = [
   {
-    phase: "Фаза 1",
-    title: "Контентный движок",
-    subtitle: "Фундамент — полнофункциональный конструктор курсов",
+    phase: "Phase 1",
+    title: "Content Engine",
+    subtitle: "Foundation — full-featured course builder",
     status: "done" as const,
     icon: "🏗️",
-    metrics: "9 типов блоков · 10 типов упражнений · 3 юнита · 8 уроков · 30+ упражнений",
+    metrics: "9 block types · 10 exercise types · 3 units · 8 lessons · 30+ exercises",
     features: [
-      { name: "Конструктор курсов", desc: "Иерархический редактор Курс → Юнит → Урок → Секция → Блок с визуальным деревом навигации", done: true },
-      { name: "9 типов контент-блоков", desc: "Текст (WYSIWYG), картинки, аудио, YouTube, карточки слов, диалоги, разделители, отступы, HTML-вставки", done: true },
-      { name: "10 типов упражнений", desc: "4 с автопроверкой (matching, multiple choice, тоны, порядок слов) + 6 с проверкой учителем (перевод, диктант и др.)", done: true },
-      { name: "Тетрадь и доп. задания", desc: "Упражнения распределяются между тетрадью (по умолчанию) и доп. заданиями (резерв) для дифференциации", done: true },
-      { name: "Режим предпросмотра", desc: "Просмотр материалов глазами ученика и учителя перед публикацией", done: true },
-      { name: "Авторизация и инфраструктура", desc: "NextAuth, загрузка файлов в Vercel Blob, деплой на Vercel + Neon PostgreSQL", done: true },
+      { name: "Course Builder", desc: "Hierarchical editor Course → Unit → Lesson → Section → Block with visual navigation tree", done: true },
+      { name: "9 Content Block Types", desc: "Text (WYSIWYG), images, audio, YouTube, vocab cards, dialogues, dividers, spacers, HTML embeds", done: true },
+      { name: "10 Exercise Types", desc: "4 auto-graded (matching, multiple choice, tones, word order) + 6 teacher-reviewed (translation, dictation, etc.)", done: true },
+      { name: "Workbook & Exercise Bank", desc: "Exercises are split between the workbook (default) and exercise bank (reserve) for differentiation", done: true },
+      { name: "Preview Mode", desc: "Preview materials from student and teacher perspective before publishing", done: true },
+      { name: "Auth & Infrastructure", desc: "NextAuth, file uploads to Vercel Blob, deployed on Vercel + Neon PostgreSQL", done: true },
     ],
   },
   {
-    phase: "Фаза 2",
-    title: "Система классов",
-    subtitle: "Кабинеты учителя и ученика — интерактивное обучение в реальном времени",
+    phase: "Phase 2",
+    title: "Classroom System",
+    subtitle: "Teacher and student portals — interactive real-time learning",
     status: "done" as const,
     icon: "🎓",
-    metrics: "3 портала · оценки в реальном времени · журнал занятий · система приглашений",
+    metrics: "3 portals · real-time grading · class journal · invitation system",
     features: [
-      { name: "Кабинет учителя", desc: "Управление классами, приглашение учеников, каталог курсов, навигация по ролям", done: true },
-      { name: "Электронный журнал", desc: "Календарь занятий с посещаемостью, оценками, пройденными темами и заметками учителя", done: true },
-      { name: "Интерактивный учебник", desc: "Управление видимостью разделов, назначение секций как классную/домашнюю работу, отслеживание прогресса", done: true },
-      { name: "Тетрадь + Доп. задания в классе", desc: "Назначение упражнений всем или индивидуально, дифференциация с помощью доп. заданий", done: true },
-      { name: "Кабинет ученика", desc: "Дашборд, учебник (открытые секции), тетрадь (назначенные упражнения), дневник (оценки/посещаемость)", done: true },
-      { name: "Система приглашений", desc: "Учитель приглашает ученика или ученик запрашивает вступление. Приём/отклонение заявок", done: true },
+      { name: "Teacher Portal", desc: "Class management, student invitations, course catalog, role-based navigation", done: true },
+      { name: "Gradebook", desc: "Lesson calendar with attendance, grades, covered topics, and teacher notes", done: true },
+      { name: "Interactive Textbook", desc: "Section visibility control, assign sections as class/homework, progress tracking", done: true },
+      { name: "Workbook + Exercise Bank in Classroom", desc: "Assign exercises to all or individually, differentiate with exercise bank", done: true },
+      { name: "Student Portal", desc: "Dashboard, textbook (open sections), workbook (assigned exercises), grades (grades/attendance)", done: true },
+      { name: "Invitation System", desc: "Teacher invites student or student requests to join. Accept/decline requests", done: true },
     ],
   },
   {
-    phase: "Фаза 3",
-    title: "Полировка UX и аналитика",
-    subtitle: "Профессиональный интерфейс, отслеживание прогресса, инструменты учителя",
+    phase: "Phase 3",
+    title: "UX Polish & Analytics",
+    subtitle: "Professional UI, progress tracking, teacher tools",
     status: "next" as const,
     icon: "📊",
-    metrics: "Брендинг · адаптивный UI · дашборды прогресса · отчёты для учителя",
+    metrics: "Branding · responsive UI · progress dashboards · teacher reports",
     features: [
-      { name: "Бренд и дизайн-система", desc: "Логотип, цветовая палитра, библиотека иконок, единый стиль компонентов во всех порталах", done: true },
-      { name: "Аналитика прогресса учеников", desc: "Процент завершения, точность упражнений, метрики времени по ученикам и классам", done: false },
-      { name: "Отчёты для учителя", desc: "Экспортируемые отчёты прогресса, статистика выполнения домашних заданий, сводки посещаемости", done: false },
-      { name: "Адаптивная вёрстка", desc: "Полная поддержка планшетов и мобильных устройств для учебника и тетради ученика", done: false },
+      { name: "Brand & Design System", desc: "Logo, color palette, icon library, consistent component style across all portals", done: true },
+      { name: "Student Progress Analytics", desc: "Completion rate, exercise accuracy, time metrics by student and class", done: false },
+      { name: "Teacher Reports", desc: "Exportable progress reports, homework completion stats, attendance summaries", done: false },
+      { name: "Responsive Layout", desc: "Full tablet and mobile support for student textbook and workbook", done: false },
     ],
   },
   {
-    phase: "Фаза 4",
-    title: "Командная работа и медиа",
-    subtitle: "Совместная работа нескольких авторов и AI-инструменты для создания контента",
+    phase: "Phase 4",
+    title: "Team Collaboration & Media",
+    subtitle: "Multi-author collaboration and AI content creation tools",
     status: "planned" as const,
     icon: "🤖",
-    metrics: "Ролевой доступ · workflow ревью · медиа-библиотека · AI-генерация",
+    metrics: "Role-based access · review workflow · media library · AI generation",
     features: [
-      { name: "Роли и права доступа", desc: "Администратор, Лингвист, Рецензент, Переводчик — каждый с гранулярными правами", done: false },
-      { name: "Workflow ревью", desc: "Конвейер Черновик → Проверка → Опубликовано с комментариями и историей версий", done: false },
-      { name: "Медиа-библиотека", desc: "Централизованное хранилище изображений, аудио, видео. Теги, поиск, переиспользование между курсами", done: false },
-      { name: "AI-инструменты для контента", desc: "TTS-озвучка, AI-генерация иллюстраций, автогенерация упражнений из списков лексики", done: false },
+      { name: "Roles & Permissions", desc: "Administrator, Linguist, Reviewer, Translator — each with granular permissions", done: false },
+      { name: "Review Workflow", desc: "Pipeline: Draft → Review → Published with comments and version history", done: false },
+      { name: "Media Library", desc: "Centralized storage for images, audio, video. Tags, search, reuse across courses", done: false },
+      { name: "AI Content Tools", desc: "TTS voiceover, AI image generation, auto-generate exercises from vocab lists", done: false },
     ],
   },
   {
-    phase: "Фаза 5",
-    title: "Монетизация",
-    subtitle: "Подписочная B2B SaaS модель — учитель платит, ученики учатся бесплатно",
+    phase: "Phase 5",
+    title: "Monetization",
+    subtitle: "Subscription B2B SaaS model — teachers pay, students learn for free",
     status: "planned" as const,
     icon: "💰",
-    metrics: "Интеграция Stripe · 3 тарифа · пробный период · аналитика выручки",
+    metrics: "Stripe integration · 3 plans · free trial · revenue analytics",
     features: [
-      { name: "Интеграция Stripe", desc: "Месячные и годовые подписки для учителей с безопасной обработкой платежей", done: false },
-      { name: "Тарифные планы", desc: "Free (1 класс, базовый курс), Pro (без ограничений, все курсы), School (мульти-учительская лицензия)", done: false },
-      { name: "Пробный период", desc: "14-дневный полный доступ для новых учителей ко всем материалам и функциям", done: false },
-      { name: "Дашборд выручки", desc: "Метрики подписок, анализ оттока, отслеживание MRR для бизнес-планирования", done: false },
+      { name: "Stripe Integration", desc: "Monthly and annual subscriptions for teachers with secure payment processing", done: false },
+      { name: "Pricing Plans", desc: "Free (1 class, basic course), Pro (unlimited, all courses), School (multi-teacher license)", done: false },
+      { name: "Free Trial", desc: "14-day full access for new teachers to all materials and features", done: false },
+      { name: "Revenue Dashboard", desc: "Subscription metrics, churn analysis, MRR tracking for business planning", done: false },
     ],
   },
   {
-    phase: "Фаза 6",
-    title: "Масштабирование и экосистема",
-    subtitle: "Мобильные приложения, B2B для школ, маркетплейс, новые языки",
+    phase: "Phase 6",
+    title: "Scaling & Ecosystem",
+    subtitle: "Mobile apps, B2B for schools, marketplace, new languages",
     status: "planned" as const,
     icon: "🌏",
-    metrics: "iOS/Android · школьные лицензии · новые языки · LMS-интеграции",
+    metrics: "iOS/Android · school licenses · new languages · LMS integrations",
     features: [
-      { name: "Мобильные приложения", desc: "Нативные iOS/Android (React Native). Геймификация: серии, баллы, достижения", done: false },
-      { name: "B2B для языковых школ", desc: "Мульти-учительские лицензии, панель директора школы, групповые скидки", done: false },
-      { name: "Интеграции с LMS", desc: "Подключение к Canvas, Moodle, Google Classroom через стандарт LTI", done: false },
-      { name: "Новые языки", desc: "Расширение на самые востребованные языки в США: испанский, французский, немецкий, японский, корейский и другие — по мере спроса", done: false },
+      { name: "Mobile Apps", desc: "Native iOS/Android (React Native). Gamification: streaks, points, achievements", done: false },
+      { name: "B2B for Language Schools", desc: "Multi-teacher licenses, school director dashboard, group discounts", done: false },
+      { name: "LMS Integrations", desc: "Connect to Canvas, Moodle, Google Classroom via LTI standard", done: false },
+      { name: "New Languages", desc: "Expand to the most in-demand languages in the U.S.: Spanish, French, German, Japanese, Korean, and more — based on demand", done: false },
     ],
   },
 ];
 
 const statusConfig = {
-  done:    { label: "Готово",      bg: "bg-emerald-500", text: "text-white",              ring: "ring-emerald-500/20", cardBorder: "border-emerald-200", barColor: "bg-emerald-500" },
-  next:    { label: "В работе",    bg: "bg-primary",     text: "text-primary-foreground",  ring: "ring-primary/20",     cardBorder: "border-primary/30",  barColor: "bg-primary" },
-  planned: { label: "Планируется", bg: "bg-muted",       text: "text-muted-foreground",    ring: "ring-border",         cardBorder: "border-dashed",      barColor: "bg-border" },
+  done:    { label: "Done",      bg: "bg-emerald-500", text: "text-white",              ring: "ring-emerald-500/20", cardBorder: "border-emerald-200", barColor: "bg-emerald-500" },
+  next:    { label: "In Progress",    bg: "bg-primary",     text: "text-primary-foreground",  ring: "ring-primary/20",     cardBorder: "border-primary/30",  barColor: "bg-primary" },
+  planned: { label: "Planned", bg: "bg-muted",       text: "text-muted-foreground",    ring: "ring-border",         cardBorder: "border-dashed",      barColor: "bg-border" },
 };
 
 export default function RoadmapPage() {
@@ -110,11 +110,11 @@ export default function RoadmapPage() {
       <div className="mb-10">
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-foreground tracking-tight mb-2">Дорожная карта продукта</h1>
+            <h1 className="text-3xl font-bold text-foreground tracking-tight mb-2">Product Roadmap</h1>
             <p className="text-base text-muted-foreground max-w-2xl">
-              ElevraLingua — B2B SaaS платформа для преподавателей иностранных языков.
-              Авторские учебные материалы, интерактивные упражнения и инструменты для управления классами.
-              Первый продукт: мандаринский китайский для англоговорящих.
+              ElevraLingua — a B2B SaaS platform for foreign language teachers.
+              Authored learning materials, interactive exercises, and classroom management tools.
+              First product: Chinese (Mandarin) for English speakers.
             </p>
           </div>
 
@@ -212,12 +212,12 @@ export default function RoadmapPage() {
         <CardContent className="py-5">
           <div className="flex items-center gap-3 mb-3">
             <span className="text-2xl">🎯</span>
-            <h3 className="text-base font-semibold text-foreground">Целевой рынок</h3>
+            <h3 className="text-base font-semibold text-foreground">Target Market</h3>
           </div>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            Преподаватели иностранных языков: частные репетиторы и языковые школы.
-            Первый продукт — курс мандаринского китайского для англоговорящих.
-            Архитектура платформы поддерживает любые языковые пары, что позволяет быстро расширяться на японский, корейский, арабский и другие языки.
+            Foreign language teachers: private tutors and language schools.
+            First product — Chinese (Mandarin) course for English speakers.
+            The platform architecture supports any language pair, enabling rapid expansion to Japanese, Korean, Arabic, and other languages.
           </p>
         </CardContent>
       </Card>

@@ -4,7 +4,7 @@
 //
 // Описание:
 //   Красивый рендер рабочей тетради для режима просмотра.
-//   Интерактивные упражнения — ученик выполняет, получает
+//   Интерактивные exercises — ученик выполняет, получает
 //   мгновенную обратную связь для авто-упражнений.
 //   Чистый интерфейс без технической информации.
 //   Учитель видит дополнительно ответы и критерии.
@@ -18,7 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { AudioPlayer } from "@/components/audio-player";
 
-// ===== Типы =====
+// ===== Typeы =====
 interface Exercise {
   id: string; exerciseType: string; title: string;
   instructionText: string; difficulty: number;
@@ -79,7 +79,7 @@ export function PreviewWorkbook({ exercises, isTeacher }: Props) {
   );
 }
 
-// ===== Роутер интерактивного упражнения =====
+// ===== Роутер интерактивного exercises =====
 function ExerciseInteractive({ exercise }: { exercise: Exercise }) {
   const c = exercise.contentJson;
   switch (exercise.exerciseType) {

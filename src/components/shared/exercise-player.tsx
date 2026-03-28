@@ -73,7 +73,7 @@ export function ExercisePlayer({ exercise, onSubmit }: ExercisePlayerProps) {
       <div className="mt-6">
         {!result ? (
           <Button onClick={handleSubmit} disabled={answer == null || submitting} className="cursor-pointer">
-            {submitting ? "Отправка..." : "Ответить"}
+            {submitting ? "Submitting..." : "Submit"}
           </Button>
         ) : (
           <div className={`p-4 rounded-lg ${
@@ -84,17 +84,17 @@ export function ExercisePlayer({ exercise, onSubmit }: ExercisePlayerProps) {
             {result.status === "AUTO_GRADED" ? (
               <div>
                 <div className={`flex items-center gap-2 font-medium ${["A","B"].includes(result.grade) ? "text-emerald-700" : "text-red-700"}`}>
-                  {["A","B"].includes(result.grade) ? "✅ Правильно!" : "❌ Неправильно"}
+                  {["A","B"].includes(result.grade) ? "✅ Correct!" : "❌ Incorrect"}
                   <GradeBadge grade={result.grade} size="md" />
                 </div>
                 {!["A","B"].includes(result.grade) && result.exercise?.correctAnswers && (
                   <p className="text-sm text-muted-foreground mt-2">
-                    Правильный ответ: <span className="font-medium text-foreground">{result.exercise.correctAnswers.join(", ")}</span>
+                    Correct answer: <span className="font-medium text-foreground">{result.exercise.correctAnswers.join(", ")}</span>
                   </p>
                 )}
               </div>
             ) : (
-              <p className="text-blue-700 font-medium">📨 Отправлено учителю на проверку</p>
+              <p className="text-blue-700 font-medium">📨 Submitted for teacher review</p>
             )}
           </div>
         )}
@@ -191,7 +191,7 @@ function WordOrder({ content, value, onChange, disabled }: any) {
   return (
     <div>
       <div className="min-h-[48px] p-3 border border-border rounded-lg mb-3 flex flex-wrap gap-2">
-        {ordered.length === 0 && <span className="text-sm text-muted-foreground">Нажимайте на слова чтобы составить предложение...</span>}
+        {ordered.length === 0 && <span className="text-sm text-muted-foreground">Tap the words to build a sentence...</span>}
         {ordered.map((w: string, i: number) => (
           <button key={i} onClick={() => removeWord(i)} disabled={disabled}
             className="px-3 py-1.5 bg-primary/10 text-primary rounded-md text-sm font-medium hover:bg-primary/20">
@@ -261,7 +261,7 @@ function TextAnswer({ content, value, onChange, disabled, type }: any) {
         value={value || ""}
         onChange={e => onChange(e.target.value)}
         disabled={disabled}
-        placeholder="Введите ответ..."
+        placeholder="Enter your answer..."
       />
     </div>
   );
@@ -298,7 +298,7 @@ function Dictation({ content, value, onChange, disabled }: any) {
       {content.audioUrl && (
         <div className="mb-3">
           <audio controls className="w-full"><source src={content.audioUrl} /></audio>
-          <p className="text-xs text-muted-foreground mt-1">Прослушайте и запишите</p>
+          <p className="text-xs text-muted-foreground mt-1">Listen and write</p>
         </div>
       )}
       <textarea
@@ -306,7 +306,7 @@ function Dictation({ content, value, onChange, disabled }: any) {
         value={value || ""}
         onChange={e => onChange(e.target.value)}
         disabled={disabled}
-        placeholder="Напишите что слышите..."
+        placeholder="Write what you hear..."
       />
     </div>
   );

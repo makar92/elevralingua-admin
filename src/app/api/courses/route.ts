@@ -13,7 +13,7 @@ import { getAuthUser, apiSuccess, apiError, withErrorHandling } from "@/lib/api-
 export async function GET() {
   return withErrorHandling(async () => {
     const user = await getAuthUser();
-    if (!user) return apiError("Не авторизован", 401);
+    if (!user) return apiError("Unauthorized", 401);
 
     // Админы видят все курсы, учителя и ученики — только опубликованные
     const isAdmin = ["SUPER_ADMIN", "ADMIN", "LINGUIST"].includes(user.role);
@@ -31,9 +31,9 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   return withErrorHandling(async () => {
     const user = await getAuthUser();
-    if (!user) return apiError("Не авторизован", 401);
+    if (!user) return apiError("Unauthorized", 401);
     const { title, language, targetLanguage, level, description } = await request.json();
-    if (!title || !language || !targetLanguage || !level) return apiError("Заполните все обязательные поля");
+    if (!title || !language || !targetLanguage || !level) return apiError("Please fill in all required fields");
     const course = await prisma.course.create({
       data: { title, language, targetLanguage, level, description: description || null },
     });

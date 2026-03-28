@@ -49,7 +49,7 @@ export async function DELETE() {
 
   // Удаляем все связанные данные пользователя
   await prisma.$transaction(async (tx) => {
-    // Удаляем ответы на упражнения
+    // Удаляем ответы на exercises
     await tx.exerciseAnswer.deleteMany({ where: { studentId: userId } });
     // Удаляем связи с домашними заданиями
     await tx.homeworkStudent.deleteMany({ where: { studentId: userId } });

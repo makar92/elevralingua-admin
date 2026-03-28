@@ -16,13 +16,13 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   return withErrorHandling(async () => {
     // Проверяем авторизацию
     const session = await auth();
-    if (!session) return apiError("Не авторизован", 401);
+    if (!session) return apiError("Unauthorized", 401);
 
     const { id: courseId } = await params;
     const { title, description } = await request.json();
 
     // Валидация
-    if (!title) return apiError("Название юнита обязательно");
+    if (!title) return apiError("Unit title is required");
 
     // Определяем порядок — ставим в конец
     const last = await prisma.unit.findFirst({ where: { courseId }, orderBy: { order: "desc" } });

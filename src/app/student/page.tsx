@@ -14,18 +14,19 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { formatTime12h } from "@/lib/utils";
 import { UserMultipleIcon, Mortarboard01Icon, CheckListIcon, Calendar01Icon, CheckmarkCircle02Icon } from "@hugeicons/core-free-icons";
 
-const MO = ["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
-const DW_CAL = ["Пн","Вт","Ср","Чт","Пт","Сб","Вс"];
+const MO = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const DW_CAL = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 const STATUS_COLORS: Record<string, string> = { COMPLETED: "bg-emerald-500", SCHEDULED: "bg-blue-400" };
 
 function getGreeting(): string {
   const h = new Date().getHours();
-  if (h < 6) return "Доброй ночи";
-  if (h < 12) return "Доброе утро";
-  if (h < 18) return "Добрый день";
-  return "Добрый вечер";
+  if (h < 6) return "Good evening";
+  if (h < 12) return "Good morning";
+  if (h < 18) return "Good afternoon";
+  return "Good evening";
 }
 
 function daysUntil(dateStr: string): number {
@@ -73,7 +74,7 @@ export default function StudentDashboard() {
     });
   }, []);
 
-  // Загрузка логов журнала
+  // Loading логов журнала
   const loadLogs = useCallback(async () => {
     const data = await safeFetch(`/api/lesson-log?month=${ms}`);
     setLogs(Array.isArray(data) ? data : []);
@@ -92,7 +93,7 @@ export default function StudentDashboard() {
   const today = new Date();
   const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
   const firstDow = new Date(year, month, 1).getDay();
-  const shift = firstDow === 0 ? 6 : firstDow - 1;
+  const shift = firstDow;
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
   const logsByDay = new Map<number, any[]>();
@@ -140,7 +141,7 @@ export default function StudentDashboard() {
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0"><HugeiconsIcon icon={UserMultipleIcon} size={22} className="text-primary" /></div>
               <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Преподавателей</p>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Teachers</p>
                 <p className="text-2xl font-bold text-foreground">{new Set(classrooms.map((c: any) => c.teacherId)).size}</p>
               </div>
             </div>
@@ -151,7 +152,7 @@ export default function StudentDashboard() {
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0"><HugeiconsIcon icon={CheckListIcon} size={22} className="text-primary" /></div>
               <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Активные задания</p>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Active Assignments</p>
                 <p className="text-2xl font-bold text-foreground">{activeHomeworks.length}</p>
               </div>
             </div>
@@ -162,7 +163,7 @@ export default function StudentDashboard() {
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0"><HugeiconsIcon icon={Mortarboard01Icon} size={22} className="text-primary" /></div>
               <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Мои классы</p>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">My Classes</p>
                 <p className="text-2xl font-bold text-foreground">{classrooms.length}</p>
               </div>
             </div>
@@ -214,7 +215,7 @@ export default function StudentDashboard() {
                             log.status === "COMPLETED" ? "bg-emerald-100 text-emerald-800" : "bg-blue-100 text-blue-800"
                           }`}>
                             <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${STATUS_COLORS[log.status] || "bg-gray-400"}`} />
-                            <span className="truncate">{log.startTime} {log.classroom?.name?.slice(0, 12) || ""}</span>
+                            <span className="truncate">{formatTime12h(log.startTime)} {log.classroom?.name?.slice(0, 12) || ""}</span>
                           </div>
                         ))}
                       </div>
@@ -231,17 +232,17 @@ export default function StudentDashboard() {
           <Card className="h-full">
             <CardHeader className="pb-3">
               <CardTitle className="text-base">
-                {selectedDay ? `${selectedDay} ${MO[month]}` : "Выберите день"}
+                {selectedDay ? `${selectedDay} ${MO[month]}` : "Select a day"}
               </CardTitle>
             </CardHeader>
             <CardContent>
               {!selectedDay ? (
                 <div className="text-center py-8">
                   <div className="flex justify-center mb-2"><HugeiconsIcon icon={Calendar01Icon} size={36} className="text-muted-foreground" /></div>
-                  <p className="text-sm text-muted-foreground">Нажмите на день с занятиями</p>
+                  <p className="text-sm text-muted-foreground">Click on a day with lessons</p>
                 </div>
               ) : selectedLogs.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-4">Нет занятий</p>
+                <p className="text-sm text-muted-foreground text-center py-4">No lessons</p>
               ) : (
                 <div className="space-y-3">
                   {selectedLogs.map((log: any) => (
@@ -249,10 +250,10 @@ export default function StudentDashboard() {
                       <div className="flex items-center gap-2 mb-1.5">
                         <span className={`w-2 h-2 rounded-full ${STATUS_COLORS[log.status]}`} />
                         <span className="text-xs font-medium text-muted-foreground uppercase">
-                          {log.status === "COMPLETED" ? "Проведено" : "Запланировано"}
+                          {log.status === "COMPLETED" ? "Completed" : "Scheduled"}
                         </span>
                       </div>
-                      <p className="text-sm font-medium text-foreground">{log.startTime} — {log.endTime}</p>
+                      <p className="text-sm font-medium text-foreground">{formatTime12h(log.startTime)} — {formatTime12h(log.endTime)}</p>
                       <p className="text-xs text-muted-foreground mt-0.5">{log.classroom?.name}</p>
                       {log.location && (
                         <p className="text-[11px] text-muted-foreground/70 mt-0.5">📍 {log.location}</p>
@@ -271,14 +272,14 @@ export default function StudentDashboard() {
         <div className="col-span-3">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-3">
-              <CardTitle className="text-base">Мои классы</CardTitle>
-              <Link href="/student/classrooms" className="text-sm text-primary hover:underline">Все →</Link>
+              <CardTitle className="text-base">My Classes</CardTitle>
+              <Link href="/student/classrooms" className="text-sm text-primary hover:underline">View All →</Link>
             </CardHeader>
             <CardContent>
               {classrooms.length === 0 ? (
                 <div className="text-center py-6">
-                  <p className="text-muted-foreground mb-3">Вы ещё не записаны ни в один класс</p>
-                  <Link href="/student/search"><Button size="sm" className="cursor-pointer">Найти класс</Button></Link>
+                  <p className="text-muted-foreground mb-3">You haven't joined any classes yet</p>
+                  <Link href="/student/search"><Button size="sm" className="cursor-pointer">Find a Class</Button></Link>
                 </div>
               ) : (
                 <div className="space-y-2.5">
@@ -307,13 +308,13 @@ export default function StudentDashboard() {
         <div className="col-span-2">
           <Card className="h-full">
             <CardHeader className="pb-3">
-              <CardTitle className="text-base">Домашние задания</CardTitle>
+              <CardTitle className="text-base">Homework</CardTitle>
             </CardHeader>
             <CardContent>
               {activeHomeworks.length === 0 ? (
                 <div className="text-center py-4">
                   <div className="flex justify-center mb-2"><HugeiconsIcon icon={CheckmarkCircle02Icon} size={28} className="text-primary" /></div>
-                  <p className="text-sm text-muted-foreground">Нет активных заданий</p>
+                  <p className="text-sm text-muted-foreground">No active assignments</p>
                 </div>
               ) : (
                 <div className="space-y-2.5">
@@ -332,7 +333,7 @@ export default function StudentDashboard() {
                           </div>
                           {days !== null && (
                             <Badge variant={isUrgent ? "destructive" : "secondary"} className="text-xs flex-shrink-0">
-                              {days <= 0 ? "Срок!" : days === 1 ? "Завтра" : `${days} дн.`}
+                              {days <= 0 ? "Due!" : days === 1 ? "Tomorrow" : `${days} days`}
                             </Badge>
                           )}
                         </div>

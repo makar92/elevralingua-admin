@@ -20,22 +20,22 @@ export default async function DashboardPage() {
   ]);
 
   const stats = [
-    { label: "Курсы",      value: courseCount },
-    { label: "Юниты",      value: unitCount },
-    { label: "Уроки",      value: lessonCount },
-    { label: "Упражнения", value: exerciseCount },
+    { label: "Courses",      value: courseCount },
+    { label: "Units",      value: unitCount },
+    { label: "Lessons",      value: lessonCount },
+    { label: "Exercises", value: exerciseCount },
   ];
 
   const actions = [
-    { icon: "📚", title: "Создать курс",         desc: "Новый курс иностранного языка",  href: "/dashboard/courses/new" },
-    { icon: "✏️", title: "Редактировать контент", desc: "Уроки, лексика, упражнения",      href: "/dashboard/courses" },
-    { icon: "🗺️", title: "Roadmap",               desc: "Дорожная карта развития платформы", href: "/dashboard/roadmap" },
+    { icon: "📚", title: "Create Course",         desc: "New foreign language course",  href: "/dashboard/courses/new" },
+    { icon: "✏️", title: "Edit Content", desc: "Lessons, vocabulary, exercises",      href: "/dashboard/courses" },
+    { icon: "🗺️", title: "Roadmap",               desc: "Platform development roadmap", href: "/dashboard/roadmap" },
   ];
 
   return (
     <div>
       {/* Заголовок — белый текст */}
-      <h1 className="text-2xl font-bold text-foreground mb-6">Панель управления</h1>
+      <h1 className="text-2xl font-bold text-foreground mb-6">Dashboard</h1>
 
       {/* Статистика */}
       <div className="grid grid-cols-4 gap-4 mb-8">
@@ -51,7 +51,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Быстрые действия — заголовок белый */}
-      <h2 className="text-lg font-semibold text-foreground mb-4">Быстрые действия</h2>
+      <h2 className="text-lg font-semibold text-foreground mb-4">Quick Actions</h2>
       <div className="grid grid-cols-3 gap-4">
         {actions.map((a) => (
           <Link key={a.href} href={a.href}>

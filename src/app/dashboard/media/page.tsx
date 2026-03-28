@@ -15,38 +15,38 @@ import { Badge } from "@/components/ui/badge";
 const plannedFeatures = [
   {
     icon: "📁",
-    title: "Файловый менеджер",
-    description: "Централизованное хранилище всех изображений, аудио и видео. Поиск, теги, организация по курсам.",
+    title: "File Manager",
+    description: "Centralized storage for all images, audio, and video. Search, tags, organized by course.",
     status: "Q3 2026",
   },
   {
     icon: "🎙️",
-    title: "Аудио-библиотека",
-    description: "Запись и хранение произношений слов. Аудио для диалогов, диктантов и упражнений на аудирование.",
+    title: "Audio Library",
+    description: "Record and store word pronunciations. Audio for dialogues, dictation, and listening exercises.",
     status: "Q3 2026",
   },
   {
     icon: "🤖",
-    title: "AI-генерация аудио",
-    description: "Автоматическая генерация произношений на любом языке с помощью нейросети (TTS). Выбор голоса, скорости, тона.",
+    title: "AI Audio Generation",
+    description: "Automatic pronunciation generation in any language using AI (TTS). Voice, speed, and tone selection.",
     status: "Q4 2026",
   },
   {
     icon: "🖼️",
-    title: "Генерация иллюстраций",
-    description: "AI-генерация картинок для карточек слов, упражнений и культурных заметок. Единый стиль для всего курса.",
+    title: "Image Generation",
+    description: "AI-generated images for vocab cards, exercises, and cultural notes. Consistent style across the course.",
     status: "Q4 2026",
   },
   {
     icon: "📊",
-    title: "Аналитика использования",
-    description: "Статистика: какие медиа-файлы используются в курсах, дубликаты, неиспользуемые файлы.",
+    title: "Usage Analytics",
+    description: "Statistics: which media files are used in courses, duplicates, unused files.",
     status: "2027",
   },
   {
     icon: "🔗",
-    title: "CDN и оптимизация",
-    description: "Автоматическое сжатие изображений, адаптивные размеры, кэширование через CDN для быстрой загрузки.",
+    title: "CDN & Optimization",
+    description: "Automatic image compression, responsive sizes, CDN caching for fast loading.",
     status: "2027",
   },
 ];
@@ -57,12 +57,12 @@ export default function MediaPage() {
       {/* Заголовок */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
-          <h1 className="text-2xl font-bold text-foreground">Медиа-библиотека</h1>
+          <h1 className="text-2xl font-bold text-foreground">Media Library</h1>
           <Badge variant="outline" className="text-xs">Coming Soon</Badge>
         </div>
         <p className="text-base text-muted-foreground">
-          Централизованное управление медиа-контентом курсов: изображения, аудио, видео.
-          Сейчас файлы загружаются прямо в блоки контента. В будущем — единая библиотека с AI-инструментами.
+          Centralized media content management for courses: images, audio, video.
+          Currently files are uploaded directly into content blocks. Coming soon — a unified library with AI tools.
         </p>
       </div>
 
@@ -72,11 +72,11 @@ export default function MediaPage() {
           <div className="flex items-center gap-4">
             <span className="text-4xl">✅</span>
             <div>
-              <p className="text-lg font-medium text-foreground">Текущая версия (MVP)</p>
+              <p className="text-lg font-medium text-foreground">Current Version (MVP)</p>
               <p className="text-base text-muted-foreground">
-                Загрузка изображений и аудио напрямую в контент-блоки.
-                Хранение в Vercel Blob (продакшен) или локальной ФС (разработка).
-                Поддерживаемые форматы: JPEG, PNG, GIF, WebP, MP3, OGG, WAV.
+                Upload images and audio directly into content blocks.
+                Storage via Vercel Blob (production) or local filesystem (development).
+                Supported formats: JPEG, PNG, GIF, WebP, MP3, OGG, WAV.
               </p>
             </div>
           </div>
@@ -84,7 +84,7 @@ export default function MediaPage() {
       </Card>
 
       {/* Roadmap */}
-      <h2 className="text-lg font-semibold text-foreground mb-4">Дорожная карта</h2>
+      <h2 className="text-lg font-semibold text-foreground mb-4">Roadmap</h2>
       <div className="grid grid-cols-2 gap-4">
         {plannedFeatures.map((feature) => (
           <Card key={feature.title} className="border-dashed">

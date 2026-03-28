@@ -1,6 +1,6 @@
 // ===========================================
 // Файл: src/app/teacher/classrooms/[id]/students/students-tab.tsx
-// Описание: Таб списка учеников с модалкой приглашения.
+// Описание: Таб списка students с модалкой приглашения.
 // ===========================================
 
 "use client";
@@ -41,23 +41,23 @@ export function StudentsTab({ classroomId, enrollments }: { classroomId: string;
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-foreground">Ученики ({enrollments.length})</h2>
+        <h2 className="text-lg font-semibold text-foreground">Students ({enrollments.length})</h2>
         <Dialog>
           <DialogTrigger asChild>
-            <Button size="sm">Пригласить ученика</Button>
+            <Button size="sm">Invite Student</Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Пригласить ученика</DialogTitle>
+              <DialogTitle>Invite Student</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <Input
-                placeholder="Поиск по имени или email..."
+                placeholder="Search by name or email..."
                 value={searchQuery}
                 onChange={e => handleSearch(e.target.value)}
               />
               <div className="max-h-64 overflow-y-auto space-y-2">
-                {searching && <p className="text-sm text-muted-foreground">Поиск...</p>}
+                {searching && <p className="text-sm text-muted-foreground">Searching...</p>}
                 {searchResults.map((u: any) => (
                   <div key={u.id} className="flex items-center justify-between p-2 rounded border border-border">
                     <div className="flex items-center gap-2">
@@ -71,14 +71,14 @@ export function StudentsTab({ classroomId, enrollments }: { classroomId: string;
                       </div>
                     </div>
                     {sentIds.has(u.id) ? (
-                      <Badge variant="secondary" className="text-xs">Отправлено</Badge>
+                      <Badge variant="secondary" className="text-xs">Sent</Badge>
                     ) : (
-                      <Button size="sm" variant="outline" onClick={() => handleInvite(u.id)}>Пригласить</Button>
+                      <Button size="sm" variant="outline" onClick={() => handleInvite(u.id)}>Invite</Button>
                     )}
                   </div>
                 ))}
                 {searchQuery.length >= 2 && !searching && searchResults.length === 0 && (
-                  <p className="text-sm text-muted-foreground text-center py-4">Ученики не найдены</p>
+                  <p className="text-sm text-muted-foreground text-center py-4">No students found</p>
                 )}
               </div>
             </div>
@@ -88,7 +88,7 @@ export function StudentsTab({ classroomId, enrollments }: { classroomId: string;
 
       {enrollments.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-muted-foreground">Нет учеников. Пригласите первого!</p>
+          <p className="text-muted-foreground">No students yet. Invite your first!</p>
         </div>
       ) : (
         <div className="space-y-2">
@@ -103,10 +103,10 @@ export function StudentsTab({ classroomId, enrollments }: { classroomId: string;
                 <p className="text-xs text-muted-foreground">{e.student?.email}</p>
               </div>
               <Badge variant="secondary" className="text-xs">
-                {e.status === "ACTIVE" ? "Активный" : "Неактивный"}
+                {e.status === "ACTIVE" ? "Active" : "Inactive"}
               </Badge>
               <span className="text-xs text-muted-foreground">
-                Вступил {new Date(e.joinedAt).toLocaleDateString("ru-RU")}
+                Joined {new Date(e.joinedAt).toLocaleDateString("en-US")}
               </span>
             </div>
           ))}

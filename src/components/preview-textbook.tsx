@@ -8,7 +8,7 @@
 //   - Стандартный отступ между блоками (1-2 строки)
 //   - Карточки слов — визуально выразительные
 //   - Диалоги — с аватарками и фонами
-//   - Заметки учителя — видны только в режиме учителя
+//   - Teacher Notes — видны только в режиме учителя
 //   Поддерживает все 10 типов блоков включая SPACER.
 // ===========================================
 
@@ -18,7 +18,7 @@ import { AudioPlayer } from "@/components/audio-player";
 import { AVATAR_MAP, SCENE_MAP } from "@/lib/dialogue-assets";
 import { TIPTAP_CONTENT_STYLES } from "@/lib/utils";
 
-// ===== Типы =====
+// ===== Typeы =====
 interface ContentBlock {
   id: string; type: string; contentJson: any;
   teacherNote?: { noteHtml: string } | null;
@@ -35,7 +35,7 @@ export function PreviewTextbook({ blocks, isTeacher }: Props) {
   if (blocks.length === 0) {
     return (
       <div className="text-center py-20">
-        <p className="text-xl text-muted-foreground">Раздел пуст</p>
+        <p className="text-xl text-muted-foreground">Section is empty</p>
       </div>
     );
   }
@@ -49,7 +49,7 @@ export function PreviewTextbook({ blocks, isTeacher }: Props) {
             {/* Заметка учителя (если есть и режим учителя) */}
             {isTeacher && block.teacherNote?.noteHtml && (
               <div className="mt-4 ml-4 pl-4 border-l-2 border-amber-600/40">
-                <p className="text-xs font-semibold text-amber-700 uppercase tracking-wider mb-1">Заметка учителя</p>
+                <p className="text-xs font-semibold text-amber-700 uppercase tracking-wider mb-1">Teacher Note</p>
                 <div className="text-sm text-amber-800/80 leading-relaxed"
                   dangerouslySetInnerHTML={{ __html: block.teacherNote.noteHtml }} />
               </div>
@@ -145,7 +145,7 @@ function VocabCardPreview({ c }: { c: any }) {
           {/* Картинка */}
           {c.imageUrl && <img src={c.imageUrl} alt={word} className="max-w-[180px] rounded-xl mt-4" />}
           {/* Аудио */}
-          {c.audioUrl && <div className="mt-4"><AudioPlayer src={c.audioUrl} title="Произношение" /></div>}
+          {c.audioUrl && <div className="mt-4"><AudioPlayer src={c.audioUrl} title="Pronunciation" /></div>}
         </div>
       </div>
       {/* Пример в предложении */}
@@ -190,7 +190,7 @@ function DialoguePreview({ c }: { c: any }) {
           <h3 className="text-xl font-bold text-foreground">{c.situationTitle}</h3>
         </div>
       )}
-      {/* Реплики */}
+      {/* Lines */}
       <div className="px-7 pb-7 pt-4 space-y-6 relative">
         {(c.lines || []).map((line: any, i: number) => {
           const spkIdx = line.speakerIndex || 0;

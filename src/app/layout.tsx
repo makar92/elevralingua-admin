@@ -16,12 +16,12 @@ const figtree = Figtree({subsets:['latin'],variable:'--font-sans'});
 
 export const metadata: Metadata = {
   title: "ElevraLingua",
-  description: "B2B SaaS платформа для преподавателей иностранных языков",
+  description: "B2B SaaS platform for foreign language teachers",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ru" className={cn("font-sans", figtree.variable)}>
+    <html lang="en" className={cn("font-sans", figtree.variable)}>
       <body className="bg-background text-foreground antialiased">
         <Providers>{children}</Providers>
       </body>

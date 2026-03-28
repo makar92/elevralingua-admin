@@ -15,22 +15,22 @@ export async function POST(
 ) {
   return withErrorHandling(async () => {
     const session = await auth();
-    if (!session) return apiError("Не авторизован", 401);
+    if (!session) return apiError("Unauthorized", 401);
     const { id: sectionId } = await params;
     const { blockId, direction } = await request.json();
 
-    // Получаем все блоки раздела отсортированные
+    // Получаем все блоки sections отсортированные
     const blocks = await prisma.contentBlock.findMany({
       where: { sectionId },
       orderBy: { order: "asc" },
     });
 
     const idx = blocks.findIndex((b) => b.id === blockId);
-    if (idx === -1) return apiError("Блок не найден");
+    if (idx === -1) return apiError("Block not found");
 
     // Проверяем можно ли двигать
-    if (direction === "up" && idx === 0) return apiError("Уже наверху");
-    if (direction === "down" && idx === blocks.length - 1) return apiError("Уже внизу");
+    if (direction === "up" && idx === 0) return apiError("Already at the top");
+    if (direction === "down" && idx === blocks.length - 1) return apiError("Already at the bottom");
 
     // Меняем местами с соседним
     const swapIdx = direction === "up" ? idx - 1 : idx + 1;

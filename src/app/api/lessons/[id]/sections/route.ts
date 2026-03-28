@@ -1,6 +1,6 @@
 // ===========================================
 // Файл: src/app/api/lessons/[id]/sections/route.ts
-// Описание: GET — список разделов урока, POST — создать раздел.
+// Описание: GET — список разделов lessons, POST — создать раздел.
 // ===========================================
 
 import { NextRequest } from "next/server";
@@ -36,10 +36,10 @@ export async function POST(
 ) {
   return withErrorHandling(async () => {
     const session = await auth();
-    if (!session) return apiError("Не авторизован", 401);
+    if (!session) return apiError("Unauthorized", 401);
     const { id: lessonId } = await params;
     const { title } = await request.json();
-    if (!title) return apiError("Название раздела обязательно");
+    if (!title) return apiError("Section title is required");
 
     const last = await prisma.section.findFirst({
       where: { lessonId }, orderBy: { order: "desc" },

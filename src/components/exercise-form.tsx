@@ -25,24 +25,24 @@ import { ExercisePreview } from "@/components/exercise-preview";
 
 // ===== Список языков (легко расширяется) =====
 export const LANGUAGE_OPTIONS = [
-  { value: "Mandarin Chinese", label: "Китайский (мандаринский)" },
-  { value: "English",          label: "Английский" },
-  { value: "zh",               label: "Китайский (мандаринский)" },
-  { value: "en",               label: "Английский" },
-  { value: "fr",               label: "Французский" },
-  { value: "es",               label: "Испанский" },
-  { value: "de",               label: "Немецкий" },
-  { value: "ja",               label: "Японский" },
-  { value: "ko",               label: "Корейский" },
+  { value: "Mandarin Chinese", label: "Chinese (Mandarin)" },
+  { value: "English",          label: "English" },
+  { value: "zh",               label: "Chinese (Mandarin)" },
+  { value: "en",               label: "English" },
+  { value: "fr",               label: "French" },
+  { value: "es",               label: "Spanish" },
+  { value: "de",               label: "German" },
+  { value: "ja",               label: "Japanese" },
+  { value: "ko",               label: "Korean" },
 ];
 
 // ===== Цветной индикатор сложности =====
 const DIFFICULTY_OPTIONS = [
-  { value: 1, label: "Лёгкое",        color: "bg-green-100 text-green-700 border-green-300" },
-  { value: 2, label: "Ниже среднего", color: "bg-lime-100 text-lime-700 border-lime-300" },
-  { value: 3, label: "Среднее",       color: "bg-yellow-100 text-yellow-700 border-yellow-300" },
-  { value: 4, label: "Сложное",       color: "bg-orange-100 text-orange-700 border-orange-300" },
-  { value: 5, label: "Очень сложное", color: "bg-red-100 text-red-700 border-red-300" },
+  { value: 1, label: "Easy",        color: "bg-green-100 text-green-700 border-green-300" },
+  { value: 2, label: "Below Average", color: "bg-lime-100 text-lime-700 border-lime-300" },
+  { value: 3, label: "Medium",       color: "bg-yellow-100 text-yellow-700 border-yellow-300" },
+  { value: 4, label: "Hard",       color: "bg-orange-100 text-orange-700 border-orange-300" },
+  { value: 5, label: "Very Hard", color: "bg-red-100 text-red-700 border-red-300" },
 ];
 
 function getDifficultyOption(value: number) {
@@ -59,7 +59,7 @@ export function DifficultyBadge({ value }: { value: number }) {
   );
 }
 
-// ===== Дефолтный contentJson по типу упражнения =====
+// ===== Дефолтный contentJson по типу exercises =====
 function getDefaultContentJson(type: string): any {
   switch (type) {
     case "MATCHING":
@@ -92,7 +92,7 @@ function getDefaultContentJson(type: string): any {
   }
 }
 
-// ===== Автоматический тип проверки по типу упражнения =====
+// ===== Автоматический тип проверки по типу exercises =====
 function getGradingType(type: string): "AUTO" | "TEACHER" {
   return ["MATCHING", "MULTIPLE_CHOICE", "TONE_PLACEMENT", "WORD_ORDER"].includes(type)
     ? "AUTO"
@@ -105,7 +105,7 @@ interface ExerciseFormProps {
   initialData?: any;
   onSave: (data: any) => void;
   onCancel: () => void;
-  saveLabel?: string;  // Текст кнопки сохранения (по умолчанию "Добавить в доп.")
+  saveLabel?: string;  // Текст кнопки сохранения (по умолчанию "Add to Bank")
 }
 
 export function ExerciseForm({ exerciseType, initialData, onSave, onCancel, saveLabel }: ExerciseFormProps) {
@@ -120,7 +120,7 @@ export function ExerciseForm({ exerciseType, initialData, onSave, onCancel, save
   const [referenceAnswer, setReferenceAnswer] = useState(initialData?.referenceAnswer || "");
   const [correctAnswers, setCorrectAnswers] = useState<string[]>(initialData?.correctAnswers || []);
 
-  // Содержимое упражнения
+  // Содержимое exercises
   const [contentJson, setContentJson] = useState(
     initialData?.contentJson || getDefaultContentJson(exerciseType)
   );
@@ -131,7 +131,7 @@ export function ExerciseForm({ exerciseType, initialData, onSave, onCancel, save
   const gradingType    = getGradingType(exerciseType);
   const isTeacherGraded = gradingType === "TEACHER";
 
-  // Загрузка файла
+  // Loading файла
   const [uploading, setUploading] = useState(false);
   const uploadFile = async (file: File, field: string) => {
     setUploading(true);
@@ -143,7 +143,7 @@ export function ExerciseForm({ exerciseType, initialData, onSave, onCancel, save
         const { url } = await res.json();
         setContent(field, url);
       }
-    } catch (e) { console.error("Ошибка загрузки:", e); }
+    } catch (e) { console.error("Upload error:", e); }
     setUploading(false);
   };
 
@@ -178,13 +178,13 @@ export function ExerciseForm({ exerciseType, initialData, onSave, onCancel, save
       <div>
         {/* Шапка предпросмотра */}
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-semibold text-foreground">Предпросмотр</h3>
+          <h3 className="text-lg font-semibold text-foreground">Preview</h3>
           <Button variant="outline" size="sm" onClick={() => setViewMode("form")}>
-            ✏️ Вернуться к редактированию
+            ✏️ Back to editing
           </Button>
         </div>
 
-        {/* Просмотр упражнения — режим учителя (видны ответы и комментарии) */}
+        {/* Просмотр exercises — режим учителя (видны ответы и комментарии) */}
         <div className="border border-border rounded-xl p-6 bg-card shadow-sm">
           <ExercisePreview exercise={previewExercise} mode="teacher" />
         </div>
@@ -199,32 +199,32 @@ export function ExerciseForm({ exerciseType, initialData, onSave, onCancel, save
       {/* Шапка: тип проверки + кнопка предпросмотра */}
       <div className="flex items-center justify-between">
         <Badge variant={gradingType === "AUTO" ? "default" : "secondary"} className="text-sm px-3 py-1">
-          {gradingType === "AUTO" ? "⚡ Автоматическая проверка" : "👩‍🏫 Ручная проверка учителем"}
+          {gradingType === "AUTO" ? "⚡ Auto-graded" : "👩‍🏫 Teacher-reviewed"}
         </Badge>
         <Button variant="outline" size="sm" onClick={() => setViewMode("preview")}>
-          👁 Предпросмотр
+          👁 Preview
         </Button>
       </div>
 
       {/* Общие поля */}
       <div className="space-y-4">
         <div className="space-y-1.5">
-          <Label className="text-sm font-medium text-foreground">Название упражнения</Label>
+          <Label className="text-sm font-medium text-foreground">Exercise Title</Label>
           <Input value={title} onChange={(e) => setTitle(e.target.value)}
-            placeholder="Краткое название (видно в списке и студенту)"
+            placeholder="Short title (shown in lists and to students)"
             className="h-10" />
         </div>
 
         <div className="space-y-1.5">
-          <Label className="text-sm font-medium text-foreground">Задание для ученика *</Label>
+          <Label className="text-sm font-medium text-foreground">Instructions for the Student *</Label>
           <Textarea value={instructionText} onChange={(e) => setInstructionText(e.target.value)}
-            placeholder="Чётко сформулируйте что нужно сделать"
+            placeholder="Clearly explain what the student needs to do"
             rows={2} />
         </div>
 
         {/* Цветной индикатор сложности */}
         <div className="space-y-1.5">
-          <Label className="text-sm font-medium text-foreground">Сложность</Label>
+          <Label className="text-sm font-medium text-foreground">Difficulty</Label>
           <div className="flex gap-2 flex-wrap">
             {DIFFICULTY_OPTIONS.map((opt) => (
               <button key={opt.value} onClick={() => setDifficulty(opt.value)}
@@ -260,10 +260,10 @@ export function ExerciseForm({ exerciseType, initialData, onSave, onCancel, save
           <Separator />
           <div className="space-y-1.5">
             <Label className="text-sm font-medium text-foreground">
-              Правильный ответ <span className="text-muted-foreground font-normal">(только для учителя)</span>
+              Answer Key <span className="text-muted-foreground font-normal">(teacher only)</span>
             </Label>
             <Textarea value={referenceAnswer} onChange={(e) => setReferenceAnswer(e.target.value)}
-              placeholder="Правильное написание пиньиня с тонами"
+              placeholder="Correct pinyin with tones"
               rows={2} />
           </div>
         </>
@@ -272,18 +272,18 @@ export function ExerciseForm({ exerciseType, initialData, onSave, onCancel, save
       {/* Комментарий для учителя — универсальный */}
       <Separator />
       <div className="space-y-1.5">
-        <Label className="text-sm font-medium text-foreground">💬 Комментарий для учителя</Label>
+        <Label className="text-sm font-medium text-foreground">💬 Teacher Notes</Label>
         <Textarea value={teacherComment} onChange={(e) => setTeacherComment(e.target.value)}
-          placeholder="Почему именно такой ответ правильный, на что обратить внимание, возможные ошибки студентов..."
+          placeholder="Why this answer is correct, what to watch for, common student mistakes..."
           rows={3} />
-        <p className="text-xs text-muted-foreground">Виден только учителю.</p>
+        <p className="text-xs text-muted-foreground">Visible to teacher only.</p>
       </div>
 
       {/* Кнопки */}
       <div className="flex justify-end gap-3 pt-2">
-        <Button variant="outline" size="lg" onClick={onCancel}>Отмена</Button>
+        <Button variant="outline" size="lg" onClick={onCancel}>Cancel</Button>
         <Button size="lg" onClick={handleSave} disabled={!instructionText.trim()}>
-          {initialData ? "Сохранить" : (saveLabel || "Добавить в доп.")}
+          {initialData ? "Save" : (saveLabel || "Add to Bank")}
         </Button>
       </div>
     </div>
@@ -315,20 +315,20 @@ function MatchingForm({ content, setContent, setCorrectAnswers }: any) {
 
   return (
     <div className="space-y-3">
-      <Label className="text-sm font-medium text-foreground">Пары для соединения</Label>
-      <p className="text-xs text-muted-foreground">Ученик соединяет левую и правую части.</p>
+      <Label className="text-sm font-medium text-foreground">Matching Pairs</Label>
+      <p className="text-xs text-muted-foreground">Students match the left and right sides.</p>
       {pairs.map((pair: any, i: number) => (
         <div key={i} className="flex items-center gap-2">
           <span className="text-muted-foreground text-xs w-5">{i + 1}.</span>
-          <Input value={pair.left}  onChange={(e) => updatePair(i, "left",  e.target.value)} placeholder="Левая часть"  className="flex-1 h-10" />
+          <Input value={pair.left}  onChange={(e) => updatePair(i, "left",  e.target.value)} placeholder="Left side"  className="flex-1 h-10" />
           <span className="text-muted-foreground font-bold text-sm">↔</span>
-          <Input value={pair.right} onChange={(e) => updatePair(i, "right", e.target.value)} placeholder="Правая часть" className="flex-1 h-10" />
+          <Input value={pair.right} onChange={(e) => updatePair(i, "right", e.target.value)} placeholder="Right side" className="flex-1 h-10" />
           {pairs.length > 2 && (
             <button onClick={() => removePair(i)} className="text-destructive hover:text-destructive/80 px-1">✕</button>
           )}
         </div>
       ))}
-      <Button variant="outline" size="sm" onClick={addPair}>+ Добавить пару</Button>
+      <Button variant="outline" size="sm" onClick={addPair}>+ Add Pair</Button>
     </div>
   );
 }
@@ -357,16 +357,16 @@ function MultipleChoiceForm({ content, setContent, setCorrectAnswers }: any) {
       {/* Опциональный контекст */}
       <div className="space-y-1.5">
         <Label className="text-sm font-medium text-foreground">
-          Контекст / предложение <span className="text-muted-foreground font-normal text-xs">(необязательно)</span>
+          Context / sentence <span className="text-muted-foreground font-normal text-xs">(optional)</span>
         </Label>
         <Input value={content.context || ""} onChange={(e) => setContent("context", e.target.value)}
-          placeholder="Слово, предложение или текст к которому задаётся вопрос"
+          placeholder="Word, sentence, or text the question refers to"
           className="h-10" />
       </div>
       {/* Варианты */}
       <div className="space-y-1.5">
-        <Label className="text-sm font-medium text-foreground">Варианты ответа</Label>
-        <p className="text-xs text-muted-foreground">Нажмите ✓ рядом с правильным вариантом</p>
+        <Label className="text-sm font-medium text-foreground">Answer Options</Label>
+        <p className="text-xs text-muted-foreground">Click ✓ next to the correct option</p>
       </div>
       {options.map((opt: string, i: number) => (
         <div key={i} className="flex items-center gap-2">
@@ -377,13 +377,13 @@ function MultipleChoiceForm({ content, setContent, setCorrectAnswers }: any) {
                 : "border-border text-transparent hover:border-muted-foreground"
             }`}>✓</button>
           <Input value={opt} onChange={(e) => updateOption(i, e.target.value)}
-            placeholder={`Вариант ${i + 1}`} className="flex-1 h-10" />
+            placeholder={`Option ${i + 1}`} className="flex-1 h-10" />
           {options.length > 2 && (
             <button onClick={() => removeOption(i)} className="text-destructive hover:text-destructive/80 px-1">✕</button>
           )}
         </div>
       ))}
-      <Button variant="outline" size="sm" onClick={addOption}>+ Добавить вариант</Button>
+      <Button variant="outline" size="sm" onClick={addOption}>+ Add Option</Button>
     </div>
   );
 }
@@ -394,27 +394,27 @@ function FillBlankForm({ content, setContent }: any) {
     <div className="space-y-3">
       <div className="space-y-1.5">
         <Label className="text-sm font-medium text-foreground">
-          Исходное предложение <span className="text-muted-foreground font-normal text-xs">(необязательно)</span>
+          Source sentence <span className="text-muted-foreground font-normal text-xs">(optional)</span>
         </Label>
         <Input value={content.sourceSentence || ""} onChange={(e) => setContent("sourceSentence", e.target.value)}
-          placeholder="Предложение-контекст на другом языке"
+          placeholder="Context sentence in another language"
           className="h-10" />
       </div>
       <div className="space-y-1.5">
-        <Label className="text-sm font-medium text-foreground">Предложение с пропуском *</Label>
+        <Label className="text-sm font-medium text-foreground">Sentence with Blank *</Label>
         <Input value={content.sentence || ""} onChange={(e) => setContent("sentence", e.target.value)}
-          placeholder="Используйте ___ для обозначения пропуска"
+          placeholder="Use ___ to mark the blank"
           className="h-10" />
         <p className="text-xs text-muted-foreground">
-          В режиме просмотра ___ превратится в поле ввода.
+          In preview, ___ becomes an input field.
         </p>
       </div>
       <div className="space-y-1.5">
         <Label className="text-sm font-medium text-foreground">
-          Правильный ответ <span className="text-muted-foreground font-normal text-xs">(только для учителя)</span>
+          Answer Key <span className="text-muted-foreground font-normal text-xs">(teacher only)</span>
         </Label>
         <Input value={content.blankAnswer || ""} onChange={(e) => setContent("blankAnswer", e.target.value)}
-          placeholder="Что должно стоять в пропуске"
+          placeholder="What goes in the blank"
           className="h-10" />
       </div>
     </div>
@@ -481,9 +481,9 @@ function TonePlacementForm({ content, setContent, setCorrectAnswers }: any) {
 
   return (
     <div className="space-y-4">
-      <Label className="text-sm font-medium text-foreground">Иероглифы с пиньинем и тонами</Label>
+      <Label className="text-sm font-medium text-foreground">Characters with Pinyin and Tones</Label>
       <p className="text-xs text-muted-foreground">
-        Введите иероглиф и пиньинь без тонов. Затем выберите тон над каждой гласной.
+        Enter the character and pinyin without tones. Then select the tone over each vowel.
       </p>
       {characters.map((char: any, charIdx: number) => {
         const vowelPositions = getVowelPositions(char.pinyin || "");
@@ -493,12 +493,12 @@ function TonePlacementForm({ content, setContent, setCorrectAnswers }: any) {
               <span className="text-xs text-muted-foreground mt-3 w-5">{charIdx + 1}.</span>
               <div className="flex-1 grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">Иероглиф</Label>
+                  <Label className="text-xs text-muted-foreground">Character</Label>
                   <Input value={char.hanzi || ""} onChange={(e) => updateChar(charIdx, "hanzi", e.target.value)}
                     placeholder="好" className="text-2xl h-12 text-center font-bold" />
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">Пиньинь (без тонов)</Label>
+                  <Label className="text-xs text-muted-foreground">Pinyin (no tones)</Label>
                   <Input value={char.pinyin || ""} onChange={(e) => updateChar(charIdx, "pinyin", e.target.value)}
                     placeholder="hao" className="h-12" />
                 </div>
@@ -510,7 +510,7 @@ function TonePlacementForm({ content, setContent, setCorrectAnswers }: any) {
             {/* Тоны над гласными — кнопки со знаками тонов */}
             {vowelPositions.length > 0 && (
               <div className="pl-8 space-y-2">
-                <p className="text-xs text-muted-foreground">Тоны:</p>
+                <p className="text-xs text-muted-foreground">Tones:</p>
                 <div className="flex flex-wrap gap-4">
                   {vowelPositions.map((vp) => (
                     <div key={vp.vowelIdx} className="flex flex-col items-center gap-1">
@@ -518,7 +518,7 @@ function TonePlacementForm({ content, setContent, setCorrectAnswers }: any) {
                       <div className="flex gap-1">
                         {(["1","2","3","4"] as const).map((tone) => (
                           <button key={tone} onClick={() => updateTone(charIdx, vp.vowelIdx, tone)}
-                            title={`${tone} тон`}
+                            title={`Tone ${tone}`}
                             className={`w-8 h-8 rounded-lg text-sm font-bold border transition-colors ${
                               char.tones?.[vp.vowelIdx] === tone
                                 ? "bg-primary text-primary-foreground border-primary"
@@ -535,7 +535,7 @@ function TonePlacementForm({ content, setContent, setCorrectAnswers }: any) {
                 {/* Предпросмотр результата */}
                 {char.pinyin && (
                   <p className="text-xs text-muted-foreground">
-                    Результат: <span className="text-foreground font-medium">{applyTones(char.pinyin, char.tones || {})}</span>
+                    Result: <span className="text-foreground font-medium">{applyTones(char.pinyin, char.tones || {})}</span>
                   </p>
                 )}
               </div>
@@ -543,7 +543,7 @@ function TonePlacementForm({ content, setContent, setCorrectAnswers }: any) {
           </div>
         );
       })}
-      <Button variant="outline" size="sm" onClick={addChar}>+ Добавить иероглиф</Button>
+      <Button variant="outline" size="sm" onClick={addChar}>+ Add Character</Button>
     </div>
   );
 }
@@ -564,9 +564,9 @@ function WritePinyinForm({ content, setContent }: any) {
 
   return (
     <div className="space-y-3">
-      <Label className="text-sm font-medium text-foreground">Иероглифы</Label>
+      <Label className="text-sm font-medium text-foreground">Characters</Label>
       <p className="text-xs text-muted-foreground">
-        Ученик видит только иероглифы и должен написать пиньинь с тонами над каждым.
+        Students see only the characters and must write pinyin with tones for each one.
       </p>
       <div className="flex flex-wrap gap-3">
         {characters.map((char: any, idx: number) => (
@@ -604,30 +604,30 @@ function WordOrderForm({ content, setContent }: any) {
     <div className="space-y-3">
       <div className="space-y-1.5">
         <Label className="text-sm font-medium text-foreground">
-          Контекст <span className="text-muted-foreground font-normal text-xs">(необязательно)</span>
+          Context <span className="text-muted-foreground font-normal text-xs">(optional)</span>
         </Label>
         <Input value={content.translation || ""} onChange={(e) => setContent("translation", e.target.value)}
-          placeholder="Дополнительный контекст или перевод для ученика"
+          placeholder="Additional context or translation for the student"
           className="h-10" />
       </div>
-      <Label className="text-sm font-medium text-foreground">Слова (порядок при вводе не важен)</Label>
+      <Label className="text-sm font-medium text-foreground">Words (input order doesn't matter)</Label>
       {words.map((w: string, i: number) => (
         <div key={i} className="flex items-center gap-2">
           <span className="text-muted-foreground text-xs w-5">{i+1}.</span>
-          <Input value={w} onChange={(e) => updateWord(i, e.target.value)} placeholder={`Слово ${i+1}`} className="flex-1 h-10" />
+          <Input value={w} onChange={(e) => updateWord(i, e.target.value)} placeholder={`Word ${i+1}`} className="flex-1 h-10" />
           {words.length > 2 && (
             <button onClick={() => removeWord(i)} className="text-destructive px-1">✕</button>
           )}
         </div>
       ))}
-      <Button variant="outline" size="sm" onClick={addWord}>+ Слово</Button>
+      <Button variant="outline" size="sm" onClick={addWord}>+ Word</Button>
       <div className="space-y-1.5">
         <Label className="text-sm font-medium text-foreground">
-          Правильный порядок <span className="text-muted-foreground font-normal text-xs">(ориентир для учителя)</span>
+          Correct order <span className="text-muted-foreground font-normal text-xs">(reference for teacher)</span>
         </Label>
         <Input value={content.referenceAnswer || ""} onChange={(e) => setContent("referenceAnswer", e.target.value)}
-          placeholder="Один из правильных вариантов" className="h-10" />
-        <p className="text-xs text-muted-foreground">Могут быть другие правильные варианты.</p>
+          placeholder="One of the correct options" className="h-10" />
+        <p className="text-xs text-muted-foreground">Other correct options may exist.</p>
       </div>
     </div>
   );
@@ -658,7 +658,7 @@ function TranslationForm({ content, setContent }: any) {
       {/* Выбор языков — селекты с кнопкой «поменять местами» */}
       <div className="flex items-end gap-2">
         <div className="flex-1 space-y-1">
-          <Label className="text-xs text-muted-foreground">Язык источника</Label>
+          <Label className="text-xs text-muted-foreground">Source Language</Label>
           <Select value={content.sourceLanguage || "English"} onValueChange={(v) => setContent("sourceLanguage", v)}>
             <SelectTrigger className="h-10"><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -669,11 +669,11 @@ function TranslationForm({ content, setContent }: any) {
         {/* Кнопка поменять местами */}
         <button onClick={swapLanguages}
           className="h-10 px-3 border border-border rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors text-sm"
-          title="Поменять языки местами">
+          title="Swap languages">
           ⇄
         </button>
         <div className="flex-1 space-y-1">
-          <Label className="text-xs text-muted-foreground">Язык перевода</Label>
+          <Label className="text-xs text-muted-foreground">Target Language</Label>
           <Select value={content.targetLanguage || "Mandarin Chinese"} onValueChange={(v) => setContent("targetLanguage", v)}>
             <SelectTrigger className="h-10"><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -685,29 +685,29 @@ function TranslationForm({ content, setContent }: any) {
 
       {/* Текст для перевода */}
       <div className="space-y-1.5">
-        <Label className="text-sm font-medium text-foreground">Текст для перевода *</Label>
+        <Label className="text-sm font-medium text-foreground">Text to Translate *</Label>
         <Textarea value={content.sourceText || ""} onChange={(e) => setContent("sourceText", e.target.value)}
-          placeholder="Введите предложение или текст для перевода"
+          placeholder="Enter a sentence or text to translate"
           rows={2} />
       </div>
 
       {/* Эталонные переводы — только для учителя */}
       <div className="space-y-1.5">
         <Label className="text-sm font-medium text-foreground">
-          Эталонные переводы <span className="text-muted-foreground font-normal text-xs">(для учителя при проверке)</span>
+          Reference Translations <span className="text-muted-foreground font-normal text-xs">(for teacher review)</span>
         </Label>
       </div>
       {answers.map((a: string, i: number) => (
         <div key={i} className="flex items-center gap-2">
           <Input value={a} onChange={(e) => updateAnswer(i, e.target.value)}
-            placeholder={i === 0 ? "Основной правильный перевод" : "Альтернативный вариант"}
+            placeholder={i === 0 ? "Primary correct translation" : "Alternative option"}
             className="flex-1 h-10" />
           {answers.length > 1 && (
             <button onClick={() => removeAnswer(i)} className="text-destructive px-1">✕</button>
           )}
         </div>
       ))}
-      <Button variant="outline" size="sm" onClick={addAnswer}>+ Альтернативный вариант</Button>
+      <Button variant="outline" size="sm" onClick={addAnswer}>+ Alternative Option</Button>
     </div>
   );
 }
@@ -717,21 +717,21 @@ function DictationForm({ content, setContent, upload, uploading }: any) {
   return (
     <div className="space-y-3">
       <div className="space-y-1.5">
-        <Label className="text-sm font-medium text-foreground">Аудио для диктанта *</Label>
+        <Label className="text-sm font-medium text-foreground">Dictation Audio *</Label>
         <input type="file" accept="audio/*" disabled={uploading}
           onChange={(e) => { const f = e.target.files?.[0]; if (f) upload(f, "audioUrl"); }}
           className="block w-full text-sm text-foreground file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-sm file:bg-primary file:text-primary-foreground file:cursor-pointer" />
-        {uploading && <p className="text-xs text-muted-foreground">Загрузка...</p>}
+        {uploading && <p className="text-xs text-muted-foreground">Uploading...</p>}
         {content.audioUrl && <audio controls src={content.audioUrl} className="mt-2 w-full" />}
       </div>
       <div className="space-y-1.5">
         <Label className="text-sm font-medium text-foreground">
-          Правильный текст <span className="text-muted-foreground font-normal text-xs">(только для учителя)</span>
+          Correct Text <span className="text-muted-foreground font-normal text-xs">(teacher only)</span>
         </Label>
         <Textarea value={content.correctText || ""} onChange={(e) => setContent("correctText", e.target.value)}
-          placeholder="Текст который должен написать ученик"
+          placeholder="Text the student should write"
           rows={3} />
-        <p className="text-xs text-muted-foreground">Показывается учителю при проверке. Ученику не показывается.</p>
+        <p className="text-xs text-muted-foreground">Shown to teacher during review. Not visible to students.</p>
       </div>
     </div>
   );
@@ -743,11 +743,11 @@ function DescribeImageForm({ content, setContent, upload, uploading }: any) {
   return (
     <div className="space-y-3">
       <div className="space-y-1.5">
-        <Label className="text-sm font-medium text-foreground">Картинка *</Label>
+        <Label className="text-sm font-medium text-foreground">Image *</Label>
         <input type="file" accept="image/*" disabled={uploading}
           onChange={(e) => { const f = e.target.files?.[0]; if (f) upload(f, "imageUrl"); }}
           className="block w-full text-sm text-foreground file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-sm file:bg-primary file:text-primary-foreground file:cursor-pointer" />
-        {uploading && <p className="text-xs text-muted-foreground">Загрузка...</p>}
+        {uploading && <p className="text-xs text-muted-foreground">Uploading...</p>}
         {content.imageUrl && (
           <img src={content.imageUrl} alt="" className="max-w-xs rounded-xl mt-2 border border-border" />
         )}

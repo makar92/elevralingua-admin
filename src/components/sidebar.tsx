@@ -4,7 +4,7 @@
 //
 // Описание:
 //   Боковое меню приложения.
-//   Навигация по разделам, информация о пользователе,
+//   Навигация по sectionsм, информация о пользователе,
 //   кнопка выхода.
 //   Все цвета через CSS-переменные (не хардкод).
 // ===========================================
@@ -18,9 +18,9 @@ import { signOut } from "next-auth/react";
 
 // Пункты навигации
 const nav = [
-  { name: "Главная",         href: "/dashboard",          icon: "📊" },
-  { name: "Курсы",           href: "/dashboard/courses",   icon: "📚" },
-  { name: "Доп. задания", href: "/dashboard/exercises", icon: "📝" },
+  { name: "Dashboard",         href: "/dashboard",          icon: "📊" },
+  { name: "Courses",           href: "/dashboard/courses",   icon: "📚" },
+  { name: "Exercise Bank", href: "/dashboard/exercises", icon: "📝" },
 ];
 
 export function Sidebar({ user }: { user: { name?: string | null; email?: string | null } }) {
@@ -79,7 +79,7 @@ export function Sidebar({ user }: { user: { name?: string | null; email?: string
           onClick={() => signOut({ callbackUrl: "/login" })}
           className="w-full text-left px-3 py-2 text-sm text-muted-foreground hover:text-destructive hover:bg-destructive/5 rounded-lg transition-colors"
         >
-          Выйти
+          Sign Out
         </button>
       </div>
     </aside>

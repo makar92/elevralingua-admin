@@ -1,6 +1,6 @@
 // ===========================================
 // Файл: src/app/api/classrooms/search/route.ts
-// Описание: GET поиск публичных classrooms для учеников.
+// Описание: GET поиск публичных classrooms для students.
 // ===========================================
 
 import { prisma } from "@/lib/prisma";

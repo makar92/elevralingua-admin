@@ -1,4 +1,5 @@
 // ===========================================
+import { formatTime12h } from "@/lib/utils";
 // Файл: src/app/student/schedule/page.tsx
 // Описание: Общее расписание ученика из всех classrooms.
 // ===========================================
@@ -7,7 +8,7 @@
 
 import { useEffect, useState } from "react";
 
-const dayNames = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
+const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const colors = [
   "bg-blue-100 border-blue-200 text-blue-700",
   "bg-emerald-100 border-emerald-200 text-emerald-700",
@@ -24,7 +25,7 @@ export default function StudentSchedule() {
     fetch("/api/schedule").then(r => r.json()).then(d => { setSlots(d); setLoading(false); });
   }, []);
 
-  if (loading) return <div className="p-6 text-muted-foreground">Загрузка...</div>;
+  if (loading) return <div className="p-6 text-muted-foreground">Uploading...</div>;
 
   // Цвет по classroom
   const classroomIds = [...new Set(slots.map(s => s.classroomId))];
@@ -33,10 +34,10 @@ export default function StudentSchedule() {
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
-      <h1 className="text-2xl font-bold text-foreground mb-6">Моё расписание</h1>
+      <h1 className="text-2xl font-bold text-foreground mb-6">My Schedule</h1>
 
       {slots.length === 0 ? (
-        <p className="text-muted-foreground text-center py-12">Расписание пока пусто</p>
+        <p className="text-muted-foreground text-center py-12">No schedule yet</p>
       ) : (
         <>
           <div className="grid grid-cols-7 gap-2 mb-4">
@@ -45,7 +46,7 @@ export default function StudentSchedule() {
                 <p className="text-sm font-semibold text-foreground text-center mb-2 pb-1 border-b border-border">{day}</p>
                 {slots.filter(s => s.dayOfWeek === dayIdx).map(slot => (
                   <div key={slot.id} className={`p-2 rounded-md border text-xs mb-1 ${colorMap[slot.classroomId]}`}>
-                    <p className="font-medium">{slot.startTime}–{slot.endTime}</p>
+                    <p className="font-medium">{formatTime12h(slot.startTime)} – {formatTime12h(slot.endTime)}</p>
                     <p className="truncate">{slot.classroom?.name}</p>
                     {slot.location && <p className="opacity-75">{slot.location}</p>}
                   </div>

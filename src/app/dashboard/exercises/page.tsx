@@ -4,9 +4,9 @@
 //
 // Описание:
 //   Страница «Банк упражнений» в навигации.
-//   Показывает все упражнения всех курсов с фильтрами.
+//   Показывает все exercises всех курсов с фильтрами.
 //   Для создания/редактирования — переход в редактор курса,
-//   вкладка «Доп. задания» нужного раздела.
+//   вкладка «Доп. задания» нужного sections.
 // ===========================================
 
 import { prisma } from "@/lib/prisma";
@@ -18,21 +18,21 @@ import { Button } from "@/components/ui/button";
 // Словарь типов упражнений для отображения (актуальные 10 типов)
 const EX_TYPE_INFO: Record<string, { icon: string; name: string }> = {
   // Автопроверка (4)
-  MATCHING:        { icon: "🔗", name: "Соединить пары" },
-  MULTIPLE_CHOICE: { icon: "🔘", name: "Выбор ответа" },
-  TONE_PLACEMENT:  { icon: "🎵", name: "Расставить тоны" },
-  WORD_ORDER:      { icon: "🔀", name: "Порядок слов" },
+  MATCHING:        { icon: "🔗", name: "Matching" },
+  MULTIPLE_CHOICE: { icon: "🔘", name: "Multiple Choice" },
+  TONE_PLACEMENT:  { icon: "🎵", name: "Tone Placement" },
+  WORD_ORDER:      { icon: "🔀", name: "Word Order" },
   // Ручная проверка (6)
-  FILL_BLANK:      { icon: "✏️", name: "Заполнить пропуск" },
-  TRANSLATION:     { icon: "🌐", name: "Перевод" },
-  WRITE_PINYIN:    { icon: "📖", name: "Написать транскрипцию" },
-  DICTATION:       { icon: "🎧", name: "Диктант" },
-  DESCRIBE_IMAGE:  { icon: "🖼️", name: "Описание картинки" },
-  FREE_WRITING:    { icon: "📝", name: "Свободное письмо" },
+  FILL_BLANK:      { icon: "✏️", name: "Fill in the Blank" },
+  TRANSLATION:     { icon: "🌐", name: "Translation" },
+  WRITE_PINYIN:    { icon: "📖", name: "Write Pinyin" },
+  DICTATION:       { icon: "🎧", name: "Dictation" },
+  DESCRIBE_IMAGE:  { icon: "🖼️", name: "Describe Image" },
+  FREE_WRITING:    { icon: "📝", name: "Free Writing" },
 };
 
 export default async function ExercisesPage() {
-  // Загружаем все упражнения с полной иерархией
+  // Загружаем все exercises с полной иерархией
   const exercises = await prisma.exercise.findMany({
     orderBy: { order: "asc" },
     include: {
@@ -76,9 +76,9 @@ export default async function ExercisesPage() {
       {/* Заголовок */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Доп. задания</h1>
+          <h1 className="text-2xl font-bold text-foreground">Exercise Bank</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Всего: {totalCount} · ⚡ Авто: {autoCount} · 👩‍🏫 Учитель: {teacherCount} · 📓 В тетради: {workbookCount}
+            Total: {totalCount} · ⚡ Auto: {autoCount} · 👩‍🏫 Teacher: {teacherCount} · 📓 In Workbook: {workbookCount}
           </p>
         </div>
       </div>
@@ -88,12 +88,12 @@ export default async function ExercisesPage() {
         <Card>
           <CardContent className="py-16 text-center">
             <span className="text-5xl block mb-4">🏦</span>
-            <p className="text-xl text-foreground">Нет дополнительных заданий</p>
+            <p className="text-xl text-foreground">No exercises in the bank</p>
             <p className="text-base text-muted-foreground mt-2">
-              Откройте курс → выберите раздел → вкладка «Доп. задания»
+              Open a course → select a section → Exercise Bank tab
             </p>
             <Button asChild className="mt-4">
-              <Link href="/dashboard/courses">Перейти к курсам</Link>
+              <Link href="/dashboard/courses">Go to Courses</Link>
             </Button>
           </CardContent>
         </Card>
@@ -105,9 +105,9 @@ export default async function ExercisesPage() {
           {/* Заголовок курса */}
           <div className="flex items-center gap-3 mb-4">
             <h2 className="text-lg font-semibold text-foreground">📚 {course.title}</h2>
-            <Badge variant="outline" className="text-xs">{courseExercises.length} упр.</Badge>
+            <Badge variant="outline" className="text-xs">{courseExercises.length} exercises</Badge>
             <Link href={`/dashboard/courses/${course.id}`} className="text-sm text-primary hover:underline ml-auto">
-              Открыть курс →
+              Open Course →
             </Link>
           </div>
 
@@ -130,10 +130,10 @@ export default async function ExercisesPage() {
                         <div className="flex items-center gap-2 flex-wrap">
                           <p className="text-base font-medium text-foreground">{ex.title || info.name}</p>
                           <Badge variant={ex.gradingType === "AUTO" ? "default" : "secondary"} className="text-xs">
-                            {ex.gradingType === "AUTO" ? "⚡ Авто" : "👩‍🏫 Учитель"}
+                            {ex.gradingType === "AUTO" ? "⚡ Auto" : "👩‍🏫 Teacher"}
                           </Badge>
                           {ex.isDefaultInWorkbook && (
-                            <Badge variant="outline" className="text-xs text-green-400 border-green-400/30">📓 В тетради</Badge>
+                            <Badge variant="outline" className="text-xs text-green-400 border-green-400/30">📓 In Workbook</Badge>
                           )}
                           <span className="text-xs text-muted-foreground">{"⭐".repeat(Math.min(ex.difficulty, 5))}</span>
                         </div>

@@ -20,7 +20,7 @@ export async function PATCH(
   return withErrorHandling(async () => {
     // Проверяем авторизацию
     const session = await auth();
-    if (!session) return apiError("Не авторизован", 401);
+    if (!session) return apiError("Unauthorized", 401);
 
     const { id } = await params;
     const body = await request.json();
@@ -79,7 +79,7 @@ export async function DELETE(
   return withErrorHandling(async () => {
     // Проверяем авторизацию
     const session = await auth();
-    if (!session) return apiError("Не авторизован", 401);
+    if (!session) return apiError("Unauthorized", 401);
 
     const { id } = await params;
 

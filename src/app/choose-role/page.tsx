@@ -64,18 +64,18 @@ export default function ChooseRolePage() {
               <div className="flex items-center justify-center mb-2">
                 <Logo height={40} />
               </div>
-              <CardTitle className="text-xl">Профиль учителя</CardTitle>
-              <CardDescription>Расскажите о вашем преподавании</CardDescription>
+              <CardTitle className="text-xl">Teacher Profile</CardTitle>
+              <CardDescription>Tell us about your teaching</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label>Язык преподавания</Label>
+                <Label>Teaching Language</Label>
                 <select
                   value={language}
                   onChange={(e) => setLanguage(e.target.value)}
                   className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
                 >
-                  <option value="">Выберите язык...</option>
+                  <option value="">Select language...</option>
                   <option value="zh">Mandarin Chinese</option>
                   <option value="es">Spanish</option>
                   <option value="fr">French</option>
@@ -90,7 +90,7 @@ export default function ChooseRolePage() {
                 </select>
               </div>
               <div className="space-y-2">
-                <Label>Краткое описание (необязательно)</Label>
+                <Label>Brief bio (optional)</Label>
                 <Input
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
@@ -102,10 +102,10 @@ export default function ChooseRolePage() {
                 className="w-full"
                 disabled={!language || loading}
               >
-                {loading ? "Настройка..." : "Продолжить как учитель"}
+                {loading ? "Setting up..." : "Continue as Teacher"}
               </Button>
               <Button variant="ghost" className="w-full" onClick={() => setStep("role")}>
-                Назад
+                Back
               </Button>
             </CardContent>
           </Card>
@@ -122,8 +122,8 @@ export default function ChooseRolePage() {
             <div className="flex items-center justify-center mb-2">
               <Logo height={40} />
             </div>
-            <CardTitle className="text-xl">Добро пожаловать в ElevraLingua!</CardTitle>
-            <CardDescription>Как вы будете использовать платформу?</CardDescription>
+            <CardTitle className="text-xl">Welcome to ElevraLingua!</CardTitle>
+            <CardDescription>How will you use the platform?</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
@@ -135,8 +135,8 @@ export default function ChooseRolePage() {
                 <div className="w-14 h-14 rounded-full bg-emerald-100 flex items-center justify-center">
                   <HugeiconsIcon icon={TeacherIcon} size={28} className="text-emerald-700" />
                 </div>
-                <span className="font-medium text-foreground">Я учитель</span>
-                <span className="text-xs text-muted-foreground text-center">Создавайте классы, управляйте учениками, назначайте задания</span>
+                <span className="font-medium text-foreground">I'm a Teacher</span>
+                <span className="text-xs text-muted-foreground text-center">Create classes, manage students, assign work</span>
               </button>
               <button
                 onClick={() => handleChooseRole("STUDENT")}
@@ -146,8 +146,8 @@ export default function ChooseRolePage() {
                 <div className="w-14 h-14 rounded-full bg-blue-100 flex items-center justify-center">
                   <HugeiconsIcon icon={StudentIcon} size={28} className="text-blue-700" />
                 </div>
-                <span className="font-medium text-foreground">Я ученик</span>
-                <span className="text-xs text-muted-foreground text-center">Присоединяйтесь к классам, изучайте учебники, выполняйте упражнения</span>
+                <span className="font-medium text-foreground">I'm a Student</span>
+                <span className="text-xs text-muted-foreground text-center">Join classes, study textbooks, complete exercises</span>
               </button>
             </div>
 
@@ -158,11 +158,11 @@ export default function ChooseRolePage() {
                   onClick={() => setShowDeleteConfirm(true)}
                   className="w-full text-center text-xs text-muted-foreground hover:text-red-500 transition-colors py-1"
                 >
-                  Удалить аккаунт
+                  Delete Account
                 </button>
               ) : (
                 <div className="text-center space-y-2">
-                  <p className="text-xs text-red-600">Вы уверены? Это действие нельзя отменить.</p>
+                  <p className="text-xs text-red-600">Are you sure? This action cannot be undone.</p>
                   <div className="flex gap-2 justify-center">
                     <Button
                       variant="destructive"
@@ -171,7 +171,7 @@ export default function ChooseRolePage() {
                       disabled={deleting}
                       className="text-xs h-7"
                     >
-                      {deleting ? "Удаление..." : "Да, удалить"}
+                      {deleting ? "Deleting..." : "Yes, delete"}
                     </Button>
                     <Button
                       variant="ghost"
@@ -179,7 +179,7 @@ export default function ChooseRolePage() {
                       onClick={() => setShowDeleteConfirm(false)}
                       className="text-xs h-7"
                     >
-                      Отмена
+                      Cancel
                     </Button>
                   </div>
                 </div>

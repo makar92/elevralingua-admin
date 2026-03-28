@@ -44,8 +44,8 @@ export default function CreateClassroom() {
       });
 
       if (!res.ok) {
-        const err = await res.json().catch(() => ({ error: "Ошибка сервера" }));
-        setError(err.error || "Не удалось создать класс");
+        const err = await res.json().catch(() => ({ error: "Server error" }));
+        setError(err.error || "Failed to create class");
         setLoading(false);
         return;
       }
@@ -53,44 +53,44 @@ export default function CreateClassroom() {
       const data = await res.json();
       router.push(`/teacher/classrooms/${data.id}`);
     } catch {
-      setError("Ошибка соединения с сервером");
+      setError("Connection error");
       setLoading(false);
     }
   };
 
   return (
     <div className="p-6 max-w-3xl mx-auto">
-      <h1 className="text-2xl font-bold text-foreground mb-6">Создать класс</h1>
+      <h1 className="text-2xl font-bold text-foreground mb-6">Create Class</h1>
 
       <form onSubmit={handleSubmit}>
         <div className="bg-card border border-border rounded-xl p-6 space-y-6">
 
           {/* Название класса */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium">Название класса</Label>
+            <Label className="text-sm font-medium">Class Name</Label>
             <Input
               value={name}
               onChange={e => setName(e.target.value)}
-              placeholder="Например: Китайский для начинающих — Вечерняя группа"
+              placeholder="e.g., Chinese for Beginners — Evening Group"
               required
               className="h-11"
             />
             <p className="text-xs text-muted-foreground">
-              Название видят ученики при поиске и вступлении
+              Students will see this name when searching and joining
             </p>
           </div>
 
           {/* Выбор курса */}
           <div className="space-y-3">
-            <Label className="text-sm font-medium">Выберите курс</Label>
+            <Label className="text-sm font-medium">Select Course</Label>
 
             {coursesLoading ? (
               <div className="p-6 text-center border border-dashed border-border rounded-lg">
-                <p className="text-sm text-muted-foreground animate-pulse">Загрузка курсов...</p>
+                <p className="text-sm text-muted-foreground animate-pulse">Loading courses...</p>
               </div>
             ) : courses.length === 0 ? (
               <div className="p-6 text-center border border-dashed border-border rounded-lg">
-                <p className="text-sm text-muted-foreground">Нет доступных курсов</p>
+                <p className="text-sm text-muted-foreground">No courses available</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-3 max-h-80 overflow-y-auto pr-1">
@@ -137,12 +137,12 @@ export default function CreateClassroom() {
 
           {/* Описание */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium">Описание <span className="text-muted-foreground font-normal">(необязательно)</span></Label>
+            <Label className="text-sm font-medium">Description <span className="text-muted-foreground font-normal">(optional)</span></Label>
             <textarea
               value={description}
               onChange={e => setDescription(e.target.value)}
               className="w-full h-20 rounded-lg border border-input bg-background px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-ring"
-              placeholder="Краткое описание: расписание, уровень, формат занятий..."
+              placeholder="Brief description: schedule, level, class format..."
             />
           </div>
 
@@ -154,7 +154,7 @@ export default function CreateClassroom() {
           {/* Превью */}
           {selectedCourse && name && (
             <div className="p-4 bg-accent/50 rounded-lg border border-border/50">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Превью</p>
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Preview</p>
               <p className="font-semibold text-foreground">{name}</p>
               <div className="flex items-center gap-2 mt-1">
                 <LanguageLabel code={selectedCourse.language} size="sm" />
@@ -166,9 +166,9 @@ export default function CreateClassroom() {
           {/* Кнопки */}
           <div className="flex gap-3 pt-2">
             <Button type="submit" disabled={!name || !courseId || loading} className="px-6">
-              {loading ? "Создание..." : "Создать класс"}
+              {loading ? "Creating..." : "Create Class"}
             </Button>
-            <Button type="button" variant="ghost" onClick={() => router.back()}>Отмена</Button>
+            <Button type="button" variant="ghost" onClick={() => router.back()}>Cancel</Button>
           </div>
         </div>
       </form>

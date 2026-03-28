@@ -129,7 +129,7 @@ export default function TeacherTextbook() {
     return { completed: completedLessons, total: totalLessons };
   };
 
-  if (loading) return <div className="p-6 text-muted-foreground animate-pulse">Загрузка учебника...</div>;
+  if (loading) return <div className="p-6 text-muted-foreground animate-pulse">Loading textbook...</div>;
 
   return (
     <div className="flex flex-col h-[calc(100vh-57px)]">
@@ -139,14 +139,14 @@ export default function TeacherTextbook() {
       </div>
       <div className="flex flex-1 min-h-0 gap-4 px-6 pb-20">
         {!sidebarOpen && (
-          <button onClick={() => setSidebarOpen(true)} className="flex-shrink-0 self-start w-8 h-8 flex items-center justify-center rounded-lg bg-muted hover:bg-accent text-muted-foreground hover:text-foreground transition-colors" title="Развернуть панель">
+          <button onClick={() => setSidebarOpen(true)} className="flex-shrink-0 self-start w-8 h-8 flex items-center justify-center rounded-lg bg-muted hover:bg-accent text-muted-foreground hover:text-foreground transition-colors" title="Expand panel">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
           </button>
         )}
         {sidebarOpen && (
           <div className="w-1/4 min-w-[240px] max-w-[360px] flex-shrink-0 bg-muted rounded-xl p-4 overflow-y-auto">
-            <button onClick={() => setSidebarOpen(false)} className="w-full flex items-center justify-between mb-3 px-2 py-1.5 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground transition-colors" title="Свернуть панель">
-              <span className="text-xs font-semibold uppercase tracking-wide">Содержание</span>
+            <button onClick={() => setSidebarOpen(false)} className="w-full flex items-center justify-between mb-3 px-2 py-1.5 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground transition-colors" title="Collapse panel">
+              <span className="text-xs font-semibold uppercase tracking-wide">Contents</span>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
             </button>
             <p className="text-xs text-muted-foreground mb-2 truncate" title={classroom?.course?.title}>{classroom?.course?.title}</p>
@@ -173,10 +173,10 @@ export default function TeacherTextbook() {
                       return(<div key={sec.id} className="group flex items-center gap-1.5 pl-8 pr-2 py-1 rounded-md hover:bg-accent/50">
                         <input type="checkbox" className={`w-3 h-3 rounded cursor-pointer flex-shrink-0 transition-opacity ${checked.has(sec.id) ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`} checked={checked.has(sec.id)} onChange={()=>toggleCheck(sec.id)}/>
                         <button onClick={()=>loadSec(sec.id,sec.title)} className={`text-sm truncate flex-1 text-left ${selSec===sec.id?"text-primary font-medium":"text-muted-foreground hover:text-foreground"}`} title={sec.title}>{sec.title}</button>
-                        {isOpen&&!st&&<span className="w-2 h-2 rounded-full bg-gray-300 flex-shrink-0" title="Открыто"/>}
-                        {st&&st.questions>0&&<span className="w-2 h-2 rounded-full bg-amber-400 flex-shrink-0" title={`${st.questions} вопросов`}/>}
-                        {st&&st.questions===0&&st.assigned>0&&<span className="w-2 h-2 rounded-full bg-red-400 flex-shrink-0" title={`${st.assigned} не изучили`}/>}
-                        {st&&st.assigned===0&&st.completed>0&&<span className="w-2 h-2 rounded-full bg-emerald-400 flex-shrink-0" title="Все изучили"/>}
+                        {isOpen&&!st&&<span className="w-2 h-2 rounded-full bg-gray-300 flex-shrink-0" title="Open"/>}
+                        {st&&st.questions>0&&<span className="w-2 h-2 rounded-full bg-amber-400 flex-shrink-0" title={`${st.questions} questions`}/>}
+                        {st&&st.questions===0&&st.assigned>0&&<span className="w-2 h-2 rounded-full bg-red-400 flex-shrink-0" title={`${st.assigned} not reviewed`}/>}
+                        {st&&st.assigned===0&&st.completed>0&&<span className="w-2 h-2 rounded-full bg-emerald-400 flex-shrink-0" title="All reviewed"/>}
                       </div>);
                     })}
                   </div>);
@@ -186,7 +186,7 @@ export default function TeacherTextbook() {
           </div>
         )}
         <div className="flex-1 min-w-0 overflow-y-auto pr-4">
-          {blocksLoading?<div className="text-muted-foreground animate-pulse py-8 text-center">Загрузка...</div>:
+          {blocksLoading?<div className="text-muted-foreground animate-pulse py-8 text-center">Uploading...</div>:
           selSec?(<div>
             <div className="mb-6">
               <h2 className="text-xl font-bold text-foreground mb-3">{secTitle}</h2>
@@ -197,16 +197,16 @@ export default function TeacherTextbook() {
                 return(<div>
                   <button onClick={()=>setEditingGrade(editingGrade?"":selSec)} className="text-[11px] text-primary hover:underline flex items-center gap-1 mb-2">
                     <span>{editingGrade===selSec?"▾":"▸"}</span>
-                    <span>Ученики ({sts.length})</span>
-                    {questions>0&&<span className="text-[10px] text-amber-600 ml-1">· {questions} вопр.</span>}
-                    {assigned>0&&<span className="text-[10px] text-red-600 ml-1">· {assigned} не изуч.</span>}
-                    {completed===sts.length&&sts.length>0&&<span className="text-[10px] text-emerald-600 ml-1">· все изучили</span>}
+                    <span>Students ({sts.length})</span>
+                    {questions>0&&<span className="text-[10px] text-amber-600 ml-1">· {questions} q.</span>}
+                    {assigned>0&&<span className="text-[10px] text-red-600 ml-1">· {assigned} pending</span>}
+                    {completed===sts.length&&sts.length>0&&<span className="text-[10px] text-emerald-600 ml-1">· all reviewed</span>}
                   </button>
                   {editingGrade===selSec&&(<div className="border border-border rounded-lg p-3 bg-accent/20 space-y-1.5 mb-3">{sts.map((s:any)=>(
                     <div key={s.id} className="flex items-center gap-2 py-1">
                       <span className={`w-2 h-2 rounded-full flex-shrink-0 ${s.status==="COMPLETED"?"bg-emerald-400":s.status==="HAS_QUESTION"?"bg-amber-400":"bg-red-400"}`}/>
                       <span className="text-sm text-foreground flex-1 truncate">{s.student?.name}</span>
-                      <span className="text-[10px] text-muted-foreground">{s.status==="COMPLETED"?"Изучено":s.status==="HAS_QUESTION"?"Вопрос":"Не начал"}</span>
+                      <span className="text-[10px] text-muted-foreground">{s.status==="COMPLETED"?"Reviewed":s.status==="HAS_QUESTION"?"Question":"Not started"}</span>
                       <GradePicker value={s.grade} onChange={(g:string)=>updateGrade(s.id,g)} size="sm"/>
                       {s.comment&&<p className="text-[10px] text-amber-600 truncate max-w-48 ml-1">💬 {s.comment}</p>}
                     </div>
@@ -214,31 +214,31 @@ export default function TeacherTextbook() {
                 </div>);})()}
             </div>
             <div className="bg-card rounded-xl shadow-sm border border-border/50 px-10 py-8 max-w-4xl">
-              {secBlocks.length===0?<p className="text-muted-foreground text-center py-8">Нет содержимого</p>:
+              {secBlocks.length===0?<p className="text-muted-foreground text-center py-8">No content</p>:
               <PreviewTextbook blocks={secBlocks} isTeacher={true}/>}
             </div>
-          </div>):<p className="text-muted-foreground text-center py-16">Выберите секцию</p>}
+          </div>):<p className="text-muted-foreground text-center py-16">Select a section</p>}
         </div>
       </div>
 
       {/* Sticky panel */}
       <div className={`fixed bottom-0 left-0 right-0 bg-card border-t border-border shadow-lg transition-transform z-50 ${checked.size>0?"translate-y-0":"translate-y-full"}`}>
         <div className="max-w-7xl mx-auto px-6 py-3 flex items-center gap-3">
-          <span className="text-sm font-medium">Выбрано: {checked.size} секций</span>
-          <Button size="sm" onClick={()=>startAction("open")} disabled={busy}>Открыть ученикам</Button>
-          <Button size="sm" variant="outline" onClick={()=>startAction("CLASS_WORK")} disabled={busy}>Назначить (классная)</Button>
-          <Button size="sm" variant="outline" onClick={()=>startAction("HOMEWORK")} disabled={busy}>Назначить (домашняя)</Button>
-          <Button size="sm" variant="ghost" onClick={()=>setChecked(new Set())}>Отмена</Button>
+          <span className="text-sm font-medium">Selected: {checked.size} sections</span>
+          <Button size="sm" onClick={()=>startAction("open")} disabled={busy}>Show to Students</Button>
+          <Button size="sm" variant="outline" onClick={()=>startAction("CLASS_WORK")} disabled={busy}>Assign (Class Work)</Button>
+          <Button size="sm" variant="outline" onClick={()=>startAction("HOMEWORK")} disabled={busy}>Assign (Homework)</Button>
+          <Button size="sm" variant="ghost" onClick={()=>setChecked(new Set())}>Cancel</Button>
         </div>
       </div>
 
       {/* Student picker dialog */}
       <Dialog open={showStudentPicker} onOpenChange={setShowStudentPicker}>
         <DialogContent>
-          <DialogHeader><DialogTitle>Кому назначить?</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>Assign to whom?</DialogTitle></DialogHeader>
           <div className="space-y-3">
-            <Button className="w-full" onClick={()=>doAction(assignType)}>Всем ученикам</Button>
-            <p className="text-xs text-muted-foreground text-center">или выберите конкретных:</p>
+            <Button className="w-full" onClick={()=>doAction(assignType)}>All Students</Button>
+            <p className="text-xs text-muted-foreground text-center">or select individuals:</p>
             <div className="space-y-2">
               {classroom?.enrollments?.map((e:any)=>(
                 <label key={e.student?.id} className="flex items-center gap-2 p-2 rounded border border-border hover:bg-accent cursor-pointer">
@@ -247,7 +247,7 @@ export default function TeacherTextbook() {
                 </label>
               ))}
             </div>
-            {pickedStudents.size>0&&<Button className="w-full" onClick={()=>doAction(assignType,Array.from(pickedStudents))}>Назначить выбранным ({pickedStudents.size})</Button>}
+            {pickedStudents.size>0&&<Button className="w-full" onClick={()=>doAction(assignType,Array.from(pickedStudents))}>Assign to Selected ({pickedStudents.size})</Button>}
           </div>
         </DialogContent>
       </Dialog>

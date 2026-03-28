@@ -37,11 +37,11 @@ export default function NewCoursePage() {
           title: fd.get("title"), language, targetLanguage, level, description: fd.get("description"),
         }),
       });
-      if (!res.ok) { const b = await res.json(); throw new Error(b.error || "Ошибка"); }
+      if (!res.ok) { const b = await res.json(); throw new Error(b.error || "Error"); }
       const course = await res.json();
       router.push(`/dashboard/courses/${course.id}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Ошибка");
+      setError(err instanceof Error ? err.message : "Error");
       setLoading(false);
     }
   };
@@ -49,44 +49,44 @@ export default function NewCoursePage() {
   return (
     <div className="max-w-2xl">
       {/* Заголовок — белый */}
-      <h1 className="text-2xl font-bold text-foreground mb-6">Создать новый курс</h1>
+      <h1 className="text-2xl font-bold text-foreground mb-6">Create New Course</h1>
       <form onSubmit={handleSubmit} className="space-y-5">
         <Card>
           <CardHeader>
             {/* CardTitle — белый текст */}
-            <CardTitle className="text-foreground">Основная информация</CardTitle>
+            <CardTitle className="text-foreground">Basic Information</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label className="text-foreground">Название курса *</Label>
-              <Input name="title" required placeholder="Mandarin for English Speakers — Beginner" />
+              <Label className="text-foreground">Course Title *</Label>
+              <Input name="title" required placeholder="Chinese (Mandarin) for English Speakers — Beginner" />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-foreground">Язык обучения *</Label>
+                <Label className="text-foreground">Course Language *</Label>
                 <Select value={language} onValueChange={setLanguage}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="zh">Китайский (мандаринский)</SelectItem>
-                    <SelectItem value="es">Испанский</SelectItem>
-                    <SelectItem value="ru">Русский</SelectItem>
-                    <SelectItem value="fr">Французский</SelectItem>
+                    <SelectItem value="zh">Chinese (Mandarin)</SelectItem>
+                    <SelectItem value="es">Spanish</SelectItem>
+                    <SelectItem value="ru">Russian</SelectItem>
+                    <SelectItem value="fr">French</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label className="text-foreground">Для кого *</Label>
+                <Label className="text-foreground">Target Audience *</Label>
                 <Select value={targetLanguage} onValueChange={setTargetLanguage}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="en">Англоговорящие</SelectItem>
-                    <SelectItem value="ru">Русскоговорящие</SelectItem>
+                    <SelectItem value="en">English Speakers</SelectItem>
+                    <SelectItem value="ru">Russian Speakers</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
             <div className="space-y-2">
-              <Label className="text-foreground">Уровень *</Label>
+              <Label className="text-foreground">Level *</Label>
               <Select value={level} onValueChange={setLevel}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -98,8 +98,8 @@ export default function NewCoursePage() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label className="text-foreground">Описание</Label>
-              <Textarea name="description" rows={3} placeholder="Краткое описание курса..." />
+              <Label className="text-foreground">Description</Label>
+              <Textarea name="description" rows={3} placeholder="Brief course description..." />
             </div>
           </CardContent>
         </Card>
@@ -108,9 +108,9 @@ export default function NewCoursePage() {
         )}
         <div className="flex gap-3">
           <Button type="submit" disabled={loading}>
-            {loading ? "Создание..." : "Создать курс"}
+            {loading ? "Creating..." : "Create Course"}
           </Button>
-          <Button type="button" variant="outline" onClick={() => router.back()}>Отмена</Button>
+          <Button type="button" variant="outline" onClick={() => router.back()}>Cancel</Button>
         </div>
       </form>
     </div>

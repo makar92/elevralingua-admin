@@ -52,7 +52,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     });
   }
 
-  // Привязываем упражнения
+  // Привязываем exercises
   if (exerciseIds?.length) {
     await prisma.homeworkExercise.createMany({
       data: exerciseIds.map((exerciseId: string) => ({

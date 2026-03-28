@@ -17,10 +17,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 const navItems = [
-  { name: "Главная",        href: "/student" },
-  { name: "Мои классы",     href: "/student/classrooms" },
-  { name: "Найти класс",    href: "/student/search" },
-  { name: "Приглашения",    href: "/student/invitations" },
+  { name: "Dashboard",        href: "/student" },
+  { name: "My Classes",     href: "/student/classrooms" },
+  { name: "Find a Class",    href: "/student/search" },
+  { name: "Invitations",    href: "/student/invitations" },
 ];
 
 export function StudentNav({ user }: { user: any }) {

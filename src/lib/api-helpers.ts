@@ -46,7 +46,7 @@ export async function withErrorHandling(handler: () => Promise<NextResponse>): P
     return await handler();
   } catch (err) {
     console.error("[API Error]", err);
-    const message = err instanceof Error ? err.message : "Внутренняя ошибка сервера";
+    const message = err instanceof Error ? err.message : "Internal server error";
     return apiError(message, 500);
   }
 }

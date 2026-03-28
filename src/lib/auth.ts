@@ -3,7 +3,7 @@
 // Описание:
 //   NextAuth v5 — два провайдера:
 //   1. Credentials — email+пароль для ВСЕХ ролей (admin, teacher, student)
-//   2. Google OAuth — опциональный, для регистрации новых учителей/учеников
+//   2. Google OAuth — опциональный, для регистрации новых учителей/students
 // ===========================================
 
 import NextAuth from "next-auth";

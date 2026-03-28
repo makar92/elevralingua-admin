@@ -1,6 +1,6 @@
 // ===========================================
 // Файл: src/app/api/sections/[id]/blocks/route.ts
-// Описание: GET — список блоков раздела. POST — создать блок.
+// Описание: GET — список блоков sections. POST — создать блок.
 // ===========================================
 
 import { NextRequest } from "next/server";
@@ -8,14 +8,14 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { apiSuccess, apiError, withErrorHandling } from "@/lib/api-helpers";
 
-// GET — все блоки раздела, отсортированные по order
+// GET — все блоки sections, отсортированные по order
 export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   return withErrorHandling(async () => {
     const session = await auth();
-    if (!session) return apiError("Не авторизован", 401);
+    if (!session) return apiError("Unauthorized", 401);
     const { id } = await params;
     const blocks = await prisma.contentBlock.findMany({
       where: { sectionId: id },
@@ -33,11 +33,11 @@ export async function POST(
 ) {
   return withErrorHandling(async () => {
     const session = await auth();
-    if (!session) return apiError("Не авторизован", 401);
+    if (!session) return apiError("Unauthorized", 401);
     const { id: sectionId } = await params;
     const { type, contentJson, insertAfterOrder } = await request.json();
 
-    if (!type || !contentJson) return apiError("Укажите тип и содержимое блока");
+    if (!type || !contentJson) return apiError("Block type and content are required");
 
     let newOrder: number;
 

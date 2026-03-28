@@ -12,12 +12,12 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { apiSuccess, apiError, withErrorHandling } from "@/lib/api-helpers";
 
-// GET — получить все упражнения с опциональными фильтрами
+// GET — получить все exercises с опциональными фильтрами
 export async function GET(request: NextRequest) {
   return withErrorHandling(async () => {
     // Проверяем авторизацию
     const session = await auth();
-    if (!session) return apiError("Не авторизован", 401);
+    if (!session) return apiError("Unauthorized", 401);
 
     // Считываем параметры фильтрации из URL
     const { searchParams } = new URL(request.url);
@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
       where.section = { lesson: { unit: { courseId } } };
     }
 
-    // Загружаем упражнения с информацией о разделе/уроке/юните
+    // Загружаем exercises с информацией о разделе/уроке/юните
     const exercises = await prisma.exercise.findMany({
       where,
       orderBy: { order: "asc" },
@@ -64,17 +64,17 @@ export async function POST(request: NextRequest) {
   return withErrorHandling(async () => {
     // Проверяем авторизацию
     const session = await auth();
-    if (!session) return apiError("Не авторизован", 401);
+    if (!session) return apiError("Unauthorized", 401);
 
     // Читаем данные из тела запроса
     const body = await request.json();
     const { sectionId, exerciseType, title, instructionText, difficulty, contentJson, gradingType, correctAnswers, referenceAnswer, gradingCriteria, teacherComment, isDefaultInWorkbook } = body;
 
     // Валидация обязательных полей
-    if (!sectionId) return apiError("Укажите раздел (sectionId)");
-    if (!exerciseType) return apiError("Укажите тип упражнения (exerciseType)");
-    if (!instructionText) return apiError("Укажите текст задания (instructionText)");
-    if (!contentJson) return apiError("Укажите содержимое (contentJson)");
+    if (!sectionId) return apiError("Section ID is required");
+    if (!exerciseType) return apiError("Exercise type is required");
+    if (!instructionText) return apiError("Instruction text is required");
+    if (!contentJson) return apiError("Content is required");
 
     // Определяем порядок — ставим в конец
     const last = await prisma.exercise.findFirst({

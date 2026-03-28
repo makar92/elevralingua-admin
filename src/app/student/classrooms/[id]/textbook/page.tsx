@@ -50,7 +50,7 @@ export default function StudentTextbook(){
     const fresh=await fetch(`/api/study-assignments?classroomId=${id}`).then(r=>r.ok?r.json():[]);setAssigns(Array.isArray(fresh)?fresh:[]);setCommenting(false);setComment("");
   };
 
-  if(loading)return<div className="p-6 text-muted-foreground animate-pulse">Загрузка учебника...</div>;
+  if(loading)return<div className="p-6 text-muted-foreground animate-pulse">Loading textbook...</div>;
 
   const filtered=(classroom?.course?.units||[]).map((u:any)=>({...u,lessons:(u.lessons||[]).map((l:any)=>({...l,sections:(l.sections||[]).filter((s:any)=>openIds.has(s.id))})).filter((l:any)=>l.sections.length>0)})).filter((u:any)=>u.lessons.length>0);
 
@@ -67,7 +67,7 @@ export default function StudentTextbook(){
     if(tl===0)return null;return{completed:cl,total:tl};
   };
 
-  if(filtered.length===0)return(<div className="p-6 max-w-6xl mx-auto"><ClassroomHeader classroom={classroom||{}}/><ClassroomTabs basePath={`/student/classrooms/${id}`} tabs={STUDENT_TABS()}/><div className="text-center py-16"><p className="text-lg text-muted-foreground">Учебник пока пуст</p><p className="text-sm text-muted-foreground mt-1">Учитель ещё не открыл материалы</p></div></div>);
+  if(filtered.length===0)return(<div className="p-6 max-w-6xl mx-auto"><ClassroomHeader classroom={classroom||{}}/><ClassroomTabs basePath={`/student/classrooms/${id}`} tabs={STUDENT_TABS()}/><div className="text-center py-16"><p className="text-lg text-muted-foreground">Textbook is empty</p><p className="text-sm text-muted-foreground mt-1">The teacher hasn't opened any materials yet</p></div></div>);
 
   return(
     <div className="flex flex-col h-[calc(100vh-57px)]">
@@ -77,14 +77,14 @@ export default function StudentTextbook(){
       </div>
       <div className="flex flex-1 min-h-0 gap-4 px-6 pb-6">
         {!sidebarOpen && (
-          <button onClick={() => setSidebarOpen(true)} className="flex-shrink-0 self-start w-8 h-8 flex items-center justify-center rounded-lg bg-muted hover:bg-accent text-muted-foreground hover:text-foreground transition-colors" title="Развернуть панель">
+          <button onClick={() => setSidebarOpen(true)} className="flex-shrink-0 self-start w-8 h-8 flex items-center justify-center rounded-lg bg-muted hover:bg-accent text-muted-foreground hover:text-foreground transition-colors" title="Expand panel">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
           </button>
         )}
         {sidebarOpen&&(
           <div className="w-1/4 min-w-[240px] max-w-[360px] flex-shrink-0 bg-muted rounded-xl p-4 overflow-y-auto">
-            <button onClick={() => setSidebarOpen(false)} className="w-full flex items-center justify-between mb-3 px-2 py-1.5 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground transition-colors" title="Свернуть панель">
-              <span className="text-xs font-semibold uppercase tracking-wide">Содержание</span>
+            <button onClick={() => setSidebarOpen(false)} className="w-full flex items-center justify-between mb-3 px-2 py-1.5 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground transition-colors" title="Collapse panel">
+              <span className="text-xs font-semibold uppercase tracking-wide">Contents</span>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
             </button>
             <p className="text-xs text-muted-foreground mb-2 truncate" title={classroom?.course?.title}>{classroom?.course?.title}</p>
@@ -92,21 +92,21 @@ export default function StudentTextbook(){
           </div>
         )}
         <div className="flex-1 min-w-0 overflow-y-auto pr-4">
-          {bLoading?<div className="text-muted-foreground animate-pulse py-8 text-center">Загрузка...</div>:
+          {bLoading?<div className="text-muted-foreground animate-pulse py-8 text-center">Uploading...</div>:
           selSec?(<div>
             <div className="flex items-center justify-between mb-6"><h2 className="text-xl font-bold text-foreground">{secTitle}</h2>
               {(()=>{const my=getMy(selSec);if(!my)return null;return(<div className="flex items-center gap-2">
-                {my.status==="ASSIGNED"&&<><Button size="sm" onClick={markDone}>✓ Изучено</Button><Button size="sm" variant="outline" onClick={()=>setCommenting(true)}>? Вопрос</Button></>}
-                {my.status==="COMPLETED"&&<Badge className="bg-emerald-100 text-emerald-700">✓ Изучено{my.grade?` (${my.grade})`:""}</Badge>}
-                {my.status==="HAS_QUESTION"&&<Badge className="bg-amber-100 text-amber-700">? Вопрос отправлен</Badge>}
+                {my.status==="ASSIGNED"&&<><Button size="sm" onClick={markDone}>✓ Reviewed</Button><Button size="sm" variant="outline" onClick={()=>setCommenting(true)}>? Question</Button></>}
+                {my.status==="COMPLETED"&&<Badge className="bg-emerald-100 text-emerald-700">✓ Reviewed{my.grade?` (${my.grade})`:""}</Badge>}
+                {my.status==="HAS_QUESTION"&&<Badge className="bg-amber-100 text-amber-700">? Question sent</Badge>}
               </div>);})()}
             </div>
-            {commenting&&<div className="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-lg space-y-2"><textarea value={comment} onChange={e=>setComment(e.target.value)} className="w-full h-16 rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="Ваш вопрос..."/><div className="flex gap-2"><Button size="sm" onClick={askQ}>Отправить</Button><Button size="sm" variant="ghost" onClick={()=>setCommenting(false)}>Отмена</Button></div></div>}
+            {commenting&&<div className="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-lg space-y-2"><textarea value={comment} onChange={e=>setComment(e.target.value)} className="w-full h-16 rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="Your question..."/><div className="flex gap-2"><Button size="sm" onClick={askQ}>Send</Button><Button size="sm" variant="ghost" onClick={()=>setCommenting(false)}>Cancel</Button></div></div>}
             <div className="bg-card rounded-xl shadow-sm border border-border/50 px-10 py-8 max-w-4xl">
-              {secBlocks.length===0?<p className="text-muted-foreground text-center py-8">Нет содержимого</p>:
+              {secBlocks.length===0?<p className="text-muted-foreground text-center py-8">No content</p>:
               <PreviewTextbook blocks={secBlocks} isTeacher={false}/>}
             </div>
-          </div>):<p className="text-muted-foreground text-center py-16">Выберите секцию</p>}
+          </div>):<p className="text-muted-foreground text-center py-16">Select a section</p>}
         </div>
       </div>
     </div>

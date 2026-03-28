@@ -22,7 +22,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     },
   });
 
-  // Для каждого ученика получаем его ответы на упражнения этого ДЗ
+  // Для каждого ученика получаем его ответы на exercises этого ДЗ
   const enriched = await Promise.all(
     submissions.map(async (s) => {
       const answers = await prisma.exerciseAnswer.findMany({

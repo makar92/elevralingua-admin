@@ -42,15 +42,15 @@ export function ClassroomTabs({ basePath, tabs }: { basePath: string; tabs: Tab[
 }
 
 export const TEACHER_TABS = (n?: number) => [
-  { id: "journal", name: "Журнал", href: "/journal" },
-  { id: "textbook", name: "Учебник", href: "/textbook" },
-  { id: "workbook", name: "Тетрадь", href: "/workbook" },
-  { id: "bank", name: "Доп. задания", href: "/bank" },
-  { id: "students", name: `Ученики${n != null ? ` (${n})` : ""}`, href: "/students" },
+  { id: "journal", name: "Gradebook", href: "/journal" },
+  { id: "textbook", name: "Textbook", href: "/textbook" },
+  { id: "workbook", name: "Workbook", href: "/workbook" },
+  { id: "bank", name: "Exercise Bank", href: "/bank" },
+  { id: "students", name: `Students${n != null ? ` (${n})` : ""}`, href: "/students" },
 ];
 
 export const STUDENT_TABS = (textbookBadge?: number, workbookBadge?: number) => [
-  { id: "diary", name: "Дневник", href: "/diary" },
-  { id: "textbook", name: "Учебник", href: "/textbook", badge: textbookBadge },
-  { id: "workbook", name: "Тетрадь", href: "/workbook", badge: workbookBadge },
+  { id: "diary", name: "My Grades", href: "/diary" },
+  { id: "textbook", name: "Textbook", href: "/textbook", badge: textbookBadge },
+  { id: "workbook", name: "Workbook", href: "/workbook", badge: workbookBadge },
 ];

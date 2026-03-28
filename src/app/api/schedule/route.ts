@@ -101,7 +101,7 @@ export async function POST(req: Request) {
         },
       });
 
-      // Создаём записи посещаемости для всех учеников
+      // Создаём записи посещаемости для всех students
       if (enrollments.length > 0) {
         await prisma.lessonLogAttendance.createMany({
           data: enrollments.map(e => ({

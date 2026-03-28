@@ -1,14 +1,15 @@
 "use client";
 import { useEffect, useState, useCallback } from "react";
+import { formatTime12h } from "@/lib/utils";
 import { useParams } from "next/navigation";
 import { ClassroomTabs, STUDENT_TABS } from "@/components/shared/classroom-tabs";
 import { ClassroomHeader } from "@/components/shared/classroom-header";
 import { Badge } from "@/components/ui/badge";
 import { GradeBadge } from "@/components/shared/grade-badge";
 
-const MO=["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
-const DW=["Пн","Вт","Ср","Чт","Пт","Сб","Вс"];
-const DWF=["Воскресенье","Понедельник","Вторник","Среда","Четверг","Пятница","Суббота"];
+const MO=["January","February","March","April","May","June","July","August","September","October","November","December"];
+const DW=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+const DWF=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 const GC:Record<string,string>={A:"bg-emerald-100 text-emerald-800",B:"bg-blue-100 text-blue-800",C:"bg-amber-100 text-amber-800",D:"bg-orange-100 text-orange-800",F:"bg-red-100 text-red-800"};
 const greens=["","bg-emerald-200 text-emerald-900","bg-emerald-400 text-emerald-950","bg-emerald-600 text-white"];
 
@@ -30,7 +31,7 @@ export default function StudentDiary(){
   const fd=new Date(year,month,1).getDay();const shift=fd===0?6:fd-1;const dim=new Date(year,month+1,0).getDate();
   const lfd=(day:number)=>logs.filter(l=>new Date(l.date).getDate()===day);
 
-  if(loading)return<div className="p-6 text-muted-foreground animate-pulse">Загрузка дневника...</div>;
+  if(loading)return<div className="p-6 text-muted-foreground animate-pulse">Loading grades...</div>;
 
   return(
     <div className="p-6 max-w-7xl mx-auto">
@@ -53,23 +54,23 @@ export default function StudentDiary(){
             })}
           </div>
           <div className="mt-3 space-y-1">
-            <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground"><span className="w-3 h-3 rounded-sm bg-emerald-200"/> Проведено</div>
-            <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground"><span className="w-3 h-3 rounded-sm bg-blue-200"/> Запланировано</div>
+            <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground"><span className="w-3 h-3 rounded-sm bg-emerald-200"/> Completed</div>
+            <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground"><span className="w-3 h-3 rounded-sm bg-blue-200"/> Scheduled</div>
           </div>
         </div>
         <div className="flex-1 min-w-0 overflow-hidden">
-          {!selectedLog?<div className="text-center py-16 text-muted-foreground"><p className="text-sm">Выберите занятие в календаре</p></div>:(
+          {!selectedLog?<div className="text-center py-16 text-muted-foreground"><p className="text-sm">Select a lesson from the calendar</p></div>:(
             <div>
-              {dayLogs.length>1&&<div className="flex flex-wrap gap-2 mb-4">{dayLogs.map((dl:any,idx:number)=>(<button key={dl.id} onClick={()=>selLog(dl)} className={`px-3 py-1.5 rounded-md text-xs font-medium border ${selectedLog.id===dl.id?"border-primary bg-primary/10 text-primary":"border-border text-muted-foreground hover:bg-accent"}`}>Занятие {idx+1}</button>))}</div>}
+              {dayLogs.length>1&&<div className="flex flex-wrap gap-2 mb-4">{dayLogs.map((dl:any,idx:number)=>(<button key={dl.id} onClick={()=>selLog(dl)} className={`px-3 py-1.5 rounded-md text-xs font-medium border ${selectedLog.id===dl.id?"border-primary bg-primary/10 text-primary":"border-border text-muted-foreground hover:bg-accent"}`}>Lesson {idx+1}</button>))}</div>}
               <div className="bg-card border border-border rounded-xl p-5 space-y-4">
                 <div className="flex items-start justify-between">
-                  <div><h2 className="text-lg font-semibold text-foreground">{DWF[new Date(selectedLog.date).getDay()]}, {new Date(selectedLog.date).toLocaleDateString("ru-RU")}</h2><p className="text-sm text-muted-foreground">{selectedLog.startTime}–{selectedLog.endTime}{selectedLog.location&&` · ${selectedLog.location}`}</p></div>
-                  <Badge className={`text-xs ${selectedLog.status==="COMPLETED"?"bg-emerald-100 text-emerald-700":"bg-blue-100 text-blue-700"}`}>{selectedLog.status==="COMPLETED"?"Проведено":"Запланировано"}</Badge>
+                  <div><h2 className="text-lg font-semibold text-foreground">{DWF[new Date(selectedLog.date).getDay()]}, {new Date(selectedLog.date).toLocaleDateString("en-US")}</h2><p className="text-sm text-muted-foreground">{formatTime12h(selectedLog.startTime)} – {formatTime12h(selectedLog.endTime)}{selectedLog.location&&` · ${selectedLog.location}`}</p></div>
+                  <Badge className={`text-xs ${selectedLog.status==="COMPLETED"?"bg-emerald-100 text-emerald-700":"bg-blue-100 text-blue-700"}`}>{selectedLog.status==="COMPLETED"?"Completed":"Scheduled"}</Badge>
                 </div>
-                {selectedLog.attendance?.[0]&&<p className="text-sm text-muted-foreground">{selectedLog.attendance[0].status==="PRESENT"?"✓ Присутствовал(а)":selectedLog.attendance[0].status==="LATE"?"⏰ Опоздал(а)":"✗ Отсутствовал(а)"}</p>}
+                {selectedLog.attendance?.[0]&&<p className="text-sm text-muted-foreground">{selectedLog.attendance[0].status==="PRESENT"?"✓ Present":selectedLog.attendance[0].status==="LATE"?"⏰ Late":"✗ Absent"}</p>}
                 {selectedLog.grades?.length>0&&<div className="flex gap-1">{selectedLog.grades.map((g:any)=><GradeBadge key={g.id} grade={g.grade} size="sm"/>)}</div>}
-                {selectedLog.topics?.length>0&&<div><h3 className="text-xs font-semibold text-muted-foreground uppercase mb-1">Темы</h3>{selectedLog.topics.map((t:any)=><p key={t.id} className="text-sm text-foreground pl-3 border-l-2 border-emerald-500 mb-1">{t.lesson?.title}</p>)}</div>}
-                {selectedLog.homeworkAssigned?.length>0&&<div><h3 className="text-xs font-semibold text-muted-foreground uppercase mb-1">Домашнее задание</h3>{selectedLog.homeworkAssigned.map((hw:any)=><p key={hw.id} className="text-sm text-foreground">{hw.title}</p>)}</div>}
+                {selectedLog.topics?.length>0&&<div><h3 className="text-xs font-semibold text-muted-foreground uppercase mb-1">Topics</h3>{selectedLog.topics.map((t:any)=><p key={t.id} className="text-sm text-foreground pl-3 border-l-2 border-emerald-500 mb-1">{t.lesson?.title}</p>)}</div>}
+                {selectedLog.homeworkAssigned?.length>0&&<div><h3 className="text-xs font-semibold text-muted-foreground uppercase mb-1">Homework</h3>{selectedLog.homeworkAssigned.map((hw:any)=><p key={hw.id} className="text-sm text-foreground">{hw.title}</p>)}</div>}
               </div>
             </div>
           )}

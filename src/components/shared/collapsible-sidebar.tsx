@@ -32,7 +32,7 @@ export function CollapsibleSidebar({ children, contentChildren, defaultOpen = tr
         <button
           onClick={() => setOpen(!open)}
           className="w-6 h-10 flex items-center justify-center rounded-md bg-muted hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
-          title={open ? "Свернуть панель" : "Развернуть панель"}
+          title={open ? "Collapse panel" : "Expand panel"}
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             {open

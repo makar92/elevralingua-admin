@@ -17,10 +17,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 const navItems = [
-  { name: "Главная",        href: "/teacher" },
-  { name: "Мои классы",     href: "/teacher/classrooms" },
-  { name: "Каталог курсов", href: "/teacher/courses" },
-  { name: "Приглашения",    href: "/teacher/invitations" },
+  { name: "Dashboard",        href: "/teacher" },
+  { name: "My Classes",     href: "/teacher/classrooms" },
+  { name: "Course Catalog", href: "/teacher/courses" },
+  { name: "Invitations",    href: "/teacher/invitations" },
 ];
 
 export function TeacherNav({ user }: { user: any }) {

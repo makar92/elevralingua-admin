@@ -32,9 +32,9 @@ import {
 import { TiptapEditor } from "@/components/tiptap-editor";
 import { AVATAR_OPTIONS, AVATAR_CATEGORIES, AVATAR_MAP, SCENE_OPTIONS, SCENE_MAP } from "@/lib/dialogue-assets";
 
-// ===== Типы пропсов =====
+// ===== Typeы пропсов =====
 interface Props {
-  type: string;          // Тип блока (TEXT, IMAGE, VOCAB_CARD и т.д.)
+  type: string;          // Type блока (TEXT, IMAGE, VOCAB_CARD и т.д.)
   initialData?: any;     // Данные для редактирования (null = создание)
   onSave: (data: any) => void;   // Колбэк сохранения
   onCancel: () => void;          // Колбэк отмены
@@ -52,7 +52,7 @@ export function BlockForm({ type, initialData, onSave, onCancel }: Props) {
   // Универсальный сеттер: обновляет одно поле в объекте data
   const set = (key: string, value: any) => setData((p: any) => ({ ...p, [key]: value }));
 
-  // Загрузка файла на сервер (через /api/upload)
+  // Loading файла на сервер (через /api/upload)
   const uploadFile = async (file: File, field: string) => {
     setUploading(true);
     const fd = new FormData();
@@ -65,7 +65,7 @@ export function BlockForm({ type, initialData, onSave, onCancel }: Props) {
         set(field, url);
       }
     } catch (e) {
-      console.error("Ошибка загрузки:", e);
+      console.error("Upload error:", e);
     }
     setUploading(false);
   };
@@ -97,13 +97,13 @@ export function BlockForm({ type, initialData, onSave, onCancel }: Props) {
           <Separator />
           <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg p-4">
             <Label className="text-base text-amber-600 font-medium">
-              Заметка для учителя (необязательно)
+              Teacher Note (optional)
             </Label>
             <p className="text-sm text-muted-foreground mb-2">
-              Видит только учитель. Подсказки, пояснения, методические указания.
+              Visible to teacher only. Tips, explanations, and teaching guidelines.
             </p>
             <Textarea value={teacherNote} onChange={(e) => setTeacherNote(e.target.value)}
-              placeholder="Обратите внимание на произношение. Частая ошибка учеников..."
+              placeholder="Pay attention to pronunciation. Common student mistake..."
               rows={3} className="text-base" />
           </div>
         </>
@@ -111,9 +111,9 @@ export function BlockForm({ type, initialData, onSave, onCancel }: Props) {
 
       {/* Кнопки сохранения/отмены */}
       <div className="flex justify-end gap-3 pt-3">
-        <Button variant="outline" size="lg" onClick={onCancel}>Отмена</Button>
+        <Button variant="outline" size="lg" onClick={onCancel}>Cancel</Button>
         <Button size="lg" onClick={handleSave}>
-          {initialData ? "Сохранить" : "Добавить"}
+          {initialData ? "Save" : "Add"}
         </Button>
       </div>
     </div>
@@ -128,7 +128,7 @@ export function BlockForm({ type, initialData, onSave, onCancel }: Props) {
 function TextForm({ data, set }: { data: any; set: any }) {
   return (
     <div className="space-y-2">
-      <Label className="text-base text-foreground">Текст</Label>
+      <Label className="text-base text-foreground">Text</Label>
       <TiptapEditor content={data.html || ""} onChange={(html) => set("html", html)} />
     </div>
   );
@@ -140,20 +140,20 @@ function ImageForm({ data, set, upload, uploading }: { data: any; set: any; uplo
     <div className="space-y-4">
       {/* Выбор файла */}
       <div className="space-y-2">
-        <Label className="text-base text-foreground">Картинка</Label>
+        <Label className="text-base text-foreground">Image</Label>
         <input type="file" accept="image/*" disabled={uploading}
           onChange={(e) => { const f = e.target.files?.[0]; if (f) upload(f, "url"); }}
           className="block w-full text-base text-foreground file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-primary file:text-primary-foreground file:cursor-pointer" />
         {/* Индикатор загрузки */}
-        {uploading && <p className="text-sm text-muted-foreground">Загрузка...</p>}
+        {uploading && <p className="text-sm text-muted-foreground">Uploading...</p>}
         {/* Превью загруженной картинки */}
         {data.url && <img src={data.url} alt="" className="max-w-xs rounded-lg mt-2" />}
       </div>
       {/* Подпись */}
       <div className="space-y-2">
-        <Label className="text-base text-foreground">Подпись</Label>
+        <Label className="text-base text-foreground">Caption</Label>
         <Input value={data.caption || ""} onChange={(e) => set("caption", e.target.value)}
-          placeholder="Описание картинки" className="text-base h-11" />
+          placeholder="Describe Image" className="text-base h-11" />
       </div>
     </div>
   );
@@ -165,17 +165,17 @@ function AudioForm({ data, set, upload, uploading }: { data: any; set: any; uplo
     <div className="space-y-4">
       {/* Название аудио */}
       <div className="space-y-2">
-        <Label className="text-base text-foreground">Название</Label>
+        <Label className="text-base text-foreground">Title</Label>
         <Input value={data.title || ""} onChange={(e) => set("title", e.target.value)}
-          placeholder="Произношение" className="text-base h-11" />
+          placeholder="Pronunciation" className="text-base h-11" />
       </div>
       {/* Выбор аудио-файла */}
       <div className="space-y-2">
-        <Label className="text-base text-foreground">Аудио-файл</Label>
+        <Label className="text-base text-foreground">Audio File</Label>
         <input type="file" accept="audio/*" disabled={uploading}
           onChange={(e) => { const f = e.target.files?.[0]; if (f) upload(f, "url"); }}
           className="block w-full text-base text-foreground file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-primary file:text-primary-foreground file:cursor-pointer" />
-        {uploading && <p className="text-sm text-muted-foreground">Загрузка...</p>}
+        {uploading && <p className="text-sm text-muted-foreground">Uploading...</p>}
         {data.url && <audio controls src={data.url} className="mt-2" />}
       </div>
     </div>
@@ -187,14 +187,14 @@ function YouTubeForm({ data, set }: { data: any; set: any }) {
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        <Label className="text-base text-foreground">Ссылка на YouTube</Label>
+        <Label className="text-base text-foreground">YouTube Link</Label>
         <Input value={data.url || ""} onChange={(e) => set("url", e.target.value)}
           placeholder="https://www.youtube.com/watch?v=..." className="text-base h-11" />
       </div>
       <div className="space-y-2">
-        <Label className="text-base text-foreground">Название</Label>
+        <Label className="text-base text-foreground">Title</Label>
         <Input value={data.title || ""} onChange={(e) => set("title", e.target.value)}
-          placeholder="Описание видео" className="text-base h-11" />
+          placeholder="Video description" className="text-base h-11" />
       </div>
     </div>
   );
@@ -204,7 +204,7 @@ function YouTubeForm({ data, set }: { data: any; set: any }) {
 function HtmlEmbedForm({ data, set }: { data: any; set: any }) {
   return (
     <div className="space-y-2">
-      <Label className="text-base text-foreground">HTML код</Label>
+      <Label className="text-base text-foreground">HTML Code</Label>
       <Textarea value={data.html || ""} onChange={(e) => set("html", e.target.value)}
         placeholder='<iframe src="..." width="100%" height="400"></iframe>'
         rows={10} className="text-base font-mono" />
@@ -216,13 +216,13 @@ function HtmlEmbedForm({ data, set }: { data: any; set: any }) {
 function SpacerForm({ data, set }: { data: any; set: any }) {
   return (
     <div className="space-y-3">
-      <Label className="text-base text-foreground">Размер отступа</Label>
+      <Label className="text-base text-foreground">Spacer Size</Label>
       <div className="flex gap-3">
         {/* Три варианта размера */}
         {[
-          { value: "sm", label: "Маленький", desc: "1 строка", height: "h-4" },
-          { value: "md", label: "Средний", desc: "2 строки", height: "h-8" },
-          { value: "lg", label: "Большой", desc: "4 строки", height: "h-16" },
+          { value: "sm", label: "Small", desc: "1 line", height: "h-4" },
+          { value: "md", label: "Intermediate", desc: "2 lines", height: "h-8" },
+          { value: "lg", label: "Large", desc: "4 lines", height: "h-16" },
         ].map((opt) => (
           <button key={opt.value} onClick={() => set("size", opt.value)}
             className={`flex-1 p-4 rounded-lg border-2 transition-colors text-center ${
@@ -247,29 +247,29 @@ function VocabCardForm({ data, set, upload, uploading }: { data: any; set: any; 
     <div className="space-y-5">
       {/* Основное поле: слово на изучаемом языке (обязательное) */}
       <div className="space-y-2">
-        <Label className="text-base text-foreground">Слово *</Label>
+        <Label className="text-base text-foreground">Word *</Label>
         <Input value={data.word || ""} onChange={(e) => set("word", e.target.value)}
-          placeholder="Слово на изучаемом языке" className="text-3xl h-16 font-bold" />
+          placeholder="Word in target language" className="text-3xl h-16 font-bold" />
       </div>
 
       {/* Перевод (опционально) */}
       <div className="space-y-2">
-        <Label className="text-base text-foreground">Перевод</Label>
+        <Label className="text-base text-foreground">Translation</Label>
         <Input value={data.translation || ""} onChange={(e) => set("translation", e.target.value)}
-          placeholder="Перевод на целевой язык" className="text-xl h-14" />
+          placeholder="Translation" className="text-xl h-14" />
       </div>
 
       {/* Транскрипция (опционально) — пиньинь, IPA, ромадзи и т.д. */}
       <div className="space-y-2">
-        <Label className="text-base text-foreground">Транскрипция</Label>
+        <Label className="text-base text-foreground">Transcription</Label>
         <Input value={data.transcription || ""} onChange={(e) => set("transcription", e.target.value)}
-          placeholder="Пиньинь, IPA, ромадзи..." className="text-lg h-12" />
-        <p className="text-xs text-muted-foreground">Необязательно. Используйте подходящую систему транскрипции для вашего языка.</p>
+          placeholder="Pinyin, IPA, romaji..." className="text-lg h-12" />
+        <p className="text-xs text-muted-foreground">Optional. Use the appropriate transcription system for your language.</p>
       </div>
 
       {/* Аудио (опционально) */}
       <div className="space-y-2">
-        <Label className="text-base text-foreground">Аудио произношения</Label>
+        <Label className="text-base text-foreground">Pronunciation Audio</Label>
         <input type="file" accept="audio/*" disabled={uploading}
           onChange={(e) => { const f = e.target.files?.[0]; if (f) upload(f, "audioUrl"); }}
           className="block w-full text-base text-foreground file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-primary file:text-primary-foreground file:cursor-pointer" />
@@ -278,7 +278,7 @@ function VocabCardForm({ data, set, upload, uploading }: { data: any; set: any; 
 
       {/* Картинка (опционально) */}
       <div className="space-y-2">
-        <Label className="text-base text-foreground">Картинка к слову</Label>
+        <Label className="text-base text-foreground">Word Image</Label>
         <input type="file" accept="image/*" disabled={uploading}
           onChange={(e) => { const f = e.target.files?.[0]; if (f) upload(f, "imageUrl"); }}
           className="block w-full text-base text-foreground file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-primary file:text-primary-foreground file:cursor-pointer" />
@@ -289,10 +289,10 @@ function VocabCardForm({ data, set, upload, uploading }: { data: any; set: any; 
 
       {/* Пример в предложении (опционально) */}
       <div className="space-y-3">
-        <Label className="text-base font-medium text-foreground">Пример в предложении</Label>
+        <Label className="text-base font-medium text-foreground">Example Sentence</Label>
         {/* Предложение на изучаемом языке */}
         <div className="space-y-2">
-          <Label className="text-sm text-muted-foreground">Предложение</Label>
+          <Label className="text-sm text-muted-foreground">Sentence</Label>
           <TiptapEditor
             content={data.exampleSentence || ""}
             onChange={(html) => set("exampleSentence", html)}
@@ -301,9 +301,9 @@ function VocabCardForm({ data, set, upload, uploading }: { data: any; set: any; 
         </div>
         {/* Перевод примера */}
         <div className="space-y-2">
-          <Label className="text-sm text-muted-foreground">Перевод примера</Label>
+          <Label className="text-sm text-muted-foreground">Example Translation</Label>
           <Input value={data.exampleTranslation || ""} onChange={(e) => set("exampleTranslation", e.target.value)}
-            placeholder="Перевод предложения" className="text-base h-11" />
+            placeholder="Sentence translation" className="text-base h-11" />
         </div>
       </div>
     </div>
@@ -312,9 +312,9 @@ function VocabCardForm({ data, set, upload, uploading }: { data: any; set: any; 
 
 // ===== ДИАЛОГ — визуальный конструктор с аватарками и фонами =====
 function DialogueForm({ data, set }: { data: any; set: any }) {
-  // Участники диалога
+  // Dialogue Participants
   const speakers: any[] = data.speakers || [];
-  // Реплики
+  // Lines
   const lines: any[] = data.lines || [];
   // Аватарки участников
   const speakerAvatars: string[] = data.speakerAvatars || [];
@@ -391,13 +391,13 @@ function DialogueForm({ data, set }: { data: any; set: any }) {
     <div className="space-y-5">
       {/* Ситуация + фон */}
       <div className="space-y-3">
-        <Label className="text-base text-foreground">Ситуация</Label>
+        <Label className="text-base text-foreground">Situation</Label>
         <Input value={data.situationTitle || ""} onChange={(e) => set("situationTitle", e.target.value)}
-          placeholder="Первая встреча" className="text-lg h-12" />
+          placeholder="First meeting" className="text-lg h-12" />
 
         {/* Выбор фона ситуации */}
         <div>
-          <Label className="text-sm text-muted-foreground mb-2 block">Фон ситуации</Label>
+          <Label className="text-sm text-muted-foreground mb-2 block">Scene Background</Label>
           <button onClick={() => setScenePickerOpen(!scenePickerOpen)}
             className="flex items-center gap-3 px-4 py-2.5 rounded-xl border border-border bg-card hover:bg-accent transition-colors">
             <span className="text-2xl">{currentScene.emoji}</span>
@@ -423,9 +423,9 @@ function DialogueForm({ data, set }: { data: any; set: any }) {
 
       <Separator />
 
-      {/* Участники с аватарками */}
+      {/* Speakerи с аватарками */}
       <div className="space-y-3">
-        <Label className="text-base text-foreground">Участники</Label>
+        <Label className="text-base text-foreground">Speakers</Label>
         {speakers.map((speaker: string, i: number) => {
           const color = speakerColors[i % speakerColors.length];
           const avatarId = speakerAvatars[i] || "man";
@@ -436,12 +436,12 @@ function DialogueForm({ data, set }: { data: any; set: any }) {
                 {/* Аватарка — кликабельная для выбора */}
                 <button onClick={() => setAvatarPickerFor(avatarPickerFor === i ? null : i)}
                   className={`w-14 h-14 rounded-xl flex items-center justify-center text-3xl ${color.bg} border ${color.border} hover:opacity-80 transition-opacity flex-shrink-0`}
-                  title="Выбрать аватарку">
+                  title="Choose avatar">
                   {avatar?.emoji || "👤"}
                 </button>
-                {/* Имя участника */}
+                {/* Speaker name */}
                 <Input value={speaker} onChange={(e) => updateSpeaker(i, e.target.value)}
-                  placeholder={`Участник ${i + 1}`}
+                  placeholder={`Speaker ${i + 1}`}
                   className="text-base h-11 flex-1" />
                 {/* Кнопка удаления */}
                 {speakers.length > 1 && (
@@ -472,19 +472,19 @@ function DialogueForm({ data, set }: { data: any; set: any }) {
             </div>
           );
         })}
-        <Button variant="outline" size="sm" onClick={addSpeaker}>+ Участник</Button>
+        <Button variant="outline" size="sm" onClick={addSpeaker}>+ Speaker</Button>
       </div>
 
       <Separator />
 
-      {/* Реплики */}
+      {/* Lines */}
       <div className="space-y-2">
-        <Label className="text-base text-foreground">Реплики</Label>
+        <Label className="text-base text-foreground">Lines</Label>
 
         {/* Пустое состояние */}
         {lines.length === 0 && (
           <div className="text-center py-6 bg-muted/30 rounded-lg border border-dashed border-border">
-            <p className="text-muted-foreground">Нет реплик. Добавьте первую.</p>
+            <p className="text-muted-foreground">No lines yet. Add the first one.</p>
           </div>
         )}
 
@@ -521,7 +521,7 @@ function DialogueForm({ data, set }: { data: any; set: any }) {
                     className="bg-transparent text-sm font-medium border-none outline-none cursor-pointer text-foreground">
                     {speakers.map((s: string, si: number) => (
                       <option key={si} value={si} className="bg-card text-foreground">
-                        {s || `Участник ${si + 1}`}
+                        {s || `Speaker ${si + 1}`}
                       </option>
                     ))}
                   </select>
@@ -530,11 +530,11 @@ function DialogueForm({ data, set }: { data: any; set: any }) {
                 {/* Поля реплики: текст, транскрипция, перевод */}
                 <div className="space-y-2">
                   <Input value={line.text || line.hanzi || ""} onChange={(e) => updateLine(i, "text", e.target.value)}
-                    placeholder="Текст реплики на изучаемом языке" className="text-xl h-12 bg-transparent border-white/10" />
+                    placeholder="Line text in target language" className="text-xl h-12 bg-transparent border-white/10" />
                   <Input value={line.transcription || line.pinyin || ""} onChange={(e) => updateLine(i, "transcription", e.target.value)}
-                    placeholder="Транскрипция (необязательно)" className="text-base h-10 bg-transparent border-white/10" />
+                    placeholder="Transcription (optional)" className="text-base h-10 bg-transparent border-white/10" />
                   <Input value={line.translation || ""} onChange={(e) => updateLine(i, "translation", e.target.value)}
-                    placeholder="Перевод (необязательно)" className="text-sm h-10 bg-transparent border-white/10 text-muted-foreground" />
+                    placeholder="Translation (optional)" className="text-sm h-10 bg-transparent border-white/10 text-muted-foreground" />
                 </div>
               </div>
             );
@@ -551,7 +551,7 @@ function DialogueForm({ data, set }: { data: any; set: any }) {
               <button key={i} onClick={() => addLine(i)}
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border ${color.border} ${color.bg} text-sm ${color.text} hover:opacity-80 transition-opacity`}>
                 <span>{avatar?.emoji || "👤"}</span>
-                + {s || `Участник ${i + 1}`}
+                + {s || `Speaker ${i + 1}`}
               </button>
             );
           })}

@@ -102,7 +102,7 @@ export async function POST(req: Request) {
       },
     });
 
-    // Если статус COMPLETED — автоматически создаём записи посещаемости для всех учеников
+    // Если статус COMPLETED — автоматически создаём записи посещаемости для всех students
     if (status === "COMPLETED" || status === "SCHEDULED") {
       const enrollments = await prisma.classroomEnrollment.findMany({
         where: { classroomId, status: "ACTIVE" },

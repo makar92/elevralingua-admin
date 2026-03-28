@@ -178,7 +178,7 @@ export default function TeacherWorkbook() {
     setReviewAnswers(Array.from(map.values())); setSaving(false);
   };
 
-  if (loading) return <div className="p-6 text-muted-foreground animate-pulse">Загрузка тетради...</div>;
+  if (loading) return <div className="p-6 text-muted-foreground animate-pulse">Loading workbook...</div>;
 
   return (
     <div className="flex flex-col h-[calc(100vh-57px)]">
@@ -188,14 +188,14 @@ export default function TeacherWorkbook() {
       </div>
       <div className="flex flex-1 min-h-0 gap-4 px-6 pb-20">
         {!sidebarOpen && (
-          <button onClick={() => setSidebarOpen(true)} className="flex-shrink-0 self-start w-8 h-8 flex items-center justify-center rounded-lg bg-muted hover:bg-accent text-muted-foreground hover:text-foreground transition-colors" title="Развернуть панель">
+          <button onClick={() => setSidebarOpen(true)} className="flex-shrink-0 self-start w-8 h-8 flex items-center justify-center rounded-lg bg-muted hover:bg-accent text-muted-foreground hover:text-foreground transition-colors" title="Expand panel">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
           </button>
         )}
         {sidebarOpen && (
           <div className="w-1/4 min-w-[240px] max-w-[360px] flex-shrink-0 bg-muted rounded-xl p-4 overflow-y-auto">
-            <button onClick={() => setSidebarOpen(false)} className="w-full flex items-center justify-between mb-3 px-2 py-1.5 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground transition-colors" title="Свернуть панель">
-              <span className="text-xs font-semibold uppercase tracking-wide">Содержание</span>
+            <button onClick={() => setSidebarOpen(false)} className="w-full flex items-center justify-between mb-3 px-2 py-1.5 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground transition-colors" title="Collapse panel">
+              <span className="text-xs font-semibold uppercase tracking-wide">Contents</span>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
             </button>
             <p className="text-xs text-muted-foreground mb-2 truncate" title={classroom?.course?.title}>{classroom?.course?.title}</p>
@@ -236,8 +236,8 @@ export default function TeacherWorkbook() {
         {/* Exercises */}
         <div className="flex-1 min-w-0 overflow-y-auto pr-4">
           {selSectionTitle && <h2 className="text-lg font-semibold text-foreground mb-4">{selSectionTitle}</h2>}
-          {exLoading ? <div className="text-muted-foreground animate-pulse text-center py-12">Загрузка...</div> :
-            exercises.length === 0 ? <p className="text-muted-foreground text-center py-12">Нет упражнений</p> :
+          {exLoading ? <div className="text-muted-foreground animate-pulse text-center py-12">Uploading...</div> :
+            exercises.length === 0 ? <p className="text-muted-foreground text-center py-12">No exercises</p> :
               <div className="space-y-5">{exercises.map(ex => {
                 const statuses = getExStudentStatuses(ex.id);
                 const assigned = statuses.filter(s => s.isAssigned);
@@ -256,15 +256,15 @@ export default function TeacherWorkbook() {
                         className="w-full text-left flex items-center gap-2 mb-3 px-3 py-2 rounded-lg border border-border hover:bg-accent/50 transition-colors">
                         <span className="text-muted-foreground text-xs">{isExpanded ? "▾" : "▸"}</span>
                         <span className="text-[11px] text-foreground">
-                          Назначено: <b>{assigned.length}</b>
+                          Assigned: <b>{assigned.length}</b>
                         </span>
                         <span className="text-[11px] text-muted-foreground">·</span>
                         <span className="text-[11px] text-foreground">
-                          Ответили: <b>{answered.length}/{assigned.length}</b>
+                          Answered: <b>{answered.length}/{assigned.length}</b>
                         </span>
                         {pendingReview.length > 0 && (<>
                           <span className="text-[11px] text-muted-foreground">·</span>
-                          <span className="text-[11px] text-red-600 font-semibold">Проверить: {pendingReview.length}</span>
+                          <span className="text-[11px] text-red-600 font-semibold">Submit: {pendingReview.length}</span>
                         </>)}
                         {/* Mini grade badges for answered */}
                         <span className="flex-1" />
@@ -283,11 +283,11 @@ export default function TeacherWorkbook() {
                             <div key={s.id} className="flex items-center gap-2 py-1">
                               <Avatar className="h-6 w-6 flex-shrink-0"><AvatarImage src={s.image} /><AvatarFallback className="text-[9px]">{s.name?.[0]}</AvatarFallback></Avatar>
                               <span className="text-sm text-foreground flex-1 truncate">{s.name}</span>
-                              {!answer && <span className="text-[10px] text-muted-foreground">Не ответил</span>}
+                              {!answer && <span className="text-[10px] text-muted-foreground">Not answered</span>}
                               {answer && answer.grade && <GradeBadge grade={answer.grade} size="sm" />}
                               {answer && (
                                 <button onClick={() => openReview(ex)} className={`text-[10px] hover:underline font-medium ${answer.status === "PENDING" ? "text-red-600" : "text-primary"}`}>
-                                  {answer.status === "PENDING" ? "Проверить →" : "Подробнее →"}
+                                  {answer.status === "PENDING" ? "Submit →" : "Details →"}
                                 </button>
                               )}
                             </div>
@@ -306,26 +306,26 @@ export default function TeacherWorkbook() {
       {/* Sticky assign panel */}
       <div className={`fixed bottom-0 left-0 right-0 bg-card border-t border-border shadow-lg transition-transform z-50 ${hasSelection ? "translate-y-0" : "translate-y-full"}`}>
         <div className="max-w-7xl mx-auto px-6 py-3 flex items-center gap-3">
-          <span className="text-sm font-medium">Выбрано: {checkedSections.size > 0 ? `${checkedSections.size} секц.` : ""}{checkedExercises.size > 0 ? ` ${checkedExercises.size} упр.` : ""}</span>
-          <Button size="sm" onClick={() => startAction("CLASS_WORK")} disabled={busy}>Назначить (классная)</Button>
-          <Button size="sm" variant="outline" onClick={() => startAction("HOMEWORK")} disabled={busy}>Назначить (домашняя)</Button>
-          <Button size="sm" variant="ghost" onClick={() => { setCheckedSections(new Set()); setCheckedExercises(new Set()); }}>Отмена</Button>
+          <span className="text-sm font-medium">Selected: {checkedSections.size > 0 ? `${checkedSections.size} sec.` : ""}{checkedExercises.size > 0 ? ` ${checkedExercises.size} ex.` : ""}</span>
+          <Button size="sm" onClick={() => startAction("CLASS_WORK")} disabled={busy}>Assign (Class Work)</Button>
+          <Button size="sm" variant="outline" onClick={() => startAction("HOMEWORK")} disabled={busy}>Assign (Homework)</Button>
+          <Button size="sm" variant="ghost" onClick={() => { setCheckedSections(new Set()); setCheckedExercises(new Set()); }}>Cancel</Button>
         </div>
       </div>
 
       {/* Student picker */}
       <Dialog open={showPicker} onOpenChange={setShowPicker}>
-        <DialogContent><DialogHeader><DialogTitle>Кому назначить?</DialogTitle></DialogHeader>
+        <DialogContent><DialogHeader><DialogTitle>Assign to whom?</DialogTitle></DialogHeader>
           <div className="space-y-3">
-            <Button className="w-full" onClick={() => doAssign()}>Всем ученикам</Button>
-            <p className="text-xs text-muted-foreground text-center">или выберите:</p>
+            <Button className="w-full" onClick={() => doAssign()}>All Students</Button>
+            <p className="text-xs text-muted-foreground text-center">or select:</p>
             <div className="space-y-2">{classroom?.enrollments?.map((e: any) => (
               <label key={e.student?.id} className="flex items-center gap-2 p-2 rounded border border-border hover:bg-accent cursor-pointer">
                 <input type="checkbox" checked={picked.has(e.student?.id)} onChange={() => togglePick(e.student?.id)} className="rounded" />
                 <span className="text-sm">{e.student?.name}</span>
               </label>
             ))}</div>
-            {picked.size > 0 && <Button className="w-full" onClick={() => doAssign(Array.from(picked))}>Назначить ({picked.size})</Button>}
+            {picked.size > 0 && <Button className="w-full" onClick={() => doAssign(Array.from(picked))}>Assign ({picked.size})</Button>}
           </div>
         </DialogContent>
       </Dialog>
@@ -334,18 +334,18 @@ export default function TeacherWorkbook() {
       <Dialog open={!!reviewExercise} onOpenChange={open => { if (!open) setReviewExercise(null); }}>
         <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-base">Проверка: {reviewExercise?.title}</DialogTitle>
-            <p className="text-xs text-muted-foreground">{reviewExercise?.exerciseType?.replace("_", " ")} · {reviewExercise?.gradingType === "AUTO" ? "Автопроверка" : "Ручная проверка"}</p>
+            <DialogTitle className="text-base">Review: {reviewExercise?.title}</DialogTitle>
+            <p className="text-xs text-muted-foreground">{reviewExercise?.exerciseType?.replace("_", " ")} · {reviewExercise?.gradingType === "AUTO" ? "Auto-graded" : "Teacher-reviewed"}</p>
           </DialogHeader>
           {reviewExercise?.gradingType === "TEACHER" && reviewExercise?.referenceAnswer && (
             <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-[11px] font-semibold text-blue-700 mb-1">Эталонный ответ:</p>
+              <p className="text-[11px] font-semibold text-blue-700 mb-1">Reference Answer:</p>
               <p className="text-sm text-blue-900">{reviewExercise.referenceAnswer}</p>
             </div>
           )}
           {reviewExercise?.correctAnswers?.length > 0 && (
             <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
-              <p className="text-[11px] font-semibold text-emerald-700 mb-1">Правильные ответы:</p>
+              <p className="text-[11px] font-semibold text-emerald-700 mb-1">Correct Answers:</p>
               <p className="text-sm text-emerald-900">{reviewExercise.correctAnswers.join(", ")}</p>
             </div>
           )}
@@ -360,13 +360,13 @@ export default function TeacherWorkbook() {
                   <div className="flex items-center gap-2 mb-2">
                     <Avatar className="h-7 w-7"><AvatarImage src={s.image} /><AvatarFallback className="text-[10px]">{s.name?.[0]}</AvatarFallback></Avatar>
                     <span className="text-sm font-medium flex-1">{s.name}</span>
-                    {!answer && <span className="text-[10px] text-muted-foreground">Не ответил</span>}
+                    {!answer && <span className="text-[10px] text-muted-foreground">Not answered</span>}
                     {answer?.grade && <GradeBadge grade={answer.grade} size="md" />}
-                    {answer?.status === "PENDING" && <Badge variant="destructive" className="text-[10px]">Ожидает проверки</Badge>}
+                    {answer?.status === "PENDING" && <Badge variant="destructive" className="text-[10px]">Needs Review</Badge>}
                   </div>
                   {answer && (
                     <div className="mb-2 p-2 bg-accent/50 rounded text-sm">
-                      <p className="text-[11px] font-medium text-muted-foreground mb-1">Ответ:</p>
+                      <p className="text-[11px] font-medium text-muted-foreground mb-1">Answer:</p>
                       <p className="text-foreground whitespace-pre-wrap text-base">
                         {formatAnswerDisplay(answer.answersJson, reviewExercise)}
                       </p>
@@ -375,10 +375,10 @@ export default function TeacherWorkbook() {
                   {answer && (answer.status === "PENDING" || answer.status === "GRADED" || answer.status === "AUTO_GRADED") && (
                     <div className="flex items-center gap-3 mt-2">
                       <GradePicker value={rev.grade} onChange={g => setReviewGrades(prev => ({ ...prev, [answer.id]: { ...rev, grade: g } }))} size="sm" />
-                      <Input className="flex-1 h-7 text-xs" placeholder="Комментарий..." value={rev.comment}
+                      <Input className="flex-1 h-7 text-xs" placeholder="Comment..." value={rev.comment}
                         onChange={e => setReviewGrades(prev => ({ ...prev, [answer.id]: { ...rev, comment: e.target.value } }))} />
                       <Button size="sm" className="h-7 text-xs px-3" disabled={saving || !rev.grade}
-                        onClick={() => saveGrade(answer.id)}>{saving ? "..." : answer.status === "GRADED" ? "Обновить" : "Оценить"}</Button>
+                        onClick={() => saveGrade(answer.id)}>{saving ? "..." : answer.status === "GRADED" ? "Refresh" : "Grade"}</Button>
                     </div>
                   )}
                   {answer?.teacherComment && answer.status !== "PENDING" && (

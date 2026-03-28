@@ -1,6 +1,6 @@
 // ===========================================
 // Файл: src/app/student/search/page.tsx
-// Описание: Поиск классов для вступления.
+// Описание: Search Classes для вступления.
 // ===========================================
 
 "use client";
@@ -39,21 +39,21 @@ export default function StudentSearch() {
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
-      <h1 className="text-2xl font-bold text-foreground mb-6">Найти класс</h1>
+      <h1 className="text-2xl font-bold text-foreground mb-6">Find a Class</h1>
 
       <div className="flex gap-3 mb-6">
         <Input
           value={query}
           onChange={e => setQuery(e.target.value)}
           onKeyDown={e => e.key === "Enter" && handleSearch()}
-          placeholder="Поиск по названию класса или имени учителя..."
+          placeholder="Search by class name or teacher name..."
           className="flex-1"
         />
-        <Button onClick={handleSearch}>Поиск</Button>
+        <Button onClick={handleSearch}>Search</Button>
       </div>
 
       {searched && results.length === 0 && (
-        <p className="text-muted-foreground text-center py-12">Классы не найдены</p>
+        <p className="text-muted-foreground text-center py-12">No classes found</p>
       )}
 
       <div className="space-y-3">
@@ -70,15 +70,15 @@ export default function StudentSearch() {
                 <div className="flex gap-2 mt-1">
                   <Badge variant="outline" className="text-xs">{c.course?.language}</Badge>
                   <Badge variant="outline" className="text-xs">{c.course?.level}</Badge>
-                  <span className="text-xs text-muted-foreground">{c._count?.enrollments || 0} уч.</span>
+                  <span className="text-xs text-muted-foreground">{c._count?.enrollments || 0} students</span>
                 </div>
               </div>
             </div>
             {requestsSent.has(c.id) ? (
-              <Badge variant="secondary">Заявка отправлена</Badge>
+              <Badge variant="secondary">Request Sent</Badge>
             ) : (
               <Button size="sm" onClick={() => requestJoin(c.id, c.teacher?.id)}>
-                Подать заявку
+                Request to Join
               </Button>
             )}
           </div>

@@ -6,7 +6,7 @@
 //   Страница «Пользователи» — управление командой админ-панели.
 //   Roadmap: роли в админке (лингвисты, редакторы, модераторы),
 //   права доступа, история изменений.
-//   Не включает учителей и учеников — у них отдельные приложения.
+//   Не включает учителей и students — у них отдельные приложения.
 // ===========================================
 
 import { Card, CardContent } from "@/components/ui/card";
@@ -17,29 +17,29 @@ const adminRoles = [
   {
     icon: "👩‍💼",
     name: "Admin",
-    description: "Полный доступ к админ-панели. Управление курсами, контентом, пользователями админки и настройками платформы.",
-    permissions: ["Все курсы", "Все юниты", "Все настройки", "Управление ролями"],
+    description: "Full admin panel access. Manage courses, content, admin users, and platform settings.",
+    permissions: ["All Courses", "All Units", "All Settings", "Role Management"],
     current: true,
   },
   {
     icon: "✍️",
     name: "Linguist",
-    description: "Создание и редактирование учебных материалов. Работа с конструктором курсов: блоки контента, упражнения, тетради.",
-    permissions: ["Создание курсов", "Редактирование контента", "Доп. задания", "Загрузка медиа"],
+    description: "Create and edit learning materials. Work with the course builder: content blocks, exercises, workbooks.",
+    permissions: ["Create Courses", "Edit Content", "Exercise Bank", "Upload Media"],
     current: true,
   },
   {
     icon: "👁️",
     name: "Reviewer",
-    description: "Проверка и утверждение контента перед публикацией. Просмотр всех материалов, добавление комментариев и замечаний.",
-    permissions: ["Просмотр курсов", "Комментарии", "Утверждение публикации"],
+    description: "Review and approve content before publishing. View all materials, add comments and notes.",
+    permissions: ["View Courses", "Comments", "Approve Publishing"],
     current: false,
   },
   {
     icon: "🌐",
     name: "Translator",
-    description: "Адаптация существующих курсов для новых языковых пар. Перевод контент-блоков, упражнений и интерфейсных текстов.",
-    permissions: ["Редактирование переводов", "Просмотр оригиналов", "Загрузка аудио"],
+    description: "Adapt existing courses for new language pairs. Translate content blocks, exercises, and UI text.",
+    permissions: ["Edit Translations", "View Originals", "Upload Audio"],
     current: false,
   },
 ];
@@ -48,26 +48,26 @@ const adminRoles = [
 const plannedFeatures = [
   {
     icon: "🔐",
-    title: "Права доступа",
-    description: "Гранулярные права: кто может создавать курсы, кто — только редактировать назначенные. Ограничение по языковым парам.",
+    title: "Access Control",
+    description: "Granular permissions: who can create courses, who can only edit assigned ones. Restrictions by language pair.",
     status: "Q3 2026",
   },
   {
     icon: "📋",
-    title: "Назначение задач",
-    description: "Администратор назначает лингвисту курс или юнит для работы. Статусы: в работе, на проверке, опубликовано.",
+    title: "Task Assignment",
+    description: "Admin assigns a linguist a course or unit to work on. Statuses: in progress, under review, published.",
     status: "Q3 2026",
   },
   {
     icon: "📜",
-    title: "История изменений",
-    description: "Лог всех действий: кто создал блок, кто изменил упражнение, кто опубликовал курс. Возможность отката к предыдущей версии.",
+    title: "Change History",
+    description: "Log of all actions: who created a block, who edited an exercise, who published a course. Rollback capability.",
     status: "Q4 2026",
   },
   {
     icon: "💬",
-    title: "Комментарии и ревью",
-    description: "Рецензент оставляет замечания к блокам и упражнениям. Лингвист видит замечания и исправляет. Встроенный workflow согласования.",
+    title: "Comments & Review",
+    description: "Reviewer leaves feedback on blocks and exercises. Linguist sees notes and makes corrections. Built-in approval workflow.",
     status: "Q4 2026",
   },
 ];
@@ -78,12 +78,12 @@ export default function UsersPage() {
       {/* Заголовок */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
-          <h1 className="text-2xl font-bold text-foreground">Пользователи админ-панели</h1>
+          <h1 className="text-2xl font-bold text-foreground">Admin Panel Users</h1>
           <Badge variant="outline" className="text-xs">Coming Soon</Badge>
         </div>
         <p className="text-base text-muted-foreground">
-          Управление командой, которая создаёт учебные материалы:
-          лингвисты, редакторы, рецензенты, переводчики.
+          Manage the team that creates learning materials:
+          linguists, editors, reviewers, translators.
         </p>
       </div>
 
@@ -93,10 +93,10 @@ export default function UsersPage() {
           <div className="flex items-center gap-4">
             <span className="text-4xl">✅</span>
             <div>
-              <p className="text-lg font-medium text-foreground">Текущая версия (MVP)</p>
+              <p className="text-lg font-medium text-foreground">Current Version (MVP)</p>
               <p className="text-base text-muted-foreground">
-                Один аккаунт автора контента с полным доступом ко всем функциям.
-                Авторизация через email и пароль. Все инструменты конструктора доступны.
+                One content author account with full access to all features.
+                Authentication via email and password. All builder tools available.
               </p>
             </div>
           </div>
@@ -104,7 +104,7 @@ export default function UsersPage() {
       </Card>
 
       {/* Роли в админке */}
-      <h2 className="text-lg font-semibold text-foreground mb-4">Роли в админ-панели</h2>
+      <h2 className="text-lg font-semibold text-foreground mb-4">Admin Panel Roles</h2>
       <div className="grid grid-cols-2 gap-4 mb-8">
         {adminRoles.map((role) => (
           <Card key={role.name} className={role.current ? "" : "border-dashed"}>
@@ -115,7 +115,7 @@ export default function UsersPage() {
                   <div className="flex items-center gap-2 mb-1">
                     <p className="text-base font-medium text-foreground">{role.name}</p>
                     <Badge variant={role.current ? "default" : "secondary"} className="text-xs">
-                      {role.current ? "Реализовано" : "Планируется"}
+                      {role.current ? "Implemented" : "Planned"}
                     </Badge>
                   </div>
                   <p className="text-sm text-muted-foreground mb-2">{role.description}</p>
@@ -134,7 +134,7 @@ export default function UsersPage() {
       </div>
 
       {/* Roadmap команды */}
-      <h2 className="text-lg font-semibold text-foreground mb-4">Дорожная карта</h2>
+      <h2 className="text-lg font-semibold text-foreground mb-4">Roadmap</h2>
       <div className="grid grid-cols-2 gap-4">
         {plannedFeatures.map((feature) => (
           <Card key={feature.title} className="border-dashed">

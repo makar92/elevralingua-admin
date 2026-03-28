@@ -79,7 +79,7 @@ export async function POST(req: Request) {
 
     const course = await prisma.course.findUnique({ where: { id: courseId } });
     if (!course) {
-      return NextResponse.json({ error: "Курс не найден. Попробуйте выбрать другой." }, { status: 400 });
+      return NextResponse.json({ error: "Course not found. Please choose another." }, { status: 400 });
     }
 
     const classroom = await prisma.classroom.create({

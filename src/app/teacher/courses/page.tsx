@@ -26,18 +26,18 @@ export default function TeacherCourses() {
     c.language?.toLowerCase().includes(search.toLowerCase())
   );
 
-  if (loading) return <div className="p-6 text-muted-foreground">Загрузка...</div>;
+  if (loading) return <div className="p-6 text-muted-foreground">Uploading...</div>;
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-foreground">Каталог курсов</h1>
+        <h1 className="text-2xl font-bold text-foreground">Course Catalog</h1>
         <Input value={search} onChange={e => setSearch(e.target.value)}
-          placeholder="Поиск курсов..." className="w-64" />
+          placeholder="Search courses..." className="w-64" />
       </div>
 
       {filtered.length === 0 ? (
-        <p className="text-muted-foreground text-center py-12">Курсы не найдены</p>
+        <p className="text-muted-foreground text-center py-12">No courses found</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {filtered.map((course: any) => (
@@ -56,7 +56,7 @@ export default function TeacherCourses() {
                   <LanguageLabel code={course.language} size="sm" />
                 </div>
                 <Link href={`/teacher/classrooms/new?courseId=${course.id}`}>
-                  <Button size="sm" className="w-full">Использовать курс</Button>
+                  <Button size="sm" className="w-full">Use This Course</Button>
                 </Link>
               </div>
             </div>

@@ -29,7 +29,7 @@ export default function LoginPage() {
 
     const result = await signIn("credentials", { email, password, redirect: false });
     if (result?.error) {
-      setError("Ошибка входа. Попробуйте ещё раз.");
+      setError("Sign-in error. Please try again.");
       setLoading(null);
     } else {
       router.push("/");
@@ -56,10 +56,10 @@ export default function LoginPage() {
             {/* === Демо-вход === */}
             <div className="rounded-xl border-2 border-primary/20 bg-primary/5 p-5">
               <p className="text-sm font-semibold text-foreground text-center mb-1">
-                Ознакомьтесь с платформой
+                Explore the Platform
               </p>
               <p className="text-xs text-muted-foreground text-center mb-4">
-                Готовые аккаунты для ознакомления — войдите в один клик
+                Demo accounts — sign in with one click
               </p>
 
               <div className="space-y-2.5">
@@ -71,9 +71,9 @@ export default function LoginPage() {
                   <div className="w-11 h-11 rounded-xl bg-emerald-100 flex items-center justify-center flex-shrink-0"><HugeiconsIcon icon={TeacherIcon} size={24} className="text-emerald-700" /></div>
                   <div className="text-left flex-1">
                     <p className="text-sm font-semibold text-foreground">
-                      {loading === "teacher" ? "Входим..." : "Войти как Учитель"}
+                      {loading === "teacher" ? "Signing in..." : "Sign in as Teacher"}
                     </p>
-                    <p className="text-xs text-muted-foreground">Sarah Chen — классы, журнал, учебники, упражнения</p>
+                    <p className="text-xs text-muted-foreground">Sarah Chen — classes, gradebook, textbooks, exercises</p>
                   </div>
                   <span className="text-emerald-500 text-lg flex-shrink-0">→</span>
                 </button>
@@ -86,9 +86,9 @@ export default function LoginPage() {
                   <div className="w-11 h-11 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0"><HugeiconsIcon icon={StudentIcon} size={24} className="text-blue-700" /></div>
                   <div className="text-left flex-1">
                     <p className="text-sm font-semibold text-foreground">
-                      {loading === "student" ? "Входим..." : "Войти как Ученик"}
+                      {loading === "student" ? "Signing in..." : "Sign in as Student"}
                     </p>
-                    <p className="text-xs text-muted-foreground">Emma Wilson — учебник, тетрадь, дневник</p>
+                    <p className="text-xs text-muted-foreground">Emma Wilson — textbook, workbook, grades</p>
                   </div>
                   <span className="text-blue-500 text-lg flex-shrink-0">→</span>
                 </button>
@@ -105,7 +105,7 @@ export default function LoginPage() {
                 <span className="w-full border-t border-border" />
               </div>
               <div className="relative flex justify-center text-xs">
-                <span className="bg-card px-2 text-muted-foreground">или</span>
+                <span className="bg-card px-2 text-muted-foreground">or</span>
               </div>
             </div>
 
@@ -120,12 +120,12 @@ export default function LoginPage() {
                 <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
                 <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
               </svg>
-              Войти через Google
+              Sign in with Google
             </Button>
 
             {/* === Admin contact === */}
             <p className="text-sm text-muted-foreground text-center pt-3 border-t border-border">
-              Для доступа к админ-панели обращайтесь:{" "}
+              For admin panel access, contact:{" "}
               <a href="mailto:mkrvpvl92@gmail.com" className="text-primary hover:underline font-medium">
                 mkrvpvl92@gmail.com
               </a>

@@ -1,6 +1,6 @@
 // ===========================================
 // Файл: src/app/api/progress/[classroomId]/route.ts
-// Описание: GET/POST прогресс уроков для classroom.
+// Описание: GET/POST прогресс lessons для classroom.
 // ===========================================
 
 import { auth } from "@/lib/auth";

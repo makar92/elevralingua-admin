@@ -64,7 +64,7 @@ export default function TeacherBank() {
 
   const getAC = (eid: string) => { const ea = eaList.filter((a: any) => a.exerciseId === eid); const hasAll = ea.some((a: any) => a.studentId === "_ALL_"); return hasAll ? total : new Set(ea.map((a: any) => a.studentId)).size; };
 
-  if (loading) return <div className="p-6 text-muted-foreground animate-pulse">Загрузка доп. заданий...</div>;
+  if (loading) return <div className="p-6 text-muted-foreground animate-pulse">Loading exercise bank...</div>;
 
   return (
     <div className="flex flex-col h-[calc(100vh-57px)]">
@@ -74,14 +74,14 @@ export default function TeacherBank() {
       </div>
       <div className="flex flex-1 min-h-0 gap-4 px-6 pb-20">
         {!sidebarOpen && (
-          <button onClick={() => setSidebarOpen(true)} className="flex-shrink-0 self-start w-8 h-8 flex items-center justify-center rounded-lg bg-muted hover:bg-accent text-muted-foreground hover:text-foreground transition-colors" title="Развернуть панель">
+          <button onClick={() => setSidebarOpen(true)} className="flex-shrink-0 self-start w-8 h-8 flex items-center justify-center rounded-lg bg-muted hover:bg-accent text-muted-foreground hover:text-foreground transition-colors" title="Expand panel">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
           </button>
         )}
         {sidebarOpen && (
           <div className="w-1/4 min-w-[240px] max-w-[360px] flex-shrink-0 bg-muted rounded-xl p-4 overflow-y-auto">
-            <button onClick={() => setSidebarOpen(false)} className="w-full flex items-center justify-between mb-3 px-2 py-1.5 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground transition-colors" title="Свернуть панель">
-              <span className="text-xs font-semibold uppercase tracking-wide">Содержание</span>
+            <button onClick={() => setSidebarOpen(false)} className="w-full flex items-center justify-between mb-3 px-2 py-1.5 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground transition-colors" title="Collapse panel">
+              <span className="text-xs font-semibold uppercase tracking-wide">Contents</span>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
             </button>
             
@@ -112,16 +112,16 @@ export default function TeacherBank() {
           </div>
         )}
         <div className="flex-1 min-w-0 overflow-y-auto pr-4">
-          {selSectionTitle && <div className="flex items-center gap-3 mb-4"><h2 className="text-lg font-semibold text-foreground">{selSectionTitle}</h2><Badge variant="secondary" className="text-xs">Доп.</Badge></div>}
-          {exLoading ? <div className="text-muted-foreground animate-pulse text-center py-12">Загрузка...</div> :
-            exercises.length === 0 ? <div className="text-center py-12"><p className="text-muted-foreground">Нет дополнительных упражнений</p></div> :
+          {selSectionTitle && <div className="flex items-center gap-3 mb-4"><h2 className="text-lg font-semibold text-foreground">{selSectionTitle}</h2><Badge variant="secondary" className="text-xs">Bank</Badge></div>}
+          {exLoading ? <div className="text-muted-foreground animate-pulse text-center py-12">Uploading...</div> :
+            exercises.length === 0 ? <div className="text-center py-12"><p className="text-muted-foreground">No exercises in the bank</p></div> :
               <div className="space-y-5">{exercises.map((ex: any) => {
                 const ac = getAC(ex.id);
                 return (<div key={ex.id} className="group/card">
                   <div className={`rounded-xl border p-5 shadow-sm relative ${checked.has(ex.id) ? "border-primary/50 bg-primary/5" : "border-border bg-card"}`}>
                     <input type="checkbox" checked={checked.has(ex.id)} onChange={() => toggleCheck(ex.id)}
                       className={`absolute top-3 left-3 w-4 h-4 rounded cursor-pointer transition-opacity ${checked.has(ex.id) ? "opacity-100" : "opacity-0 group-hover/card:opacity-100"}`} />
-                    {ac > 0 && <div className="mb-2 flex items-center gap-2"><Badge variant="outline" className="text-[10px]">Назначено: {ac} из {total} уч.</Badge><button onClick={() => { setChecked(new Set([ex.id])); setShowPicker(true); }} className="text-[10px] text-primary hover:underline">Назначить повторно</button></div>}
+                    {ac > 0 && <div className="mb-2 flex items-center gap-2"><Badge variant="outline" className="text-[10px]">Assigned: {ac} of {total} students</Badge><button onClick={() => { setChecked(new Set([ex.id])); setShowPicker(true); }} className="text-[10px] text-primary hover:underline">Reassign</button></div>}
                     <ExercisePreview exercise={ex} mode="teacher" />
                   </div>
                 </div>);
@@ -130,24 +130,24 @@ export default function TeacherBank() {
       </div>
       <div className={`fixed bottom-0 left-0 right-0 bg-card border-t border-border shadow-lg transition-transform z-50 ${checked.size > 0 ? "translate-y-0" : "translate-y-full"}`}>
         <div className="max-w-7xl mx-auto px-6 py-3 flex items-center gap-3">
-          <span className="text-sm font-medium">Выбрано: {checked.size} доп.</span>
-          <Button size="sm" onClick={() => { setAssignType("CLASS_WORK"); setShowPicker(true); }} disabled={busy}>Назначить (классная)</Button>
-          <Button size="sm" variant="outline" onClick={() => { setAssignType("HOMEWORK"); setShowPicker(true); }} disabled={busy}>Назначить (домашняя)</Button>
-          <Button size="sm" variant="ghost" onClick={() => setChecked(new Set())}>Отмена</Button>
+          <span className="text-sm font-medium">Selected: {checked.size} exercises</span>
+          <Button size="sm" onClick={() => { setAssignType("CLASS_WORK"); setShowPicker(true); }} disabled={busy}>Assign (Class Work)</Button>
+          <Button size="sm" variant="outline" onClick={() => { setAssignType("HOMEWORK"); setShowPicker(true); }} disabled={busy}>Assign (Homework)</Button>
+          <Button size="sm" variant="ghost" onClick={() => setChecked(new Set())}>Cancel</Button>
         </div>
       </div>
       <Dialog open={showPicker} onOpenChange={setShowPicker}>
-        <DialogContent><DialogHeader><DialogTitle>Кому назначить?</DialogTitle></DialogHeader>
+        <DialogContent><DialogHeader><DialogTitle>Assign to whom?</DialogTitle></DialogHeader>
           <div className="space-y-3">
-            <Button className="w-full" onClick={() => doAssign()}>Всем ученикам</Button>
-            <p className="text-xs text-muted-foreground text-center">или выберите:</p>
+            <Button className="w-full" onClick={() => doAssign()}>All Students</Button>
+            <p className="text-xs text-muted-foreground text-center">or select:</p>
             <div className="space-y-2">{classroom?.enrollments?.map((e: any) => (
               <label key={e.student?.id} className="flex items-center gap-2 p-2 rounded border border-border hover:bg-accent cursor-pointer">
                 <input type="checkbox" checked={picked.has(e.student?.id)} onChange={() => togglePick(e.student?.id)} className="rounded" />
                 <span className="text-sm">{e.student?.name}</span>
               </label>
             ))}</div>
-            {picked.size > 0 && <Button className="w-full" onClick={() => doAssign(Array.from(picked))}>Назначить ({picked.size})</Button>}
+            {picked.size > 0 && <Button className="w-full" onClick={() => doAssign(Array.from(picked))}>Assign ({picked.size})</Button>}
           </div>
         </DialogContent>
       </Dialog>

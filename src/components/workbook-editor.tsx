@@ -3,10 +3,10 @@
 // Путь:  elevralingua-admin/src/components/workbook-editor.tsx
 //
 // Описание:
-//   Редактор рабочей тетради урока.
-//   Показывает упражнения, включённые в тетрадь по умолчанию.
-//   Позволяет добавлять упражнения из банка и убирать из тетради.
-//   Используется внутри course-editor.tsx при выборе урока.
+//   Редактор рабочей тетради lessons.
+//   Показывает exercises, включённые в тетрадь по умолчанию.
+//   Позволяет добавлять exercises из банка и убирать из тетради.
+//   Используется внутри course-editor.tsx при выборе lessons.
 // ===========================================
 
 "use client";
@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 
-// ===== Типы =====
+// ===== Typeы =====
 interface Exercise {
   id: string; exerciseType: string; title: string; instructionText: string;
   difficulty: number; gradingType: string; isDefaultInWorkbook: boolean; order: number;
@@ -29,30 +29,30 @@ interface WorkbookEntry {
 
 // ===== Словарь типов =====
 const TYPE_INFO: Record<string, { icon: string; name: string }> = {
-  MATCHING: { icon: "🔗", name: "Соединить пары" },
-  MULTIPLE_CHOICE: { icon: "🔘", name: "Выбор ответа" },
-  FILL_BLANK: { icon: "✏️", name: "Заполнить пропуск" },
-  TONE_PLACEMENT: { icon: "🎵", name: "Расставить тоны" },
-  WORD_ORDER: { icon: "🔀", name: "Порядок слов" },
-  GRAMMAR_CHOICE: { icon: "📐", name: "Грамматический выбор" },
-  TRANSLATE_TO_CHINESE: { icon: "🇨🇳", name: "Перевод → Китайский" },
-  TRANSLATE_TO_ENGLISH: { icon: "🇺🇸", name: "Перевод → Английский" },
-  DICTATION: { icon: "🎧", name: "Диктант" },
-  DESCRIBE_IMAGE: { icon: "🖼️", name: "Описание картинки" },
-  FREE_WRITING: { icon: "📝", name: "Свободное письмо" },
+  MATCHING: { icon: "🔗", name: "Matching" },
+  MULTIPLE_CHOICE: { icon: "🔘", name: "Multiple Choice" },
+  FILL_BLANK: { icon: "✏️", name: "Fill in the Blank" },
+  TONE_PLACEMENT: { icon: "🎵", name: "Tone Placement" },
+  WORD_ORDER: { icon: "🔀", name: "Word Order" },
+  GRAMMAR_CHOICE: { icon: "📐", name: "Grammar Choice" },
+  TRANSLATE_TO_CHINESE: { icon: "🇨🇳", name: "Translate → Chinese" },
+  TRANSLATE_TO_ENGLISH: { icon: "🇺🇸", name: "Translate → English" },
+  DICTATION: { icon: "🎧", name: "Dictation" },
+  DESCRIBE_IMAGE: { icon: "🖼️", name: "Describe Image" },
+  FREE_WRITING: { icon: "📝", name: "Free Writing" },
 };
 
 // ===== Главный компонент =====
 export function WorkbookEditor({ lessonId }: { lessonId: string }) {
   // Содержимое тетради (упражнения включённые по умолчанию)
   const [entries, setEntries] = useState<WorkbookEntry[]>([]);
-  // Все упражнения банка для этого урока (для добавления)
+  // Все exercises банка для этого lessons (для добавления)
   const [bankExercises, setBankExercises] = useState<Exercise[]>([]);
   const [loading, setLoading] = useState(true);
   // Режим: view (тетрадь) | addFromBank (выбор из банка)
   const [mode, setMode] = useState<"view" | "addFromBank">("view");
 
-  // Загрузка данных при монтировании и смене урока
+  // Loading данных при монтировании и смене lessons
   useEffect(() => {
     loadData();
   }, [lessonId]);
@@ -65,7 +65,7 @@ export function WorkbookEditor({ lessonId }: { lessonId: string }) {
       const wbRes = await fetch(`/api/lessons/${lessonId}/workbook`);
       if (wbRes.ok) setEntries(await wbRes.json());
 
-      // Загружаем банк упражнений урока
+      // Загружаем банк упражнений lessons
       const bankRes = await fetch(`/api/lessons/${lessonId}/exercises`);
       if (bankRes.ok) setBankExercises(await bankRes.json());
     } catch (e) {
@@ -105,9 +105,9 @@ export function WorkbookEditor({ lessonId }: { lessonId: string }) {
     }
   };
 
-  // Загрузка
+  // Loading
   if (loading) {
-    return <p className="text-lg text-muted-foreground py-8 text-center">Загрузка тетради...</p>;
+    return <p className="text-lg text-muted-foreground py-8 text-center">Loading workbook...</p>;
   }
 
   // Режим добавления из банка
@@ -115,16 +115,16 @@ export function WorkbookEditor({ lessonId }: { lessonId: string }) {
     return (
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-bold text-foreground">Добавить из доп.</h3>
-          <Button variant="outline" size="sm" onClick={() => setMode("view")}>← Назад к тетради</Button>
+          <h3 className="text-lg font-bold text-foreground">Add from Exercise Bank</h3>
+          <Button variant="outline" size="sm" onClick={() => setMode("view")}>← Back to Workbook</Button>
         </div>
 
         {availableToAdd.length === 0 ? (
           <Card>
             <CardContent className="py-8 text-center">
-              <p className="text-base text-foreground">Все упражнения уже в тетради</p>
+              <p className="text-base text-foreground">All exercises are already in workbook</p>
               <p className="text-sm text-muted-foreground mt-1">
-                Создайте новые упражнения на странице «Доп. задания»
+                Create new exercises on the Exercise Bank page
               </p>
             </CardContent>
           </Card>
@@ -144,10 +144,10 @@ export function WorkbookEditor({ lessonId }: { lessonId: string }) {
                         <p className="text-sm text-muted-foreground truncate">{ex.instructionText}</p>
                       </div>
                       <Badge variant={ex.gradingType === "AUTO" ? "default" : "secondary"} className="text-xs flex-shrink-0">
-                        {ex.gradingType === "AUTO" ? "⚡ Авто" : "👩‍🏫 Учитель"}
+                        {ex.gradingType === "AUTO" ? "⚡ Auto" : "👩‍🏫 Teacher"}
                       </Badge>
                       <Button size="sm" onClick={() => addToWorkbook(ex.id)}>
-                        + В тетрадь
+                        + To Workbook
                       </Button>
                     </div>
                   </CardContent>
@@ -167,13 +167,13 @@ export function WorkbookEditor({ lessonId }: { lessonId: string }) {
       <div className="flex items-center justify-between mb-4">
         <div>
           <p className="text-sm text-muted-foreground">
-            {entries.length} упр. в тетради · {bankExercises.length} всего в доп.
+            {entries.length} exercises in workbook · {bankExercises.length} total in bank
           </p>
         </div>
         <div className="flex gap-2">
           {availableToAdd.length > 0 && (
             <Button variant="outline" size="sm" onClick={() => setMode("addFromBank")}>
-              + Из доп. ({availableToAdd.length})
+              + From Bank ({availableToAdd.length})
             </Button>
           )}
         </div>
@@ -184,16 +184,16 @@ export function WorkbookEditor({ lessonId }: { lessonId: string }) {
         <Card>
           <CardContent className="py-12 text-center">
             <span className="text-4xl block mb-3">📓</span>
-            <p className="text-xl text-foreground">Тетрадь пуста</p>
+            <p className="text-xl text-foreground">Workbook is empty</p>
             <p className="text-base text-muted-foreground mt-2">
               {bankExercises.length > 0
-                ? "Добавьте из доп. заданий"
-                : "Сначала создайте упражнения на странице «Доп. задания»"
+                ? "Add from the exercise bank"
+                : "First create exercises on the Exercise Bank page"
               }
             </p>
             {bankExercises.length > 0 && (
               <Button className="mt-4" onClick={() => setMode("addFromBank")}>
-                Добавить из доп.
+                Add from Bank
               </Button>
             )}
           </CardContent>
@@ -208,7 +208,7 @@ export function WorkbookEditor({ lessonId }: { lessonId: string }) {
                 {/* Кнопка удаления из тетради */}
                 <button
                   onClick={() => removeFromWorkbook(entry.exerciseId)}
-                  title="Убрать из тетради"
+                  title="Remove from workbook"
                   className="absolute top-2 right-2 w-8 h-8 flex items-center justify-center rounded text-red-400 hover:bg-red-400/10 opacity-0 group-hover:opacity-100 transition-opacity"
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -231,7 +231,7 @@ export function WorkbookEditor({ lessonId }: { lessonId: string }) {
                           {ex.title || info.name}
                         </p>
                         <Badge variant={ex.gradingType === "AUTO" ? "default" : "secondary"} className="text-xs">
-                          {ex.gradingType === "AUTO" ? "⚡ Авто" : "👩‍🏫 Учитель"}
+                          {ex.gradingType === "AUTO" ? "⚡ Auto" : "👩‍🏫 Teacher"}
                         </Badge>
                         <span className="text-xs text-muted-foreground">
                           {"⭐".repeat(Math.min(ex.difficulty, 5))}

@@ -15,10 +15,10 @@ export async function POST(
 ) {
   return withErrorHandling(async () => {
     const session = await auth();
-    if (!session) return apiError("Не авторизован", 401);
+    if (!session) return apiError("Unauthorized", 401);
     const { id: moduleId } = await params;
     const { title, description } = await request.json();
-    if (!title) return apiError("Название урока обязательно");
+    if (!title) return apiError("Lesson title is required");
 
     const last = await prisma.lesson.findFirst({
       where: { moduleId }, orderBy: { order: "desc" },

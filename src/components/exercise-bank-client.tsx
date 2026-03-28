@@ -18,7 +18,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ExerciseForm } from "@/components/exercise-form";
 
-// ===== Типы =====
+// ===== Typeы =====
 interface Lesson { id: string; title: string; order: number; }
 interface Module { id: string; title: string; order: number; lessons: Lesson[]; }
 interface Course { id: string; title: string; modules: Module[]; }
@@ -34,16 +34,16 @@ interface Exercise {
 
 // ===== Словарь типов упражнений =====
 const EXERCISE_TYPES = [
-  { type: "MATCHING", icon: "🔗", name: "Соединить пары", desc: "Иероглиф ↔ перевод / пиньинь", grading: "AUTO" },
-  { type: "MULTIPLE_CHOICE", icon: "🔘", name: "Выбор ответа", desc: "Выбрать правильный из вариантов", grading: "AUTO" },
-  { type: "FILL_BLANK", icon: "✏️", name: "Заполнить пропуск", desc: "Вписать слово в предложение", grading: "AUTO" },
-  { type: "TONE_PLACEMENT", icon: "🎵", name: "Расставить тоны", desc: "Расставить тоны над пиньинь", grading: "AUTO" },
-  { type: "WORD_ORDER", icon: "🔀", name: "Порядок слов", desc: "Составить предложение из слов", grading: "AUTO" },
-  { type: "TRANSLATION", icon: "🌐", name: "Перевод", desc: "Перевести предложение", grading: "TEACHER" },
-  { type: "WRITE_PINYIN", icon: "📝", name: "Написать транскрипцию", desc: "Написать пиньинь к иероглифам", grading: "TEACHER" },
-  { type: "DICTATION", icon: "🎧", name: "Диктант", desc: "Слушай аудио → пиши иероглифы", grading: "TEACHER" },
-  { type: "DESCRIBE_IMAGE", icon: "🖼️", name: "Описание картинки", desc: "Опиши картинку на китайском", grading: "TEACHER" },
-  { type: "FREE_WRITING", icon: "📝", name: "Свободное письмо", desc: "Письменное задание на тему", grading: "TEACHER" },
+  { type: "MATCHING", icon: "🔗", name: "Matching", desc: "Character ↔ translation / pinyin", grading: "AUTO" },
+  { type: "MULTIPLE_CHOICE", icon: "🔘", name: "Multiple Choice", desc: "Choose the correct option", grading: "AUTO" },
+  { type: "FILL_BLANK", icon: "✏️", name: "Fill in the Blank", desc: "Fill in a word in a sentence", grading: "AUTO" },
+  { type: "TONE_PLACEMENT", icon: "🎵", name: "Tone Placement", desc: "Place tones over pinyin", grading: "AUTO" },
+  { type: "WORD_ORDER", icon: "🔀", name: "Word Order", desc: "Build a sentence from words", grading: "AUTO" },
+  { type: "TRANSLATION", icon: "🌐", name: "Translation", desc: "Translate a sentence", grading: "TEACHER" },
+  { type: "WRITE_PINYIN", icon: "📝", name: "Write Pinyin", desc: "Write pinyin for characters", grading: "TEACHER" },
+  { type: "DICTATION", icon: "🎧", name: "Dictation", desc: "Listen to audio → write characters", grading: "TEACHER" },
+  { type: "DESCRIBE_IMAGE", icon: "🖼️", name: "Describe Image", desc: "Describe the image in Chinese", grading: "TEACHER" },
+  { type: "FREE_WRITING", icon: "📝", name: "Free Writing", desc: "Writing assignment on a topic", grading: "TEACHER" },
 ];
 
 // Хелперы для отображения
@@ -69,7 +69,7 @@ export function ExerciseBankClient({ courses, totalCount }: { courses: Course[];
   const [expandedCourses, setExpandedCourses] = useState<Set<string>>(new Set(courses.map((c) => c.id)));
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
 
-  // Загрузка упражнений при смене фильтра
+  // Loading упражнений при смене фильтра
   const loadExercises = useCallback(async () => {
     setLoading(true);
     try {
@@ -137,7 +137,7 @@ export function ExerciseBankClient({ courses, totalCount }: { courses: Course[];
     }
   };
 
-  // Обновить упражнение
+  // Refresh упражнение
   const updateExercise = async (formData: any) => {
     if (!editingExercise) return;
     const res = await fetch(`/api/exercises/${editingExercise.id}`, {
@@ -153,7 +153,7 @@ export function ExerciseBankClient({ courses, totalCount }: { courses: Course[];
 
   // Удалить упражнение
   const deleteExercise = async (id: string) => {
-    if (!confirm("Удалить упражнение? Оно также удалится из всех тетрадей.")) return;
+    if (!confirm("Delete exercise? It will also be removed from all workbooks.")) return;
     const res = await fetch(`/api/exercises/${id}`, { method: "DELETE" });
     if (res.ok) {
       setExercises((prev) => prev.filter((e) => e.id !== id));
@@ -166,12 +166,12 @@ export function ExerciseBankClient({ courses, totalCount }: { courses: Course[];
       <div className="w-72 flex-shrink-0 h-full">
         <Card className="h-full flex flex-col">
           <CardHeader className="pb-3 flex-shrink-0">
-            <CardTitle className="text-base text-foreground">Доп. задания</CardTitle>
-            <p className="text-sm text-muted-foreground">Всего: {totalCount} упр.</p>
+            <CardTitle className="text-base text-foreground">Exercise Bank</CardTitle>
+            <p className="text-sm text-muted-foreground">Total: {totalCount} exercises</p>
           </CardHeader>
           <Separator />
           <CardContent className="pt-3 px-2 flex-1 overflow-auto">
-            <p className="text-xs text-muted-foreground px-2 mb-2">Выберите урок:</p>
+            <p className="text-xs text-muted-foreground px-2 mb-2">Select Lesson:</p>
             <div className="space-y-0.5">
               {courses.map((course) => (
                 <div key={course.id}>
@@ -224,9 +224,9 @@ export function ExerciseBankClient({ courses, totalCount }: { courses: Course[];
           <Card>
             <CardContent className="py-16 text-center">
               <span className="text-5xl block mb-4">📝</span>
-              <p className="text-xl text-foreground">Доп. задания</p>
+              <p className="text-xl text-foreground">Exercise Bank</p>
               <p className="text-base text-muted-foreground mt-2">
-                Выберите урок в дереве слева, чтобы увидеть и создать упражнения
+                Select a lesson from the tree on the left to view and create exercises
               </p>
             </CardContent>
           </Card>
@@ -238,19 +238,19 @@ export function ExerciseBankClient({ courses, totalCount }: { courses: Course[];
             {/* Заголовок с кнопкой добавления */}
             <div className="flex items-center justify-between mb-5">
               <div>
-                <h2 className="text-2xl font-bold text-foreground">Упражнения к уроку</h2>
+                <h2 className="text-2xl font-bold text-foreground">Lesson Exercises</h2>
                 <p className="text-base text-muted-foreground mt-1">{selectedLessonTitle}</p>
               </div>
-              <Button onClick={() => setMode("pickType")}>+ Добавить упражнение</Button>
+              <Button onClick={() => setMode("pickType")}>+ Add Exercise</Button>
             </div>
 
             {/* Список упражнений */}
-            {loading && <p className="text-lg text-muted-foreground">Загрузка...</p>}
+            {loading && <p className="text-lg text-muted-foreground">Uploading...</p>}
             {!loading && exercises.length === 0 && (
               <Card>
                 <CardContent className="py-12 text-center">
-                  <p className="text-xl text-foreground">Нет упражнений</p>
-                  <p className="text-base text-muted-foreground mt-2">Нажмите «+ Добавить упражнение» чтобы создать первое</p>
+                  <p className="text-xl text-foreground">No exercises</p>
+                  <p className="text-base text-muted-foreground mt-2">Click "+ Add Exercise" to create your first one</p>
                 </CardContent>
               </Card>
             )}
@@ -260,10 +260,10 @@ export function ExerciseBankClient({ courses, totalCount }: { courses: Course[];
                   <Card key={ex.id} className="group relative">
                     {/* Кнопки действий — появляются при наведении */}
                     <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10 bg-card/90 backdrop-blur-sm rounded-md border border-border p-0.5">
-                      <IconBtn onClick={() => openEdit(ex)} title="Редактировать">
+                      <IconBtn onClick={() => openEdit(ex)} title="Edit">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                       </IconBtn>
-                      <IconBtn onClick={() => deleteExercise(ex.id)} title="Удалить" danger>
+                      <IconBtn onClick={() => deleteExercise(ex.id)} title="Delete" danger>
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
                       </IconBtn>
                     </div>
@@ -283,10 +283,10 @@ export function ExerciseBankClient({ courses, totalCount }: { courses: Course[];
                               {ex.title || typeMap[ex.exerciseType]?.name || ex.exerciseType}
                             </p>
                             <Badge variant={ex.gradingType === "AUTO" ? "default" : "secondary"} className="text-xs">
-                              {ex.gradingType === "AUTO" ? "⚡ Авто" : "👩‍🏫 Учитель"}
+                              {ex.gradingType === "AUTO" ? "⚡ Auto" : "👩‍🏫 Teacher"}
                             </Badge>
                             {ex.isDefaultInWorkbook && (
-                              <Badge variant="outline" className="text-xs">📓 В тетради</Badge>
+                              <Badge variant="outline" className="text-xs">📓 In Workbook</Badge>
                             )}
                             <DifficultyStars difficulty={ex.difficulty} />
                           </div>
@@ -301,16 +301,16 @@ export function ExerciseBankClient({ courses, totalCount }: { courses: Course[];
           </div>
         )}
 
-        {/* Выбор типа упражнения */}
+        {/* Выбор типа exercises */}
         {selectedLessonId && mode === "pickType" && (
           <div>
             <div className="flex items-center justify-between mb-5">
-              <h2 className="text-xl font-bold text-foreground">Выберите тип упражнения</h2>
-              <Button variant="outline" onClick={() => setMode("list")}>← Назад</Button>
+              <h2 className="text-xl font-bold text-foreground">Choose Exercise Type</h2>
+              <Button variant="outline" onClick={() => setMode("list")}>← Back</Button>
             </div>
 
             {/* Автопроверка */}
-            <p className="text-base font-medium text-foreground mb-3">⚡ Автоматическая проверка</p>
+            <p className="text-base font-medium text-foreground mb-3">⚡ Auto-Graded</p>
             <div className="grid grid-cols-2 gap-3 mb-6">
               {EXERCISE_TYPES.filter((t) => t.grading === "AUTO").map((t) => (
                 <button key={t.type} onClick={() => pickType(t.type)}
@@ -325,7 +325,7 @@ export function ExerciseBankClient({ courses, totalCount }: { courses: Course[];
             </div>
 
             {/* Ручная проверка */}
-            <p className="text-base font-medium text-foreground mb-3">👩‍🏫 Проверка учителем</p>
+            <p className="text-base font-medium text-foreground mb-3">👩‍🏫 Teacher-Reviewed</p>
             <div className="grid grid-cols-2 gap-3">
               {EXERCISE_TYPES.filter((t) => t.grading === "TEACHER").map((t) => (
                 <button key={t.type} onClick={() => pickType(t.type)}
@@ -346,10 +346,10 @@ export function ExerciseBankClient({ courses, totalCount }: { courses: Course[];
           <div>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold text-foreground">
-                {editingExercise ? "Редактировать" : "Новое упражнение"} — {typeMap[selectedType]?.icon} {typeMap[selectedType]?.name}
+                {editingExercise ? "Edit" : "New Exercise"} — {typeMap[selectedType]?.icon} {typeMap[selectedType]?.name}
               </h2>
               <Button variant="outline" onClick={() => setMode(editingExercise ? "list" : "pickType")}>
-                ← Назад
+                ← Back
               </Button>
             </div>
             <Card>

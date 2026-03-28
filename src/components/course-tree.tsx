@@ -48,23 +48,23 @@ export function CourseTree({ course, selectedId, onSelect, onAddLesson, onAddSec
     return (
       <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 flex-shrink-0">
         <button onClick={(e) => { e.stopPropagation(); onRename(type, id, title); }}
-          className="w-5 h-5 flex items-center justify-center rounded text-muted-foreground hover:text-foreground hover:bg-accent" title="Переименовать">
+          className="w-5 h-5 flex items-center justify-center rounded text-muted-foreground hover:text-foreground hover:bg-accent" title="Rename">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
         </button>
         {index > 0 && (
           <button onClick={(e) => { e.stopPropagation(); onMove(type, id, "up"); }}
-            className="w-5 h-5 flex items-center justify-center rounded text-muted-foreground hover:text-foreground hover:bg-accent" title="Вверх">
+            className="w-5 h-5 flex items-center justify-center rounded text-muted-foreground hover:text-foreground hover:bg-accent" title="Move Up">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
           </button>
         )}
         {index < total - 1 && (
           <button onClick={(e) => { e.stopPropagation(); onMove(type, id, "down"); }}
-            className="w-5 h-5 flex items-center justify-center rounded text-muted-foreground hover:text-foreground hover:bg-accent" title="Вниз">
+            className="w-5 h-5 flex items-center justify-center rounded text-muted-foreground hover:text-foreground hover:bg-accent" title="Move Down">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
         )}
         <button onClick={(e) => { e.stopPropagation(); onDelete(type, id, title); }}
-          className="w-5 h-5 flex items-center justify-center rounded text-muted-foreground hover:text-red-500 hover:bg-red-50" title="Удалить">
+          className="w-5 h-5 flex items-center justify-center rounded text-muted-foreground hover:text-red-500 hover:bg-red-50" title="Delete">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
         </button>
       </div>
@@ -94,7 +94,7 @@ export function CourseTree({ course, selectedId, onSelect, onAddLesson, onAddSec
             <ActionButtons type="unit" id={unit.id} title={unit.title} index={unitIdx} total={course.units.length} />
             <Button variant="ghost" size="sm"
               className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 text-muted-foreground ml-0.5"
-              onClick={() => onAddLesson(unit.id)} title="Добавить урок">+</Button>
+              onClick={() => onAddLesson(unit.id)} title="Add Lesson">+</Button>
           </div>
 
           {/* Уроки */}
@@ -112,7 +112,7 @@ export function CourseTree({ course, selectedId, onSelect, onAddLesson, onAddSec
                 <ActionButtons type="lesson" id={lesson.id} title={lesson.title} index={lessonIdx} total={unit.lessons.length} />
                 <Button variant="ghost" size="sm"
                   className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 text-muted-foreground ml-0.5"
-                  onClick={() => onAddSection(lesson.id)} title="Добавить раздел">+</Button>
+                  onClick={() => onAddSection(lesson.id)} title="Add Section">+</Button>
               </div>
 
               {/* Разделы */}

@@ -74,29 +74,29 @@ function HeroIllustration() {
 
 /* ====== DATA ====== */
 const features = [
-  { icon: <IconTextbook />, title: "Интерактивный учебник", desc: "Карточки слов, диалоги, аудио, видео — 9 типов контента" },
-  { icon: <IconExercise />, title: "10 типов упражнений", desc: "Автопроверка и ручная проверка учителем" },
-  { icon: <IconJournal />, title: "Электронный журнал", desc: "Посещаемость, оценки, темы, заметки" },
-  { icon: <IconClassroom />, title: "Система классов", desc: "Приглашения, прогресс, назначения" },
-  { icon: <IconWorkbook />, title: "Тетрадь + банк заданий", desc: "Основные и дополнительные упражнения" },
-  { icon: <IconDifferentiation />, title: "Дифференциация обучения", desc: "Назначайте материалы индивидуально или всему классу" },
+  { icon: <IconTextbook />, title: "Interactive Textbook", desc: "Vocab cards, dialogues, audio, video — 9 content types" },
+  { icon: <IconExercise />, title: "10 Exercise Types", desc: "Auto-graded and teacher-reviewed activities" },
+  { icon: <IconJournal />, title: "Gradebook", desc: "Attendance, grades, topics, and notes" },
+  { icon: <IconClassroom />, title: "Classroom System", desc: "Invitations, progress tracking, assignments" },
+  { icon: <IconWorkbook />, title: "Workbook + Exercise Bank", desc: "Core and supplemental exercises" },
+  { icon: <IconDifferentiation />, title: "Differentiated Instruction", desc: "Assign materials individually or to the whole class" },
 ];
 
 const comparison = [
-  { before: "LMS для учёта, не для урока", after: "Работа прямо во время урока" },
-  { before: "Контент делай сам", after: "Готовые интерактивные авторские материалы" },
-  { before: "Нет поддержки тонов, транскрипций, иероглифов", after: "Заточено под специфику языка" },
-  { before: "Упражнения — только тесты", after: "10 типов заданий: от matching до диктанта" },
-  { before: "Ученик получает PDF или ссылки", after: "Интерактивный учебник и рабочая тетрадь" },
+  { before: "LMS built for tracking, not teaching", after: "Designed for use during the lesson" },
+  { before: "Content? Build it yourself", after: "Ready-made interactive authored materials" },
+  { before: "No support for tones, transcriptions, or characters", after: "Built for language-specific needs" },
+  { before: "Exercises are just quizzes", after: "10 activity types: from matching to dictation" },
+  { before: "Students get PDFs or links", after: "Interactive textbook and workbook" },
 ];
 
 const languages = [
-  { flag: "🇨🇳", name: "Китайский (мандарин)", active: true },
-  { flag: "🇪🇸", name: "Испанский", active: false },
-  { flag: "🇫🇷", name: "Французский", active: false },
-  { flag: "🇩🇪", name: "Немецкий", active: false },
-  { flag: "🇯🇵", name: "Японский", active: false },
-  { flag: "🇰🇷", name: "Корейский", active: false },
+  { flag: "🇨🇳", name: "Chinese (Mandarin)", active: true },
+  { flag: "🇪🇸", name: "Spanish", active: false },
+  { flag: "🇫🇷", name: "French", active: false },
+  { flag: "🇩🇪", name: "German", active: false },
+  { flag: "🇯🇵", name: "Japanese", active: false },
+  { flag: "🇰🇷", name: "Korean", active: false },
 ];
 
 /* ====== PAGE ====== */
@@ -109,7 +109,7 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <Logo height={36} showSlogan={false} />
           <Link href="/login" className="px-5 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity">
-            Войти
+            Sign In
           </Link>
         </div>
       </header>
@@ -127,34 +127,34 @@ export default function LandingPage() {
             <div className="flex-1 text-center lg:text-left">
               <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                B2B SaaS платформа
+                B2B SaaS Platform
               </div>
               <h1 className="text-4xl sm:text-5xl font-bold tracking-tight leading-[1.1] mb-5">
-                Преподавание языков{" "}
+                Language teaching{" "}
                 <span className="relative">
-                  <span className="text-primary">на новом уровне</span>
+                  <span className="text-primary">reimagined</span>
                   <svg className="absolute -bottom-1 left-0 w-full" height="8" viewBox="0 0 200 8" preserveAspectRatio="none">
                     <path d="M0 7 Q50 0 100 5 Q150 0 200 7" stroke="oklch(0.45 0.20 305 / 0.3)" strokeWidth="3" fill="none"/>
                   </svg>
                 </span>
               </h1>
               <p className="text-lg text-muted-foreground max-w-lg mb-3 leading-relaxed">
-                LMS-платформа с готовыми авторскими материалами для преподавателей иностранных языков.
+                An LMS platform with ready-made authored materials for foreign language teachers.
               </p>
               {/* Формат обучения — схематично */}
               <div className="flex items-center gap-5 mb-8 justify-center lg:justify-start">
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <IconUsers2 />
-                  <span className="text-sm">Очный формат</span>
+                  <span className="text-sm">In-Person</span>
                 </div>
                 <div className="w-px h-5 bg-border" />
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <IconMonitor />
-                  <span className="text-sm">Удалённый формат</span>
+                  <span className="text-sm">Online</span>
                 </div>
               </div>
               <Link href="/login" className="inline-block px-8 py-3.5 rounded-xl bg-primary text-primary-foreground font-semibold text-base hover:opacity-90 transition-all shadow-lg shadow-primary/20">
-                Попробовать
+                Get Started
               </Link>
             </div>
             <div className="flex-1 flex justify-center">
@@ -167,11 +167,11 @@ export default function LandingPage() {
       {/* ===== ЧЕМ МЫ ЛУЧШЕ ДРУГИХ ===== */}
       <section className="py-20 bg-card border-y border-border">
         <div className="max-w-4xl mx-auto px-6">
-          <h2 className="text-3xl font-bold text-center mb-10">Чем мы лучше других</h2>
+          <h2 className="text-3xl font-bold text-center mb-10">How We Compare</h2>
 
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-3 px-4">
-              <p className="text-xs font-bold text-red-500/70 uppercase tracking-wider">Другие платформы</p>
+              <p className="text-xs font-bold text-red-500/70 uppercase tracking-wider">Other Platforms</p>
               <p className="text-xs font-bold text-emerald-600/70 uppercase tracking-wider">ElevraLingua</p>
             </div>
             {comparison.map((item, i) => (
@@ -193,7 +193,7 @@ export default function LandingPage() {
       {/* ===== ВОЗМОЖНОСТИ ===== */}
       <section className="py-20">
         <div className="max-w-5xl mx-auto px-6">
-          <h2 className="text-3xl font-bold text-center mb-12">Возможности платформы</h2>
+          <h2 className="text-3xl font-bold text-center mb-12">Platform Features</h2>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {features.map((f) => (
               <div key={f.title} className="group p-5 rounded-2xl border border-border bg-card hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300">
@@ -211,8 +211,8 @@ export default function LandingPage() {
       {/* ===== ЯЗЫКИ — ROADMAP ===== */}
       <section className="py-20 bg-card border-y border-border">
         <div className="max-w-4xl mx-auto px-6">
-          <h2 className="text-3xl font-bold text-center mb-4">Поддерживаемые языки</h2>
-          <p className="text-center text-muted-foreground mb-12">Целевой рынок — преподаватели иностранных языков в США</p>
+          <h2 className="text-3xl font-bold text-center mb-4">Supported Languages</h2>
+          <p className="text-center text-muted-foreground mb-12">Target market — foreign language teachers in the U.S.</p>
 
           {/* Roadmap горизонтальный */}
           <div className="relative flex items-center justify-between max-w-3xl mx-auto px-4">
@@ -236,7 +236,7 @@ export default function LandingPage() {
                 </span>
                 {lang.active && (
                   <span className="text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                    Готов
+                    Available
                   </span>
                 )}
               </div>
@@ -248,18 +248,18 @@ export default function LandingPage() {
       {/* ===== КОМАНДА ===== */}
       <section className="py-20">
         <div className="max-w-3xl mx-auto px-6">
-          <h2 className="text-3xl font-bold text-center mb-12">Наша команда</h2>
+          <h2 className="text-3xl font-bold text-center mb-12">Our Team</h2>
 
           <div className="grid sm:grid-cols-2 gap-8">
             <div className="text-center p-6 rounded-2xl border border-border bg-card">
               <div className="w-28 h-28 rounded-full overflow-hidden mx-auto mb-4 border-4 border-primary/20">
-                <img src="/image/teamBlock/kseniia.png" alt="Ксения Макарова" className="w-full h-full object-cover" />
+                <img src="/image/teamBlock/kseniia.png" alt="Kseniia Makarova" className="w-full h-full object-cover" />
               </div>
-              <h3 className="text-lg font-bold text-foreground">Ксения Макарова</h3>
+              <h3 className="text-lg font-bold text-foreground">Kseniia Makarova</h3>
               <p className="text-sm font-semibold text-primary mb-2">Founder & CEO</p>
               <p className="text-sm text-muted-foreground leading-relaxed mb-3">
-                Магистр лингвистики, 7 лет преподавания.
-                Автор методологии и учебного контента.
+                M.A. in Linguistics, 7 years of teaching experience.
+                Author of the methodology and course content.
               </p>
               <a href="mailto:kseniiamakarova46@gmail.com" className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline">
                 <IconMail />
@@ -269,13 +269,13 @@ export default function LandingPage() {
 
             <div className="text-center p-6 rounded-2xl border border-border bg-card">
               <div className="w-28 h-28 rounded-full overflow-hidden mx-auto mb-4 border-4 border-primary/20">
-                <img src="/image/teamBlock/pavel.png" alt="Павел Макаров" className="w-full h-full object-cover" />
+                <img src="/image/teamBlock/pavel.png" alt="Pavel Makarov" className="w-full h-full object-cover" />
               </div>
-              <h3 className="text-lg font-bold text-foreground">Павел Макаров</h3>
+              <h3 className="text-lg font-bold text-foreground">Pavel Makarov</h3>
               <p className="text-sm font-semibold text-primary mb-2">Lead Developer</p>
               <p className="text-sm text-muted-foreground leading-relaxed mb-3">
-                Full-stack разработчик.
-                Архитектура и разработка платформы.
+                Full-stack developer.
+                Platform architecture and engineering.
               </p>
               <a href="mailto:mkrvpvl92@gmail.com" className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline">
                 <IconMail />
@@ -294,7 +294,7 @@ export default function LandingPage() {
             © {new Date().getFullYear()} ElevraLingua. All rights reserved.
           </p>
           <Link href="/login" className="text-sm text-primary font-medium hover:underline">
-            Войти
+            Sign In
           </Link>
         </div>
       </footer>

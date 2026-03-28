@@ -16,8 +16,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 const navItems = [
-  { name: "Главная",      href: "/dashboard" },
-  { name: "Курсы",        href: "/dashboard/courses" },
+  { name: "Dashboard",      href: "/dashboard" },
+  { name: "Courses",        href: "/dashboard/courses" },
   { name: "Roadmap",      href: "/dashboard/roadmap" },
 ];
 

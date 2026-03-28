@@ -3,7 +3,7 @@
 // Путь:  elevralingua-admin/src/app/api/lessons/[id]/exercises/route.ts
 //
 // Описание:
-//   GET — все упражнения из банка для конкретного урока.
+//   GET — все exercises из банка для конкретного lessons.
 //   Используется на странице банка упражнений при фильтрации
 //   и в редакторе тетради для выбора упражнений.
 // ===========================================
@@ -13,7 +13,7 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { apiSuccess, apiError, withErrorHandling } from "@/lib/api-helpers";
 
-// GET — все упражнения банка для данного урока
+// GET — все exercises банка для данного lessons
 export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -21,11 +21,11 @@ export async function GET(
   return withErrorHandling(async () => {
     // Проверяем авторизацию
     const session = await auth();
-    if (!session) return apiError("Не авторизован", 401);
+    if (!session) return apiError("Unauthorized", 401);
 
     const { id: lessonId } = await params;
 
-    // Загружаем все упражнения урока, отсортированные по порядку
+    // Загружаем все exercises lessons, отсортированные по порядку
     const exercises = await prisma.exercise.findMany({
       where: { lessonId },
       orderBy: { order: "asc" },

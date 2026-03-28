@@ -11,12 +11,12 @@ import { apiSuccess, apiError, withErrorHandling } from "@/lib/api-helpers";
 export async function POST(request: NextRequest) {
   return withErrorHandling(async () => {
     const session = await auth();
-    if (!session) return apiError("Не авторизован", 401);
+    if (!session) return apiError("Unauthorized", 401);
 
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
 
-    if (!file) return apiError("Файл не выбран");
+    if (!file) return apiError("No file selected");
 
     // Проверяем тип файла
     const allowedTypes = [
@@ -24,12 +24,12 @@ export async function POST(request: NextRequest) {
       "audio/mpeg", "audio/ogg", "audio/wav", "audio/mp4",
     ];
     if (!allowedTypes.includes(file.type)) {
-      return apiError("Разрешены только изображения и аудио");
+      return apiError("Only images and audio files are allowed");
     }
 
     // Проверяем размер (макс 10MB)
     if (file.size > 10 * 1024 * 1024) {
-      return apiError("Файл слишком большой (макс 10MB)");
+      return apiError("File too large (max 10MB)");
     }
 
     // Vercel Blob для продакшена, локальная ФС для dev

@@ -14,19 +14,20 @@ import Link from "next/link";
 import { getLanguage } from "@/lib/languages";
 import { LanguageLabel } from "@/components/shared/language-label";
 import { UserBadge } from "@/components/shared/user-badge";
+import { formatTime12h } from "@/lib/utils";
 
 interface ClassroomCardProps {
   classroom: any;
   href: string;
 }
 
-const dayNamesShort = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
+const dayNamesShort = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 function formatDate(date: Date): string {
-  const dd = String(date.getDate()).padStart(2, "0");
   const mm = String(date.getMonth() + 1).padStart(2, "0");
+  const dd = String(date.getDate()).padStart(2, "0");
   const yy = String(date.getFullYear()).slice(2);
-  return `${dd}.${mm}.${yy}`;
+  return `${mm}/${dd}/${yy}`;
 }
 
 export function ClassroomCard({ classroom, href }: ClassroomCardProps) {
@@ -38,15 +39,13 @@ export function ClassroomCard({ classroom, href }: ClassroomCardProps) {
   const visibleStudents = showAllStudents ? students : students.slice(0, 5);
   const hasMore = students.length > 5;
 
-  // Ближайшие занятия из LessonLog (реальные записи из БД)
+  // Upcoming Lessons из LessonLog (реальные записи из БД)
   const upcomingLessons = (classroom.lessonLogs || []).slice(0, 4).map((log: any) => {
     const d = new Date(log.date);
-    const jsDow = d.getDay();
-    const dowIdx = jsDow === 0 ? 6 : jsDow - 1;
     return {
-      dayShort: dayNamesShort[dowIdx],
+      dayShort: dayNamesShort[d.getDay()],
       date: formatDate(d),
-      time: `${log.startTime}–${log.endTime}`,
+      time: `${formatTime12h(log.startTime)} – ${formatTime12h(log.endTime)}`,
       location: log.location || "",
     };
   });
@@ -85,10 +84,10 @@ export function ClassroomCard({ classroom, href }: ClassroomCardProps) {
       {/* === Ученики === */}
       <div className="px-5 py-2.5 border-t border-border/50">
         <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider mb-2">
-          Ученики{students.length > 0 ? ` (${students.length})` : ""}
+          Students{students.length > 0 ? ` (${students.length})` : ""}
         </p>
         {students.length === 0 ? (
-          <p className="text-xs text-muted-foreground italic">Пока нет учеников</p>
+          <p className="text-xs text-muted-foreground italic">No students yet</p>
         ) : (
           <div className="space-y-1.5">
             {visibleStudents.map((student: any) => (
@@ -106,7 +105,7 @@ export function ClassroomCard({ classroom, href }: ClassroomCardProps) {
                 onClick={(e) => { e.preventDefault(); setShowAllStudents(!showAllStudents); }}
                 className="text-xs text-primary hover:underline pt-0.5"
               >
-                {showAllStudents ? "Свернуть" : `+ ещё ${students.length - 5}`}
+                {showAllStudents ? "Show less" : `+ ${students.length - 5} more`}
               </button>
             )}
           </div>
@@ -117,13 +116,13 @@ export function ClassroomCard({ classroom, href }: ClassroomCardProps) {
       {upcomingLessons.length > 0 && (
         <div className="px-5 py-2.5 border-t border-border/50">
           <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider mb-2">
-            Ближайшие занятия
+            Upcoming Lessons
           </p>
           <div className="space-y-1">
             {upcomingLessons.map((item: any, i: number) => (
-              <div key={i} className="flex items-center gap-1.5 text-xs">
-                <span className="font-medium text-foreground w-5">{item.dayShort}</span>
-                <span className="text-muted-foreground">{item.date}</span>
+              <div key={i} className="flex items-center gap-2 text-xs">
+                <span className="font-medium text-foreground w-8">{item.dayShort}</span>
+                <span className="text-muted-foreground w-16">{item.date}</span>
                 <span className="text-foreground font-medium">{item.time}</span>
                 {item.location && (
                   <span className="text-muted-foreground/70 truncate">{item.location}</span>
@@ -136,7 +135,7 @@ export function ClassroomCard({ classroom, href }: ClassroomCardProps) {
 
       {/* === Кнопка === */}
       <Link href={href} className="block px-5 py-3 border-t border-border/50 text-center">
-        <span className="text-sm text-primary font-medium hover:underline">Открыть класс →</span>
+        <span className="text-sm text-primary font-medium hover:underline">Open Class →</span>
       </Link>
     </div>
   );

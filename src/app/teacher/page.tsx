@@ -14,11 +14,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { formatTime12h } from "@/lib/utils";
 import { UserMultipleIcon, Mortarboard01Icon, CheckListIcon, BookOpen01Icon, Calendar01Icon, CheckmarkCircle02Icon, MailSend01Icon } from "@hugeicons/core-free-icons";
 
 // ===== Константы =====
-const MO = ["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
-const DW = ["Пн","Вт","Ср","Чт","Пт","Сб","Вс"];
+const MO = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const DW = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 
 const STATUS_COLORS: Record<string, string> = {
   COMPLETED: "bg-emerald-500",
@@ -26,17 +27,17 @@ const STATUS_COLORS: Record<string, string> = {
   CANCELLED: "bg-red-400",
 };
 const STATUS_LABELS: Record<string, string> = {
-  COMPLETED: "Проведено",
-  SCHEDULED: "Запланировано",
-  CANCELLED: "Отменено",
+  COMPLETED: "Completed",
+  SCHEDULED: "Scheduled",
+  CANCELLED: "Cancelled",
 };
 
 function getGreeting(): string {
   const h = new Date().getHours();
-  if (h < 6) return "Доброй ночи";
-  if (h < 12) return "Доброе утро";
-  if (h < 18) return "Добрый день";
-  return "Добрый вечер";
+  if (h < 6) return "Good evening";
+  if (h < 12) return "Good morning";
+  if (h < 18) return "Good afternoon";
+  return "Good evening";
 }
 
 export default function TeacherDashboard() {
@@ -55,7 +56,7 @@ export default function TeacherDashboard() {
   const safeFetch = (url: string) =>
     fetch(url).then(r => r.ok ? r.json() : []).catch(() => []);
 
-  // Загрузка базовых данных
+  // Loading базовых данных
   useEffect(() => {
     Promise.all([
       safeFetch("/api/classrooms"),
@@ -69,7 +70,7 @@ export default function TeacherDashboard() {
     });
   }, []);
 
-  // Загрузка логов журнала при смене месяца
+  // Loading логов журнала при смене месяца
   const loadLogs = useCallback(async () => {
     // Загружаем логи для всех классов учителя (без classroomId)
     const data = await safeFetch(`/api/lesson-log?month=${ms}`);
@@ -90,7 +91,7 @@ export default function TeacherDashboard() {
   const today = new Date();
   const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
   const firstDow = new Date(year, month, 1).getDay();
-  const shift = firstDow === 0 ? 6 : firstDow - 1;
+  const shift = firstDow;
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
   // Логи, сгруппированные по дню
@@ -145,7 +146,7 @@ export default function TeacherDashboard() {
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0"><HugeiconsIcon icon={UserMultipleIcon} size={22} className="text-primary" /></div>
               <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Учеников</p>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Students</p>
                 <p className="text-2xl font-bold text-foreground">{totalStudents}</p>
               </div>
             </div>
@@ -156,7 +157,7 @@ export default function TeacherDashboard() {
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0"><HugeiconsIcon icon={Mortarboard01Icon} size={22} className="text-primary" /></div>
               <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Классов</p>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Classes</p>
                 <p className="text-2xl font-bold text-foreground">{activeClasses}</p>
               </div>
             </div>
@@ -167,7 +168,7 @@ export default function TeacherDashboard() {
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0"><HugeiconsIcon icon={CheckListIcon} size={22} className="text-primary" /></div>
               <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Ожидает проверки</p>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Needs Review</p>
                 <p className="text-2xl font-bold text-foreground">{pending.length}</p>
               </div>
             </div>
@@ -234,7 +235,7 @@ export default function TeacherDashboard() {
                             "bg-blue-100 text-blue-800"
                           }`}>
                             <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${STATUS_COLORS[log.status] || "bg-gray-400"}`} />
-                            <span className="truncate">{log.startTime} {log.classroom?.name?.slice(0, 12) || ""}</span>
+                            <span className="truncate">{formatTime12h(log.startTime)} {log.classroom?.name?.slice(0, 12) || ""}</span>
                           </div>
                         ))}
                       </div>
@@ -251,17 +252,17 @@ export default function TeacherDashboard() {
           <Card className="h-full">
             <CardHeader className="pb-3">
               <CardTitle className="text-base">
-                {selectedDay ? `${selectedDay} ${MO[month]}` : "Выберите день"}
+                {selectedDay ? `${selectedDay} ${MO[month]}` : "Select a day"}
               </CardTitle>
             </CardHeader>
             <CardContent>
               {!selectedDay ? (
                 <div className="text-center py-8">
                   <div className="flex justify-center mb-2"><HugeiconsIcon icon={Calendar01Icon} size={36} className="text-muted-foreground" /></div>
-                  <p className="text-sm text-muted-foreground">Нажмите на день с занятиями чтобы увидеть детали</p>
+                  <p className="text-sm text-muted-foreground">Click on a day with lessons to see details</p>
                 </div>
               ) : selectedLogs.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-4">Нет занятий в этот день</p>
+                <p className="text-sm text-muted-foreground text-center py-4">No lessons on this day</p>
               ) : (
                 <div className="space-y-3">
                   {selectedLogs.map((log: any) => (
@@ -273,7 +274,7 @@ export default function TeacherDashboard() {
                           {STATUS_LABELS[log.status]}
                         </span>
                       </div>
-                      <p className="text-sm font-medium text-foreground">{log.startTime} — {log.endTime}</p>
+                      <p className="text-sm font-medium text-foreground">{formatTime12h(log.startTime)} — {formatTime12h(log.endTime)}</p>
                       <p className="text-xs text-muted-foreground mt-0.5">{log.classroom?.name}</p>
                       {log.classroom?.course?.title && (
                         <p className="text-[11px] text-muted-foreground/70 mt-0.5">{log.classroom.course.title}</p>
@@ -293,21 +294,21 @@ export default function TeacherDashboard() {
         </div>
       </div>
 
-      {/* === Нижняя часть: Классы + Ожидает проверки === */}
+      {/* === Нижняя часть: Классы + Needs Review === */}
       <div className="grid grid-cols-5 gap-6">
         {/* Карточки классов со сводкой */}
         <div className="col-span-3">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-3">
-              <CardTitle className="text-base">Мои классы</CardTitle>
-              <Link href="/teacher/classrooms" className="text-sm text-primary hover:underline">Все →</Link>
+              <CardTitle className="text-base">My Classes</CardTitle>
+              <Link href="/teacher/classrooms" className="text-sm text-primary hover:underline">View All →</Link>
             </CardHeader>
             <CardContent>
               {classrooms.length === 0 ? (
                 <div className="text-center py-6">
                   <div className="flex justify-center mb-2"><HugeiconsIcon icon={Mortarboard01Icon} size={28} className="text-muted-foreground" /></div>
-                  <p className="text-muted-foreground mb-2">Нет классов</p>
-                  <Link href="/teacher/classrooms/new" className="text-sm text-primary hover:underline">Создать первый класс →</Link>
+                  <p className="text-muted-foreground mb-2">No classes yet</p>
+                  <Link href="/teacher/classrooms/new" className="text-sm text-primary hover:underline">Create your first class →</Link>
                 </div>
               ) : (
                 <div className="space-y-2.5">
@@ -324,7 +325,7 @@ export default function TeacherDashboard() {
                           <p className="text-xs text-muted-foreground mt-0.5">{c.course?.title}</p>
                         </div>
                         <div className="flex items-center gap-3 flex-shrink-0">
-                          <p className="text-xs text-muted-foreground">{studentCount} уч.</p>
+                          <p className="text-xs text-muted-foreground">{studentCount} students</p>
                           {pendingCount > 0 && (
                             <Badge variant="destructive" className="text-[10px] px-1.5">{pendingCount}</Badge>
                           )}
@@ -338,12 +339,12 @@ export default function TeacherDashboard() {
           </Card>
         </div>
 
-        {/* Ожидает проверки — расширенный */}
+        {/* Needs Review — расширенный */}
         <div className="col-span-2">
           <Card className="h-full">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-base">Ожидает проверки</CardTitle>
+                <CardTitle className="text-base">Needs Review</CardTitle>
                 {pending.length > 0 && (
                   <Badge variant="destructive" className="text-xs">{pending.length}</Badge>
                 )}
@@ -353,7 +354,7 @@ export default function TeacherDashboard() {
               {pending.length === 0 ? (
                 <div className="text-center py-6">
                   <div className="flex justify-center mb-2"><HugeiconsIcon icon={CheckmarkCircle02Icon} size={28} className="text-primary" /></div>
-                  <p className="text-sm text-muted-foreground">Все работы проверены!</p>
+                  <p className="text-sm text-muted-foreground">All caught up!</p>
                 </div>
               ) : (
                 <div className="space-y-2.5">

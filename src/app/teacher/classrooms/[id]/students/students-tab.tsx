@@ -1,6 +1,6 @@
 // ===========================================
 // Файл: src/app/teacher/classrooms/[id]/students/students-tab.tsx
-// Описание: Вкладка учеников — список, приглашение, удаление ученика, удаление класса.
+// Описание: Вкладка students — список, приглашение, удаление ученика, удаление класса.
 // ===========================================
 
 "use client";
@@ -45,7 +45,7 @@ export function StudentsTab({ classroomId, enrollments, onUpdate }: { classroomI
 
   const removeStudent = async (enrollmentId: string, studentName: string) => {
     if (busy) return;
-    if (!confirm(`Удалить ${studentName} из класса?`)) return;
+    if (!confirm(`Remove ${studentName} from this class?`)) return;
     setBusy(true);
     await fetch(`/api/classrooms/${classroomId}/enrollments`, {
       method: "DELETE", headers: { "Content-Type": "application/json" },
@@ -59,17 +59,17 @@ export function StudentsTab({ classroomId, enrollments, onUpdate }: { classroomI
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-foreground">Список учеников</h2>
+        <h2 className="text-lg font-semibold text-foreground">Student List</h2>
         <Dialog>
           <DialogTrigger asChild>
-            <Button size="sm" className="cursor-pointer">Пригласить</Button>
+            <Button size="sm" className="cursor-pointer">Invite</Button>
           </DialogTrigger>
           <DialogContent>
-            <DialogHeader><DialogTitle>Пригласить ученика</DialogTitle></DialogHeader>
+            <DialogHeader><DialogTitle>Invite Student</DialogTitle></DialogHeader>
             <div className="space-y-4">
-              <Input placeholder="Поиск по имени или email..." value={sq} onChange={e => handleSearch(e.target.value)} />
+              <Input placeholder="Search by name or email..." value={sq} onChange={e => handleSearch(e.target.value)} />
               <div className="max-h-64 overflow-y-auto space-y-2">
-                {searching && <p className="text-sm text-muted-foreground">Поиск...</p>}
+                {searching && <p className="text-sm text-muted-foreground">Searching...</p>}
                 {sr.map((u: any) => (
                   <div key={u.id} className="flex items-center justify-between p-2 rounded border border-border bg-muted">
                     <div className="flex items-center gap-2">
@@ -83,13 +83,13 @@ export function StudentsTab({ classroomId, enrollments, onUpdate }: { classroomI
                       </div>
                     </div>
                     {sent.has(u.id)
-                      ? <Badge variant="secondary" className="text-xs">Отправлено</Badge>
-                      : <Button size="sm" variant="outline" onClick={() => handleInvite(u.id)} disabled={busy} className="cursor-pointer">Пригласить</Button>
+                      ? <Badge variant="secondary" className="text-xs">Sent</Badge>
+                      : <Button size="sm" variant="outline" onClick={() => handleInvite(u.id)} disabled={busy} className="cursor-pointer">Invite</Button>
                     }
                   </div>
                 ))}
                 {sq.length >= 2 && !searching && sr.length === 0 && (
-                  <p className="text-sm text-muted-foreground text-center py-4">Не найдены</p>
+                  <p className="text-sm text-muted-foreground text-center py-4">No results</p>
                 )}
               </div>
             </div>
@@ -98,17 +98,17 @@ export function StudentsTab({ classroomId, enrollments, onUpdate }: { classroomI
       </div>
 
       {enrollments.length === 0 ? (
-        <div className="text-center py-12"><p className="text-muted-foreground">Нет учеников</p></div>
+        <div className="text-center py-12"><p className="text-muted-foreground">No students</p></div>
       ) : (
         <div className="space-y-2">
           {enrollments.map((e: any) => (
             <div key={e.id} className="flex items-center justify-between p-3 rounded-lg border border-border bg-muted">
               <UserBadge user={e.student || {}} role="STUDENT" size="md" showStatus showRole />
               <button
-                onClick={() => removeStudent(e.id, e.student?.name || "ученика")}
+                onClick={() => removeStudent(e.id, e.student?.name || "this student")}
                 disabled={busy}
                 className="text-muted-foreground hover:text-red-500 transition-colors cursor-pointer disabled:opacity-50 p-1"
-                title="Удалить из класса"
+                title="Remove from class"
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M3 6h18"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>

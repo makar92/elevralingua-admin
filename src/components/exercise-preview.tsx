@@ -77,7 +77,7 @@ export function ExercisePreview({ exercise, mode, onAnswer, existingAnswer }: Pr
           {isTeacher && (
             <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${
               exercise.gradingType === "AUTO" ? "bg-blue-50 text-blue-700 border-blue-200" : "bg-amber-50 text-amber-700 border-amber-200"
-            }`}>{exercise.gradingType === "AUTO" ? "⚡ Авто" : "👩‍🏫 Вручную"}</span>
+            }`}>{exercise.gradingType === "AUTO" ? "⚡ Auto" : "👩‍🏫 Teacher"}</span>
           )}
           {/* Оценка — только GradeBadge, без текста */}
           {/* Оценка отображается только в блоке результата ниже */}
@@ -92,12 +92,12 @@ export function ExercisePreview({ exercise, mode, onAnswer, existingAnswer }: Pr
               <div className="flex items-center gap-2">
                 <GradeBadge grade={answerGrade} size="md" />
                 <p className={`font-medium ${isPass ? "text-emerald-700" : "text-red-700"}`}>
-                  {isPass ? "✅ Правильно!" : "❌ Неправильно"}
+                  {isPass ? "✅ Correct!" : "❌ Incorrect"}
                 </p>
               </div>
               {!isPass && exercise.correctAnswers?.length > 0 && (
                 <p className="text-sm text-muted-foreground mt-1">
-                  Правильный ответ: <span className="font-medium text-foreground">{exercise.correctAnswers.join(", ")}</span>
+                  Correct answer: <span className="font-medium text-foreground">{exercise.correctAnswers.join(", ")}</span>
                 </p>
               )}
             </div>
@@ -105,7 +105,7 @@ export function ExercisePreview({ exercise, mode, onAnswer, existingAnswer }: Pr
             <div className="px-4 py-3 rounded-lg border bg-emerald-50 border-emerald-200">
               <div className="flex items-center gap-2">
                 <GradeBadge grade={answerGrade} size="md" />
-                <p className="font-medium text-emerald-700">✅ Проверено учителем</p>
+                <p className="font-medium text-emerald-700">✅ Reviewed by teacher</p>
               </div>
               {submitted?.teacherComment && (
                 <p className="text-sm text-emerald-800 mt-1">💬 {submitted.teacherComment}</p>
@@ -113,7 +113,7 @@ export function ExercisePreview({ exercise, mode, onAnswer, existingAnswer }: Pr
             </div>
           ) : (
             <div className="px-4 py-3 rounded-lg border bg-blue-50 border-blue-200">
-              <p className="font-medium text-blue-700">📨 Отправлено учителю на проверку</p>
+              <p className="font-medium text-blue-700">📨 Submitted for teacher review</p>
             </div>
           )}
         </div>
@@ -131,7 +131,7 @@ export function ExercisePreview({ exercise, mode, onAnswer, existingAnswer }: Pr
       {exercise.exerciseType === "DESCRIBE_IMAGE"  && <DescribeImagePreview   content={c} mode={mode} onSubmit={onAnswer ? handleSubmitAnswer : undefined} disabled={isAnswered} savedAnswer={savedAnswer} />}
       {exercise.exerciseType === "FREE_WRITING"    && <FreeWritingPreview     content={c} mode={mode} onSubmit={onAnswer ? handleSubmitAnswer : undefined} disabled={isAnswered} savedAnswer={savedAnswer} />}
 
-      {isTeacher && exercise.teacherComment && <TeacherBox label="💬 Комментарий" text={exercise.teacherComment} />}
+      {isTeacher && exercise.teacherComment && <TeacherBox label="💬 Comment" text={exercise.teacherComment} />}
     </div>
   );
 }
@@ -208,8 +208,8 @@ function MatchingPreview({ content, mode, onSubmit, disabled, savedAnswer, exerc
           {Object.entries(matched).map(([li, ri]) => { const c = getLineCoords(Number(li), ri as number); return c && <line key={li} x1={c.x1} y1={c.y1} x2={c.x2} y2={c.y2} stroke={lineColor(Number(li), ri as number)} strokeWidth="2.5" strokeLinecap="round" />; })}
         </svg>
       </div>
-      {!checked && !disabled && allPaired && <Button size="sm" onClick={async () => { setChecked(true); if (onSubmit) await onSubmit(Object.values(matched).map(ri => shuffledRight[ri])); }}>Ответить</Button>}
-      {mode === "teacher" && <TeacherBox label="Правильные пары" text={pairs.map((p: any) => `${p.left} ↔ ${p.right}`).join(" · ")} />}
+      {!checked && !disabled && allPaired && <Button size="sm" onClick={async () => { setChecked(true); if (onSubmit) await onSubmit(Object.values(matched).map(ri => shuffledRight[ri])); }}>Submit</Button>}
+      {mode === "teacher" && <TeacherBox label="Correct Pairs" text={pairs.map((p: any) => `${p.left} ↔ ${p.right}`).join(" · ")} />}
     </div>
   );
 }
@@ -236,8 +236,8 @@ function MultipleChoicePreview({ content, mode, onSubmit, disabled, savedAnswer 
             "bg-white border-border hover:border-primary/60 text-foreground"
           }`}>{opt}{showColors && i === content.correctIndex && <span className="ml-2">✓</span>}</button>
       ))}
-      {!checked && !disabled && selected !== null && <Button size="sm" onClick={async () => { setChecked(true); if (onSubmit) await onSubmit(content.options?.[selected]); }}>Ответить</Button>}
-      {mode === "teacher" && <TeacherBox label="Правильный ответ" text={content.options?.[content.correctIndex] || ""} />}
+      {!checked && !disabled && selected !== null && <Button size="sm" onClick={async () => { setChecked(true); if (onSubmit) await onSubmit(content.options?.[selected]); }}>Submit</Button>}
+      {mode === "teacher" && <TeacherBox label="Correct Answer" text={content.options?.[content.correctIndex] || ""} />}
     </div>
   );
 }
@@ -261,8 +261,8 @@ function FillBlankPreview({ content, mode, onSubmit, disabled, savedAnswer }: Su
             style={{ width: Math.max(60, (answers[i]?.length || 0) * 14 + 20) + "px" }} placeholder="···" />)}
         </span>))}
       </div>
-      {!disabled && <Button variant="outline" size="sm" disabled={!onSubmit || Object.values(answers).every(v => !v)} onClick={onSubmit ? () => onSubmit(Object.values(answers)) : undefined}>Отправить учителю</Button>}
-      {mode === "teacher" && content.blankAnswer && <TeacherBox label="Правильный ответ" text={content.blankAnswer} />}
+      {!disabled && <Button variant="outline" size="sm" disabled={!onSubmit || Object.values(answers).every(v => !v)} onClick={onSubmit ? () => onSubmit(Object.values(answers)) : undefined}>Submit to Teacher</Button>}
+      {mode === "teacher" && content.blankAnswer && <TeacherBox label="Correct Answer" text={content.blankAnswer} />}
     </div>
   );
 }
@@ -298,7 +298,7 @@ function TonePlacementPreview({ content, mode, exercise, onSubmit, disabled, sav
           </div>);})}
       </div>
       {!showResult&&!disabled&&(<div className="flex justify-center gap-3">{(["1","2","3","4"] as const).map(t=>(<button key={t} onClick={()=>setActiveTone(t===activeTone?null:t)} className={`w-14 h-12 rounded-xl border-2 text-xl font-bold transition-all shadow-sm ${activeTone===t?"bg-primary text-primary-foreground border-primary shadow-md scale-105":"bg-white border-border text-foreground hover:border-primary/60"}`}>{TONE_SYMBOLS[t]}</button>))}</div>)}
-      {!showResult&&!disabled&&<Button size="sm" className="mx-auto block" onClick={async()=>{setShowResult(true);if(onSubmit)await onSubmit(Object.values(studentTones));}}>Ответить</Button>}
+      {!showResult&&!disabled&&<Button size="sm" className="mx-auto block" onClick={async()=>{setShowResult(true);if(onSubmit)await onSubmit(Object.values(studentTones));}}>Submit</Button>}
     </div>
   );
 }
@@ -319,8 +319,8 @@ function WritePinyinPreview({ content, mode, onSubmit, disabled, savedAnswer }: 
           <span className="text-4xl font-bold text-foreground">{char.hanzi}</span>
         </div>))}
       </div>
-      {!disabled&&<Button variant="outline" size="sm" disabled={!onSubmit||Object.values(answers).every(v=>!v)} onClick={onSubmit?()=>onSubmit(Object.values(answers)):undefined}>Отправить учителю</Button>}
-      {mode==="teacher"&&content.referenceAnswer&&<TeacherBox label="Правильный ответ" text={content.referenceAnswer}/>}
+      {!disabled&&<Button variant="outline" size="sm" disabled={!onSubmit||Object.values(answers).every(v=>!v)} onClick={onSubmit?()=>onSubmit(Object.values(answers)):undefined}>Submit to Teacher</Button>}
+      {mode==="teacher"&&content.referenceAnswer&&<TeacherBox label="Correct Answer" text={content.referenceAnswer}/>}
     </div>
   );
 }
@@ -338,8 +338,8 @@ function WordOrderPreview({ content, mode, onSubmit, disabled, savedAnswer }: Su
         {selected.map((w,i)=>(<button key={i} onClick={()=>{if(disabled)return;setAvailable([...available,selected[i]]);setSelected(selected.filter((_,j)=>j!==i));}} disabled={disabled} className="px-3 py-1.5 rounded-lg text-base font-medium border bg-primary/10 text-primary border-primary/20">{w}</button>))}
       </div>
       {!disabled&&(<div className="flex flex-wrap gap-2">{available.map((w,i)=>(<button key={i} onClick={()=>{setSelected([...selected,w]);setAvailable(available.filter((_,j)=>j!==i));}} className="px-3 py-1.5 rounded-xl border-2 border-border bg-white text-base font-medium text-foreground hover:border-primary/60 shadow-sm">{w}</button>))}</div>)}
-      {!disabled&&selected.length>0&&available.length===0&&<Button variant="outline" size="sm" disabled={!onSubmit} onClick={onSubmit?async()=>{await onSubmit(selected.join(""));}:undefined}>Отправить учителю</Button>}
-      {mode==="teacher"&&content.referenceAnswer&&<TeacherBox label="Один из правильных вариантов" text={content.referenceAnswer}/>}
+      {!disabled&&selected.length>0&&available.length===0&&<Button variant="outline" size="sm" disabled={!onSubmit} onClick={onSubmit?async()=>{await onSubmit(selected.join(""));}:undefined}>Submit to Teacher</Button>}
+      {mode==="teacher"&&content.referenceAnswer&&<TeacherBox label="One of the correct options" text={content.referenceAnswer}/>}
     </div>
   );
 }
@@ -350,29 +350,29 @@ function TranslationPreview({ content, mode, exercise, onSubmit, disabled, saved
   return (<div className="space-y-4">
     {(content.sourceLanguage||content.targetLanguage)&&<div className="flex items-center gap-2"><LanguageLabel code={content.sourceLanguage} size="sm"/><span className="text-muted-foreground">→</span><LanguageLabel code={content.targetLanguage} size="sm"/></div>}
     <div className="px-4 py-4 bg-muted rounded-xl text-lg text-foreground font-medium">{content.sourceText}</div>
-    <Textarea value={answer} onChange={e=>setAnswer(e.target.value)} placeholder="Введите перевод..." rows={3} className="text-base" disabled={disabled}/>
-    {!disabled&&<Button variant="outline" size="sm" disabled={!onSubmit||!answer.trim()} onClick={onSubmit?()=>onSubmit(answer):undefined}>Отправить учителю</Button>}
-    {mode==="teacher"&&content.acceptableAnswers?.filter(Boolean).length>0&&<TeacherBox label="Эталонные переводы" text={content.acceptableAnswers.filter(Boolean).join(" / ")}/>}
+    <Textarea value={answer} onChange={e=>setAnswer(e.target.value)} placeholder="Enter your translation..." rows={3} className="text-base" disabled={disabled}/>
+    {!disabled&&<Button variant="outline" size="sm" disabled={!onSubmit||!answer.trim()} onClick={onSubmit?()=>onSubmit(answer):undefined}>Submit to Teacher</Button>}
+    {mode==="teacher"&&content.acceptableAnswers?.filter(Boolean).length>0&&<TeacherBox label="Reference Translations" text={content.acceptableAnswers.filter(Boolean).join(" / ")}/>}
   </div>);
 }
 
 function DictationPreview({ content, mode, exercise, onSubmit, disabled, savedAnswer }: SubProps) {
   const [answer, setAnswer] = useState(disabled&&hasSaved(savedAnswer)?String(savedAnswer):"");
   return (<div className="space-y-4">
-    {content.audioUrl?<AudioPlayer src={content.audioUrl} title="Прослушайте и запишите"/>:<div className="bg-muted rounded-xl p-4 text-center text-muted-foreground border border-dashed border-border">🎧 Аудио не загружено</div>}
-    <Textarea value={answer} onChange={e=>setAnswer(e.target.value)} placeholder="Запишите услышанное..." rows={3} className="text-base" disabled={disabled}/>
-    {!disabled&&<Button variant="outline" size="sm" disabled={!onSubmit||!answer.trim()} onClick={onSubmit?()=>onSubmit(answer):undefined}>Отправить учителю</Button>}
-    {mode==="teacher"&&content.correctText&&<TeacherBox label="Правильный текст" text={content.correctText}/>}
+    {content.audioUrl?<AudioPlayer src={content.audioUrl} title="Listen and write"/>:<div className="bg-muted rounded-xl p-4 text-center text-muted-foreground border border-dashed border-border">🎧 Audio not uploaded</div>}
+    <Textarea value={answer} onChange={e=>setAnswer(e.target.value)} placeholder="Write what you hear..." rows={3} className="text-base" disabled={disabled}/>
+    {!disabled&&<Button variant="outline" size="sm" disabled={!onSubmit||!answer.trim()} onClick={onSubmit?()=>onSubmit(answer):undefined}>Submit to Teacher</Button>}
+    {mode==="teacher"&&content.correctText&&<TeacherBox label="Correct Text" text={content.correctText}/>}
   </div>);
 }
 
 function DescribeImagePreview({ content, mode, onSubmit, disabled, savedAnswer }: SubProps) {
   const [answer, setAnswer] = useState(disabled&&hasSaved(savedAnswer)?String(savedAnswer):"");
   return (<div className="space-y-4">
-    {content.imageUrl?<img src={content.imageUrl} alt="" className="max-w-md rounded-xl border border-border"/>:<div className="bg-muted rounded-xl p-8 text-center text-muted-foreground border border-dashed border-border">🖼️ Картинка не загружена</div>}
+    {content.imageUrl?<img src={content.imageUrl} alt="" className="max-w-md rounded-xl border border-border"/>:<div className="bg-muted rounded-xl p-8 text-center text-muted-foreground border border-dashed border-border">🖼️ Image not uploaded</div>}
     {content.promptText&&<p className="text-base text-muted-foreground">{content.promptText}</p>}
-    <Textarea value={answer} onChange={e=>setAnswer(e.target.value)} placeholder="Опишите картинку..." rows={4} className="text-base" disabled={disabled}/>
-    {!disabled&&<Button variant="outline" size="sm" disabled={!onSubmit} onClick={onSubmit?()=>onSubmit(answer||"submitted"):undefined}>Отправить учителю</Button>}
+    <Textarea value={answer} onChange={e=>setAnswer(e.target.value)} placeholder="Describe the image..." rows={4} className="text-base" disabled={disabled}/>
+    {!disabled&&<Button variant="outline" size="sm" disabled={!onSubmit} onClick={onSubmit?()=>onSubmit(answer||"submitted"):undefined}>Submit to Teacher</Button>}
   </div>);
 }
 
@@ -380,8 +380,8 @@ function FreeWritingPreview({ content, mode, onSubmit, disabled, savedAnswer }: 
   const [answer, setAnswer] = useState(disabled&&hasSaved(savedAnswer)?String(savedAnswer):"");
   return (<div className="space-y-4">
     {content.promptText&&<p className="text-base text-muted-foreground">{content.promptText}</p>}
-    <Textarea value={answer} onChange={e=>setAnswer(e.target.value)} placeholder="Напишите здесь..." rows={5} className="text-base" disabled={disabled}/>
-    {!disabled&&<Button variant="outline" size="sm" disabled={!onSubmit} onClick={onSubmit?()=>onSubmit(answer||"submitted"):undefined}>Отправить учителю</Button>}
+    <Textarea value={answer} onChange={e=>setAnswer(e.target.value)} placeholder="Write here..." rows={5} className="text-base" disabled={disabled}/>
+    {!disabled&&<Button variant="outline" size="sm" disabled={!onSubmit} onClick={onSubmit?()=>onSubmit(answer||"submitted"):undefined}>Submit to Teacher</Button>}
   </div>);
 }
 

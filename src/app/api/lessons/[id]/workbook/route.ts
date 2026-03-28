@@ -1,8 +1,8 @@
 // ===========================================
 // Файл: src/app/api/lessons/[id]/workbook/route.ts
-// Описание: GET упражнения рабочей тетради урока.
-//   Тетрадь = упражнения с isDefaultInWorkbook=true,
-//   сгруппированные по секциям урока.
+// Описание: GET exercises рабочей тетради lessons.
+//   Тетрадь = exercises с isDefaultInWorkbook=true,
+//   сгруппированные по секциям lessons.
 // ===========================================
 
 import { NextRequest } from "next/server";
@@ -20,7 +20,7 @@ export async function GET(
 
     const { id: lessonId } = await params;
 
-    // Получаем все секции урока с упражнениями для тетради
+    // Получаем все секции lessons с exercisesми для тетради
     const sections = await prisma.section.findMany({
       where: { lessonId },
       orderBy: { order: "asc" },

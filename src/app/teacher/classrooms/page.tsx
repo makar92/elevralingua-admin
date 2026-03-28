@@ -21,23 +21,23 @@ export default function TeacherClassrooms() {
     });
   }, []);
 
-  if (loading) return <div className="p-6 text-muted-foreground">Загрузка...</div>;
+  if (loading) return <div className="p-6 text-muted-foreground">Uploading...</div>;
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-foreground">Мои классы</h1>
+        <h1 className="text-2xl font-bold text-foreground">My Classes</h1>
         <Link href="/teacher/classrooms/new">
-          <Button>+ Создать класс</Button>
+          <Button>+ Create Class</Button>
         </Link>
       </div>
 
       {classrooms.length === 0 ? (
         <div className="text-center py-16">
           <div className="text-5xl mb-4">🎓</div>
-          <h2 className="text-lg font-medium text-foreground mb-2">Нет классов</h2>
-          <p className="text-muted-foreground mb-4">Создайте первый класс чтобы начать преподавание</p>
-          <Link href="/teacher/classrooms/new"><Button>Создать класс</Button></Link>
+          <h2 className="text-lg font-medium text-foreground mb-2">No classes yet</h2>
+          <p className="text-muted-foreground mb-4">Create your first class to start teaching</p>
+          <Link href="/teacher/classrooms/new"><Button>Create Class</Button></Link>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">

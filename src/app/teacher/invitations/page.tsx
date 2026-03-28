@@ -42,30 +42,30 @@ export default function TeacherInvitations() {
     setBusy(false);
   };
 
-  if (loading) return <div className="p-6 text-muted-foreground">Загрузка...</div>;
+  if (loading) return <div className="p-6 text-muted-foreground">Uploading...</div>;
 
   const items = tab === "sent" ? sent : requests;
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
-      <h1 className="text-2xl font-bold text-foreground mb-6">Приглашения</h1>
+      <h1 className="text-2xl font-bold text-foreground mb-6">Invitations</h1>
 
       <div className="flex gap-2 mb-6">
         <button onClick={() => setTab("requests")}
           className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${tab === "requests" ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-accent"}`}>
-          Заявки учеников {requests.filter(r => r.status === "PENDING").length > 0 && (
+          Student Requests {requests.filter(r => r.status === "PENDING").length > 0 && (
             <Badge variant="destructive" className="ml-1 text-xs">{requests.filter(r => r.status === "PENDING").length}</Badge>
           )}
         </button>
         <button onClick={() => setTab("sent")}
           className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${tab === "sent" ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-accent"}`}>
-          Отправленные
+          Sent
         </button>
       </div>
 
       {items.length === 0 ? (
         <p className="text-muted-foreground text-center py-12">
-          {tab === "sent" ? "Нет отправленных приглашений" : "Нет заявок от учеников"}
+          {tab === "sent" ? "No invitations sent" : "No student requests"}
         </p>
       ) : (
         <div className="space-y-3">
@@ -87,8 +87,8 @@ export default function TeacherInvitations() {
                 <div className="flex items-center gap-2">
                   {inv.status === "PENDING" && tab === "requests" ? (
                     <>
-                      <Button size="sm" onClick={() => handleResponse(inv.id, "ACCEPTED")} disabled={busy} className="cursor-pointer">Принять</Button>
-                      <Button size="sm" variant="outline" onClick={() => handleResponse(inv.id, "DECLINED")} disabled={busy} className="cursor-pointer">Отклонить</Button>
+                      <Button size="sm" onClick={() => handleResponse(inv.id, "ACCEPTED")} disabled={busy} className="cursor-pointer">Accept</Button>
+                      <Button size="sm" variant="outline" onClick={() => handleResponse(inv.id, "DECLINED")} disabled={busy} className="cursor-pointer">Decline</Button>
                     </>
                   ) : (
                     <Badge variant={inv.status === "ACCEPTED" ? "secondary" : inv.status === "DECLINED" ? "destructive" : "outline"}

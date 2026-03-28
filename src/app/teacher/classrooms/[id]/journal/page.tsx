@@ -16,10 +16,11 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { GradePicker } from "@/components/shared/grade-badge";
+import { formatTime12h } from "@/lib/utils";
 
-const MO = ["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
-const DW = ["Пн","Вт","Ср","Чт","Пт","Сб","Вс"];
-const DWF = ["Воскресенье","Понедельник","Вторник","Среда","Четверг","Пятница","Суббота"];
+const MO = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const DW = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+const DWF = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 const GC: Record<string,string> = { A:"bg-emerald-100 text-emerald-800", B:"bg-blue-100 text-blue-800", C:"bg-amber-100 text-amber-800", D:"bg-orange-100 text-orange-800", F:"bg-red-100 text-red-800" };
 const AC: Record<string,{color:string}> = { PRESENT:{color:"#0F6E56"}, ABSENT:{color:"#A32D2D"}, LATE:{color:"#BA7517"}, EXCUSED:{color:"#534AB7"} };
 const greens = ["","bg-emerald-200 text-emerald-900","bg-emerald-400 text-emerald-950","bg-emerald-600 text-white"];
@@ -187,7 +188,7 @@ export default function TeacherJournal() {
   // === Удаление занятия ===
   const deleteLesson = () => withBusy(async () => {
     if (!selectedLog) return;
-    if (!confirm("Удалить это занятие?")) { setBusy(false); return; }
+    if (!confirm("Delete this lesson?")) { setBusy(false); return; }
     await fetch(`/api/lesson-log/${selectedLog.id}`, { method: "DELETE" });
     setSelectedLog(null);
     setDayLogs([]);
@@ -196,11 +197,11 @@ export default function TeacherJournal() {
 
   // === Вычисления для календаря ===
   const fd = new Date(year, month, 1).getDay();
-  const shift = fd === 0 ? 6 : fd - 1;
+  const shift = fd;
   const dim = new Date(year, month + 1, 0).getDate();
   const lfd = (day: number) => logs.filter(l => new Date(l.date).getDate() === day);
 
-  if (loading) return <div className="p-6 text-muted-foreground animate-pulse">Загрузка журнала...</div>;
+  if (loading) return <div className="p-6 text-muted-foreground animate-pulse">Loading gradebook...</div>;
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -243,14 +244,14 @@ export default function TeacherJournal() {
 
           {/* Легенда */}
           <div className="mt-3 space-y-1">
-            <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground"><span className="w-3 h-3 rounded-sm bg-emerald-200" /> Проведено</div>
-            <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground"><span className="w-3 h-3 rounded-sm bg-blue-200" /> Запланировано</div>
+            <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground"><span className="w-3 h-3 rounded-sm bg-emerald-200" /> Completed</div>
+            <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground"><span className="w-3 h-3 rounded-sm bg-blue-200" /> Scheduled</div>
           </div>
 
           {/* Статистика */}
           <div className="mt-3 p-2 bg-accent/50 rounded-lg text-[11px] space-y-0.5">
-            <div className="flex justify-between"><span className="text-muted-foreground">Занятий</span><span className="font-medium">{logs.length}</span></div>
-            <div className="flex justify-between"><span className="text-muted-foreground">Проведено</span><span className="font-medium">{logs.filter(l => l.status === "COMPLETED").length}</span></div>
+            <div className="flex justify-between"><span className="text-muted-foreground">Lessons</span><span className="font-medium">{logs.length}</span></div>
+            <div className="flex justify-between"><span className="text-muted-foreground">Completed</span><span className="font-medium">{logs.filter(l => l.status === "COMPLETED").length}</span></div>
           </div>
 
           {/* Кнопка создания занятия */}
@@ -261,36 +262,36 @@ export default function TeacherJournal() {
             className="mt-3 w-full cursor-pointer"
             disabled={busy}
           >
-            + Новое занятие
+            + New Lesson
           </Button>
 
           {/* Форма создания */}
           {showCreateForm && (
             <div className="mt-3 p-3 border border-border rounded-lg bg-card space-y-2.5">
               <div>
-                <Label className="text-[11px]">Дата</Label>
+                <Label className="text-[11px]">Date</Label>
                 <Input type="date" value={newDate} onChange={e => setNewDate(e.target.value)} className="h-8 text-xs w-full" />
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <Label className="text-[11px]">Начало</Label>
+                  <Label className="text-[11px]">Start</Label>
                   <Input type="time" value={newStartTime} onChange={e => setNewStartTime(e.target.value)} className="h-9 text-sm w-full" />
                 </div>
                 <div>
-                  <Label className="text-[11px]">Конец</Label>
+                  <Label className="text-[11px]">End</Label>
                   <Input type="time" value={newEndTime} onChange={e => setNewEndTime(e.target.value)} className="h-9 text-sm w-full" />
                 </div>
               </div>
               <div>
-                <Label className="text-[11px]">Место</Label>
-                <Input value={newLocation} onChange={e => setNewLocation(e.target.value)} className="h-8 text-xs" placeholder="Zoom, кабинет 301..." />
+                <Label className="text-[11px]">Location</Label>
+                <Input value={newLocation} onChange={e => setNewLocation(e.target.value)} className="h-8 text-xs" placeholder="Zoom, Room 301..." />
               </div>
               <div className="flex gap-2">
                 <Button size="sm" onClick={createLesson} disabled={busy || !newDate} className="flex-1 cursor-pointer">
-                  {busy ? "Создаём..." : "Создать"}
+                  {busy ? "Creating..." : "Create"}
                 </Button>
                 <Button size="sm" variant="ghost" onClick={() => setShowCreateForm(false)} className="cursor-pointer">
-                  Отмена
+                  Cancel
                 </Button>
               </div>
             </div>
@@ -301,7 +302,7 @@ export default function TeacherJournal() {
         <div className="flex-1 min-w-0 overflow-hidden">
           {!selectedLog ? (
             <div className="text-center py-16 text-muted-foreground">
-              <p className="text-sm">Выберите занятие в календаре</p>
+              <p className="text-sm">Select a lesson from the calendar</p>
             </div>
           ) : (
             <div>
@@ -315,7 +316,7 @@ export default function TeacherJournal() {
                           ? "border-primary bg-primary/10 text-primary"
                           : "border-border text-muted-foreground hover:bg-accent"
                       }`}>
-                      Занятие {idx + 1}: {dl.startTime}–{dl.endTime}
+                      Lesson {idx + 1}: {formatTime12h(dl.startTime)} – {formatTime12h(dl.endTime)}
                     </button>
                   ))}
                 </div>
@@ -326,28 +327,28 @@ export default function TeacherJournal() {
                 <div className="flex items-start justify-between">
                   <div>
                     <h2 className="text-lg font-semibold text-foreground">
-                      {DWF[new Date(selectedLog.date).getDay()]}, {new Date(selectedLog.date).toLocaleDateString("ru-RU")}
+                      {DWF[new Date(selectedLog.date).getDay()]}, {new Date(selectedLog.date).toLocaleDateString("en-US")}
                     </h2>
                     <p className="text-sm text-muted-foreground">
-                      {selectedLog.startTime}–{selectedLog.endTime}{selectedLog.location && ` · ${selectedLog.location}`}
+                      {formatTime12h(selectedLog.startTime)} – {formatTime12h(selectedLog.endTime)}{selectedLog.location && ` · ${selectedLog.location}`}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
                     {selectedLog.status === "SCHEDULED" && (
                       <Button size="sm" onClick={compL} disabled={busy} className="cursor-pointer">
-                        {busy ? "..." : "Отметить проведённым"}
+                        {busy ? "..." : "Mark as Completed"}
                       </Button>
                     )}
                     <Badge className={`text-xs ${
                       selectedLog.status === "COMPLETED" ? "bg-emerald-100 text-emerald-700" : "bg-blue-100 text-blue-700"
                     }`}>
-                      {selectedLog.status === "COMPLETED" ? "Проведено" : "Запланировано"}
+                      {selectedLog.status === "COMPLETED" ? "Completed" : "Scheduled"}
                     </Badge>
                     <button
                       onClick={deleteLesson}
                       disabled={busy}
                       className="text-muted-foreground hover:text-red-500 transition-colors cursor-pointer disabled:opacity-50 p-1"
-                      title="Удалить занятие"
+                      title="Delete lesson"
                     >
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M3 6h18"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
@@ -356,12 +357,12 @@ export default function TeacherJournal() {
                   </div>
                 </div>
 
-                {/* Пройденные темы */}
+                {/* Covered Topics */}
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Пройденные темы</h3>
+                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Covered Topics</h3>
                     <button onClick={() => setShowTP(!showTP)} disabled={busy} className="text-xs text-primary hover:underline cursor-pointer disabled:opacity-50">
-                      {showTP ? "Скрыть" : "+ Добавить"}
+                      {showTP ? "Hide" : "+ Add"}
                     </button>
                   </div>
                   {selectedLog.topics?.map((t: any) => (
@@ -372,7 +373,7 @@ export default function TeacherJournal() {
                     </div>
                   ))}
                   {(!selectedLog.topics || selectedLog.topics.length === 0) && !showTP && (
-                    <p className="text-xs text-muted-foreground">Нет тем</p>
+                    <p className="text-xs text-muted-foreground">No topics</p>
                   )}
                   {showTP && (
                     <div className="mt-2 p-3 bg-accent/50 rounded-lg max-h-48 overflow-y-auto">
@@ -393,9 +394,9 @@ export default function TeacherJournal() {
                   )}
                 </div>
 
-                {/* Посещаемость */}
+                {/* Attendance */}
                 <div>
-                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Посещаемость</h3>
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Attendance</h3>
                   <div className="space-y-1.5">
                     {selectedLog.attendance?.map((a: any) => (
                       <div key={a.id} className="flex items-center gap-2">
@@ -403,10 +404,10 @@ export default function TeacherJournal() {
                         <span className="text-sm text-foreground flex-1">{a.student?.name}</span>
                         <select value={a.status} onChange={e => updAtt(a.studentId, e.target.value)} disabled={busy}
                           className="text-xs h-7 rounded border border-input bg-background px-2 cursor-pointer disabled:opacity-50">
-                          <option value="PRESENT">Был(а)</option>
-                          <option value="ABSENT">Отсутствовал(а)</option>
-                          <option value="LATE">Опоздал(а)</option>
-                          <option value="EXCUSED">Уваж. причина</option>
+                          <option value="PRESENT">Present</option>
+                          <option value="ABSENT">Absent</option>
+                          <option value="LATE">Late</option>
+                          <option value="EXCUSED">Excused</option>
                         </select>
                       </div>
                     ))}
@@ -415,7 +416,7 @@ export default function TeacherJournal() {
 
                 {/* Оценки */}
                 <div>
-                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Оценки</h3>
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Grades</h3>
                   {/* Существующие оценки */}
                   {selectedLog.grades?.map((g: any) => (
                     <div key={g.id} className="flex items-center gap-2 mb-1">
@@ -423,7 +424,7 @@ export default function TeacherJournal() {
                       <span className="text-sm text-foreground">{g.student?.name}</span>
                     </div>
                   ))}
-                  {/* Поставить оценку (ученики без оценки) */}
+                  {/* Give Grade (ученики без оценки) */}
                   <div className="flex gap-1 mt-2 flex-wrap">
                     {classroom?.enrollments?.map((e: any) => {
                       const st = e.student;
@@ -440,23 +441,23 @@ export default function TeacherJournal() {
 
                 {/* Заметки */}
                 <div>
-                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Заметки</h3>
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Notes</h3>
                   {editingNotes ? (
                     <div className="space-y-2">
                       <textarea value={notes} onChange={e => setNotes(e.target.value)}
-                        className="w-full h-20 rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="Заметки..." />
+                        className="w-full h-20 rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="Notes..." />
                       <div className="flex gap-2">
                         <Button size="sm" onClick={saveN} disabled={busy} className="cursor-pointer">
-                          {busy ? "..." : "Сохранить"}
+                          {busy ? "..." : "Save"}
                         </Button>
-                        <Button size="sm" variant="ghost" onClick={() => setEditingNotes(false)} className="cursor-pointer">Отмена</Button>
+                        <Button size="sm" variant="ghost" onClick={() => setEditingNotes(false)} className="cursor-pointer">Cancel</Button>
                       </div>
                     </div>
                   ) : (
                     <div onClick={() => setEditingNotes(true)} className="cursor-pointer">
                       {selectedLog.teacherNotes
                         ? <p className="text-sm text-muted-foreground italic p-3 bg-accent/50 rounded-lg hover:bg-accent">{selectedLog.teacherNotes}</p>
-                        : <p className="text-xs text-muted-foreground hover:text-foreground">+ Добавить заметку...</p>
+                        : <p className="text-xs text-muted-foreground hover:text-foreground">+ Add a note...</p>
                       }
                     </div>
                   )}
