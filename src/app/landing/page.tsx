@@ -29,45 +29,45 @@ function IconUsers2() { return <svg width="20" height="20" viewBox="0 0 24 24" f
 function HeroIllustration() {
   return (
     <svg viewBox="0 0 480 360" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full max-w-md">
-      <circle cx="240" cy="180" r="160" fill="oklch(0.45 0.20 305 / 0.06)" />
-      <circle cx="340" cy="120" r="80" fill="oklch(0.45 0.20 305 / 0.04)" />
-      <circle cx="140" cy="260" r="60" fill="oklch(0.45 0.20 305 / 0.04)" />
-      <rect x="100" y="60" width="280" height="190" rx="12" fill="white" stroke="oklch(0.45 0.20 305)" strokeWidth="2"/>
-      <rect x="100" y="60" width="280" height="32" rx="12" fill="oklch(0.45 0.20 305)"/>
-      <rect x="100" y="80" width="280" height="12" fill="oklch(0.45 0.20 305)"/>
-      <circle cx="118" cy="76" r="4" fill="oklch(0.45 0.20 305 / 0.5)"/>
-      <circle cx="132" cy="76" r="4" fill="oklch(0.45 0.20 305 / 0.5)"/>
-      <circle cx="146" cy="76" r="4" fill="oklch(0.45 0.20 305 / 0.5)"/>
-      <rect x="102" y="94" width="70" height="154" fill="oklch(0.45 0.20 305 / 0.08)"/>
-      <rect x="110" y="106" width="50" height="6" rx="3" fill="oklch(0.45 0.20 305 / 0.3)"/>
-      <rect x="110" y="120" width="40" height="5" rx="2.5" fill="oklch(0.45 0.20 305 / 0.15)"/>
-      <rect x="110" y="132" width="45" height="5" rx="2.5" fill="oklch(0.45 0.20 305 / 0.15)"/>
-      <rect x="110" y="144" width="35" height="5" rx="2.5" fill="oklch(0.45 0.20 305 / 0.15)"/>
-      <rect x="110" y="160" width="50" height="6" rx="3" fill="oklch(0.45 0.20 305 / 0.3)"/>
-      <rect x="110" y="174" width="40" height="5" rx="2.5" fill="oklch(0.45 0.20 305 / 0.15)"/>
-      <rect x="110" y="186" width="45" height="5" rx="2.5" fill="oklch(0.45 0.20 305 / 0.15)"/>
-      <rect x="184" y="102" width="184" height="56" rx="8" fill="oklch(0.45 0.20 305 / 0.06)" stroke="oklch(0.45 0.20 305 / 0.2)" strokeWidth="1"/>
-      <text x="200" y="127" fontSize="22" fontWeight="bold" fill="oklch(0.45 0.20 305)">你好</text>
-      <text x="240" y="127" fontSize="11" fill="oklch(0.45 0.20 305 / 0.7)">nǐ hǎo</text>
-      <text x="200" y="147" fontSize="11" fill="oklch(0.15 0.01 300 / 0.6)">hello</text>
-      <rect x="184" y="168" width="184" height="72" rx="8" fill="white" stroke="oklch(0.45 0.20 305 / 0.2)" strokeWidth="1"/>
-      <text x="200" y="187" fontSize="9" fill="oklch(0.45 0.20 305 / 0.7)" fontWeight="600">MATCHING</text>
-      <rect x="196" y="196" width="60" height="16" rx="4" fill="oklch(0.45 0.20 305 / 0.1)"/>
-      <text x="207" y="208" fontSize="9" fill="oklch(0.15 0.01 300 / 0.7)">谢谢</text>
-      <rect x="196" y="218" width="60" height="16" rx="4" fill="oklch(0.45 0.20 305 / 0.1)"/>
-      <text x="207" y="230" fontSize="9" fill="oklch(0.15 0.01 300 / 0.7)">再见</text>
-      <rect x="290" y="196" width="66" height="16" rx="4" fill="oklch(0.45 0.20 305 / 0.15)"/>
-      <text x="299" y="208" fontSize="9" fill="oklch(0.45 0.20 305)">thank you</text>
-      <rect x="290" y="218" width="66" height="16" rx="4" fill="oklch(0.45 0.20 305 / 0.15)"/>
-      <text x="303" y="230" fontSize="9" fill="oklch(0.45 0.20 305)">goodbye</text>
-      <line x1="256" y1="204" x2="290" y2="204" stroke="oklch(0.45 0.20 305)" strokeWidth="1.5" strokeDasharray="4 2"/>
-      <path d="M80 250 L100 250 L110 270 L370 270 L380 250 L400 250 L390 280 L90 280 Z" fill="oklch(0.86 0.008 300)" stroke="oklch(0.75 0.015 300)" strokeWidth="1"/>
-      <circle cx="420" cy="100" r="20" fill="oklch(0.55 0.22 150 / 0.15)"/>
+      <circle cx="240" cy="180" r="160" fill="rgba(124, 58, 237, 0.06)" />
+      <circle cx="340" cy="120" r="80" fill="rgba(124, 58, 237, 0.04)" />
+      <circle cx="140" cy="260" r="60" fill="rgba(124, 58, 237, 0.04)" />
+      <rect x="100" y="60" width="280" height="190" rx="12" fill="white" stroke="#7c3aed" strokeWidth="2"/>
+      <rect x="100" y="60" width="280" height="32" rx="12" fill="#7c3aed"/>
+      <rect x="100" y="80" width="280" height="12" fill="#7c3aed"/>
+      <circle cx="118" cy="76" r="4" fill="rgba(124, 58, 237, 0.5)"/>
+      <circle cx="132" cy="76" r="4" fill="rgba(124, 58, 237, 0.5)"/>
+      <circle cx="146" cy="76" r="4" fill="rgba(124, 58, 237, 0.5)"/>
+      <rect x="102" y="94" width="70" height="154" fill="rgba(124, 58, 237, 0.08)"/>
+      <rect x="110" y="106" width="50" height="6" rx="3" fill="rgba(124, 58, 237, 0.3)"/>
+      <rect x="110" y="120" width="40" height="5" rx="2.5" fill="rgba(124, 58, 237, 0.15)"/>
+      <rect x="110" y="132" width="45" height="5" rx="2.5" fill="rgba(124, 58, 237, 0.15)"/>
+      <rect x="110" y="144" width="35" height="5" rx="2.5" fill="rgba(124, 58, 237, 0.15)"/>
+      <rect x="110" y="160" width="50" height="6" rx="3" fill="rgba(124, 58, 237, 0.3)"/>
+      <rect x="110" y="174" width="40" height="5" rx="2.5" fill="rgba(124, 58, 237, 0.15)"/>
+      <rect x="110" y="186" width="45" height="5" rx="2.5" fill="rgba(124, 58, 237, 0.15)"/>
+      <rect x="184" y="102" width="184" height="56" rx="8" fill="rgba(124, 58, 237, 0.06)" stroke="rgba(124, 58, 237, 0.2)" strokeWidth="1"/>
+      <text x="200" y="127" fontSize="22" fontWeight="bold" fill="#7c3aed">你好</text>
+      <text x="240" y="127" fontSize="11" fill="rgba(124, 58, 237, 0.7)">nǐ hǎo</text>
+      <text x="200" y="147" fontSize="11" fill="rgba(26, 22, 37, 0.6)">hello</text>
+      <rect x="184" y="168" width="184" height="72" rx="8" fill="white" stroke="rgba(124, 58, 237, 0.2)" strokeWidth="1"/>
+      <text x="200" y="187" fontSize="9" fill="rgba(124, 58, 237, 0.7)" fontWeight="600">MATCHING</text>
+      <rect x="196" y="196" width="60" height="16" rx="4" fill="rgba(124, 58, 237, 0.1)"/>
+      <text x="207" y="208" fontSize="9" fill="rgba(26, 22, 37, 0.7)">谢谢</text>
+      <rect x="196" y="218" width="60" height="16" rx="4" fill="rgba(124, 58, 237, 0.1)"/>
+      <text x="207" y="230" fontSize="9" fill="rgba(26, 22, 37, 0.7)">再见</text>
+      <rect x="290" y="196" width="66" height="16" rx="4" fill="rgba(124, 58, 237, 0.15)"/>
+      <text x="299" y="208" fontSize="9" fill="#7c3aed">thank you</text>
+      <rect x="290" y="218" width="66" height="16" rx="4" fill="rgba(124, 58, 237, 0.15)"/>
+      <text x="303" y="230" fontSize="9" fill="#7c3aed">goodbye</text>
+      <line x1="256" y1="204" x2="290" y2="204" stroke="#7c3aed" strokeWidth="1.5" strokeDasharray="4 2"/>
+      <path d="M80 250 L100 250 L110 270 L370 270 L380 250 L400 250 L390 280 L90 280 Z" fill="#d4d0da" stroke="#b5a8c4" strokeWidth="1"/>
+      <circle cx="420" cy="100" r="20" fill="rgba(34, 197, 94, 0.15)"/>
       <text x="412" y="106" fontSize="16">✓</text>
-      <circle cx="60" cy="140" r="16" fill="oklch(0.55 0.18 270 / 0.15)"/>
+      <circle cx="60" cy="140" r="16" fill="rgba(59, 130, 246, 0.15)"/>
       <text x="53" y="146" fontSize="14">A</text>
-      <rect x="400" y="200" width="50" height="28" rx="6" fill="oklch(0.65 0.16 60 / 0.2)"/>
-      <text x="410" y="218" fontSize="10" fill="oklch(0.45 0.15 60)">HSK 1</text>
+      <rect x="400" y="200" width="50" height="28" rx="6" fill="rgba(234, 179, 8, 0.2)"/>
+      <text x="410" y="218" fontSize="10" fill="#a67c2e">HSK 1</text>
     </svg>
   );
 }
@@ -117,8 +117,8 @@ export default function LandingPage() {
       {/* ===== HERO ===== */}
       <section className="relative">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-40 -right-40 w-[600px] h-[600px] rounded-full" style={{ background: "radial-gradient(circle, oklch(0.45 0.20 305 / 0.08) 0%, transparent 70%)" }} />
-          <div className="absolute top-20 -left-20 w-[400px] h-[400px] rounded-full" style={{ background: "radial-gradient(circle, oklch(0.55 0.18 270 / 0.06) 0%, transparent 70%)" }} />
+          <div className="absolute -top-40 -right-40 w-[600px] h-[600px] rounded-full" style={{ background: "radial-gradient(circle, rgba(124, 58, 237, 0.08) 0%, transparent 70%)" }} />
+          <div className="absolute top-20 -left-20 w-[400px] h-[400px] rounded-full" style={{ background: "radial-gradient(circle, rgba(59, 130, 246, 0.06) 0%, transparent 70%)" }} />
           <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
         </div>
 
@@ -134,7 +134,7 @@ export default function LandingPage() {
                 <span className="relative">
                   <span className="text-primary">reimagined</span>
                   <svg className="absolute -bottom-1 left-0 w-full" height="8" viewBox="0 0 200 8" preserveAspectRatio="none">
-                    <path d="M0 7 Q50 0 100 5 Q150 0 200 7" stroke="oklch(0.45 0.20 305 / 0.3)" strokeWidth="3" fill="none"/>
+                    <path d="M0 7 Q50 0 100 5 Q150 0 200 7" stroke="rgba(124, 58, 237, 0.3)" strokeWidth="3" fill="none"/>
                   </svg>
                 </span>
               </h1>

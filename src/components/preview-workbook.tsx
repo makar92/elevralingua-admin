@@ -167,7 +167,7 @@ function MatchingInteractive({ content }: { content: any }) {
           return (
             <line key={`${li}-${ri}`}
               x1="45%" y1={leftY} x2="55%" y2={rightY}
-              stroke="oklch(0.50 0.18 160)" strokeWidth="2.5" strokeLinecap="round"
+              stroke="#0d9488" strokeWidth="2.5" strokeLinecap="round"
               opacity="0.7" />
           );
         })}

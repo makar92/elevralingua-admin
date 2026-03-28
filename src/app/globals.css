@@ -14,60 +14,60 @@
 
 :root {
     /* Фон страницы: светлый */
-    --background: oklch(0.97 0.004 300);
+    --background: #f5f3f7;
     /* Текст: тёмный с лёгким тёплым оттенком */
-    --foreground: oklch(0.15 0.01 300);
+    --foreground: #1a1625;
 
     /* Карточки: чисто белые (контраст с фоном) */
-    --card: oklch(1.0 0 0);
-    --card-foreground: oklch(0.15 0.01 300);
+    --card: #ffffff;
+    --card-foreground: #1a1625;
 
     /* Попапы */
-    --popover: oklch(1.0 0 0);
-    --popover-foreground: oklch(0.15 0.01 300);
+    --popover: #ffffff;
+    --popover-foreground: #1a1625;
 
     /* Primary: фиолетовый (бренд ElevraLingua) */
-    --primary: oklch(0.45 0.20 305);
-    --primary-foreground: oklch(0.98 0 0);
+    --primary: #7c3aed;
+    --primary-foreground: #fafafa;
 
     /* Вторичные */
-    --secondary: oklch(0.92 0.008 300);
-    --secondary-foreground: oklch(0.25 0.01 300);
+    --secondary: #e8e5ec;
+    --secondary-foreground: #2d2839;
 
     /* Приглушённые: заметно темнее фона */
-    --muted: oklch(0.91 0.008 300);
-    --muted-foreground: oklch(0.45 0.015 300);
+    --muted: #e5e2e9;
+    --muted-foreground: #6b6175;
 
     /* Акцент (hover): между muted и card */
-    --accent: oklch(0.93 0.010 300);
-    --accent-foreground: oklch(0.15 0.01 300);
+    --accent: #ebe8ef;
+    --accent-foreground: #1a1625;
 
     /* Деструктивный */
-    --destructive: oklch(0.55 0.22 25);
+    --destructive: #dc2626;
 
     /* Границы */
-    --border: oklch(0.86 0.008 300);
-    --input: oklch(0.88 0.008 300);
-    --ring: oklch(0.45 0.20 305);
+    --border: #d4d0da;
+    --input: #dbd8e0;
+    --ring: #7c3aed;
 
     /* Графики */
-    --chart-1: oklch(0.45 0.20 305);
-    --chart-2: oklch(0.55 0.18 270);
-    --chart-3: oklch(0.60 0.18 150);
-    --chart-4: oklch(0.65 0.16 60);
-    --chart-5: oklch(0.55 0.20 330);
+    --chart-1: #7c3aed;
+    --chart-2: #3b82f6;
+    --chart-3: #22c55e;
+    --chart-4: #eab308;
+    --chart-5: #ec4899;
 
     --radius: 0.5rem;
 
     /* Сайдбар */
-    --sidebar: oklch(0.93 0.006 300);
-    --sidebar-foreground: oklch(0.15 0.01 300);
-    --sidebar-primary: oklch(0.45 0.20 305);
-    --sidebar-primary-foreground: oklch(0.98 0 0);
-    --sidebar-accent: oklch(0.90 0.010 300);
-    --sidebar-accent-foreground: oklch(0.15 0.01 300);
-    --sidebar-border: oklch(0.86 0.008 300);
-    --sidebar-ring: oklch(0.45 0.20 305);
+    --sidebar: #eae8ed;
+    --sidebar-foreground: #1a1625;
+    --sidebar-primary: #7c3aed;
+    --sidebar-primary-foreground: #fafafa;
+    --sidebar-accent: #e2dfe7;
+    --sidebar-accent-foreground: #1a1625;
+    --sidebar-border: #d4d0da;
+    --sidebar-ring: #7c3aed;
 }
 
 @theme inline {
@@ -128,7 +128,7 @@
 /* Плейсхолдеры — светло-серые курсивом, чтобы явно отличались от введённого текста */
 input::placeholder,
 textarea::placeholder {
-    color: oklch(0.65 0.008 265);
+    color: #9794a0;
     font-style: italic;
 }
 
@@ -142,7 +142,7 @@ select:not(:disabled),
 /* Кастомный скроллбар — тонкий, в цветовой гамме приложения */
 * {
     scrollbar-width: thin;
-    scrollbar-color: oklch(0.75 0.015 305) transparent;
+    scrollbar-color: #b5a8c4 transparent;
 }
 
 ::-webkit-scrollbar {
@@ -155,10 +155,10 @@ select:not(:disabled),
 }
 
 ::-webkit-scrollbar-thumb {
-    background: oklch(0.75 0.015 305);
+    background: #b5a8c4;
     border-radius: 100px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: oklch(0.60 0.06 305);
+    background: #8b72a8;
 }
