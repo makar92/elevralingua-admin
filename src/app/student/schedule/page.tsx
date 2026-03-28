@@ -1,5 +1,4 @@
 // ===========================================
-import { formatTime12h } from "@/lib/utils";
 // Файл: src/app/student/schedule/page.tsx
 // Описание: Общее расписание ученика из всех classrooms.
 // ===========================================
@@ -7,6 +6,7 @@ import { formatTime12h } from "@/lib/utils";
 "use client";
 
 import { useEffect, useState } from "react";
+import { formatTime12h } from "@/lib/utils";
 
 const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const colors = [
