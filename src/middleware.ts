@@ -42,14 +42,14 @@ const token = await getToken({
   secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
   secureCookie: isSecure,
   cookieName: isSecure ? "__Secure-authjs.session-token" : "authjs.session-token",
-});
+})
 
   // Нет сессии — редирект на логин
   if (!token) {
     return NextResponse.redirect(new URL("/login", req.url));
   }
 
-  return NextResponse.next();
+  return NextResponse.next()
 }
 
 export const config = {
