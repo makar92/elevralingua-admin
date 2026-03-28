@@ -23,7 +23,7 @@ const sizeConfig = {
 
 // Простые SVG-флаги — основные цвета, без внешних ресурсов
 function FlagSVG({ code, w, h }: { code: string; w: number; h: number }) {
-  const flags: Record<string, JSX.Element> = {
+  const flags: Record<string, React.ReactElement> = {
     cn: ( // Китай — красный с жёлтой звездой
       <svg width={w} height={h} viewBox="0 0 30 20" className="rounded-[2px]">
         <rect width="30" height="20" fill="#DE2910"/>
