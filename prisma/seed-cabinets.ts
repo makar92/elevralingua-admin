@@ -77,11 +77,12 @@ async function main() {
   const teacherPw = await hash("teacher123", 12);
   const teacher = await prisma.user.upsert({
     where: { email: "sarah.chen@demo.com" },
-    update: {},
+    update: { image: "/image/avatars/teacher-sarah.svg" },
     create: {
       email: "sarah.chen@demo.com", name: "Sarah Chen", passwordHash: teacherPw,
       role: "TEACHER", language: "zh",
       bio: "Mandarin Chinese teacher with 8 years of experience. HSK certified, specializing in beginner and intermediate levels.",
+      image: "/image/avatars/teacher-sarah.svg",
     },
   });
   console.log("Teacher: sarah.chen@demo.com / teacher123");
@@ -89,22 +90,22 @@ async function main() {
   // ==================== Ученики ====================
   const studentPw = await hash("student123", 12);
   const emma = await prisma.user.upsert({
-    where: { email: "emma.wilson@demo.com" }, update: {},
-    create: { email: "emma.wilson@demo.com", name: "Emma Wilson", passwordHash: studentPw, role: "STUDENT" },
+    where: { email: "emma.wilson@demo.com" }, update: { image: "/image/avatars/student-emma.svg" },
+    create: { email: "emma.wilson@demo.com", name: "Emma Wilson", passwordHash: studentPw, role: "STUDENT", image: "/image/avatars/student-emma.svg" },
   });
   const james = await prisma.user.upsert({
-    where: { email: "james.park@demo.com" }, update: {},
-    create: { email: "james.park@demo.com", name: "James Park", passwordHash: studentPw, role: "STUDENT" },
+    where: { email: "james.park@demo.com" }, update: { image: "/image/avatars/student-james.svg" },
+    create: { email: "james.park@demo.com", name: "James Park", passwordHash: studentPw, role: "STUDENT", image: "/image/avatars/student-james.svg" },
   });
   const maria = await prisma.user.upsert({
-    where: { email: "maria.santos@demo.com" }, update: {},
-    create: { email: "maria.santos@demo.com", name: "Maria Santos", passwordHash: studentPw, role: "STUDENT" },
+    where: { email: "maria.santos@demo.com" }, update: { image: "/image/avatars/student-maria.svg" },
+    create: { email: "maria.santos@demo.com", name: "Maria Santos", passwordHash: studentPw, role: "STUDENT", image: "/image/avatars/student-maria.svg" },
   });
   const students = [emma, james, maria];
   console.log("Students: emma.wilson / james.park / maria.santos @demo.com / student123");
 
   // ==================== Курс ====================
-  const course = await prisma.course.findFirst({ orderBy: { createdAt: "asc" } });
+  const course = await prisma.course.findUnique({ where: { id: "seed-course-1" } });
   if (!course) { console.error("No course found! Run main seed first: npm run db:seed"); return; }
   console.log(`Using course: ${course.title}`);
 

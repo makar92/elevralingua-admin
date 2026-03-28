@@ -16,17 +16,17 @@ export default async function DashboardLayout({
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
 
-  const user = await prisma.user.findUnique({
+  const dbUser = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { role: true },
+    select: { role: true, name: true, email: true, image: true },
   });
-  if (!user) redirect("/login");
-  if (user.role === "PENDING") redirect("/choose-role");
-  if (!["SUPER_ADMIN", "ADMIN", "LINGUIST"].includes(user.role)) redirect("/");
+  if (!dbUser) redirect("/login");
+  if (dbUser.role === "PENDING") redirect("/choose-role");
+  if (!["SUPER_ADMIN", "ADMIN", "LINGUIST"].includes(dbUser.role)) redirect("/");
 
   return (
     <div className="h-screen flex flex-col overflow-hidden bg-background">
-      <TopNav user={session.user} />
+      <TopNav user={{ ...session.user, role: dbUser.role, image: dbUser.image }} />
       <main className="flex-1 overflow-hidden p-6">
         {children}
       </main>

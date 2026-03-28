@@ -202,7 +202,7 @@ export function CourseEditor({ course: initialCourse }: { course: Course }) {
 
         {/* Контент — свой скролл */}
         <div className="flex-1 min-w-0 h-full overflow-auto pr-3">
-          {selected.type === "course" && <CourseInfo course={course} />}
+          {selected.type === "course" && <CourseInfo course={course} onUpdate={reloadCourse} />}
           {selected.type === "unit" && <UnitInfo unit={selected.data} />}
           {selected.type === "lesson" && <LessonInfo lesson={selected.data} />}
           {selected.type === "section" && <SectionEditor section={selected.data} />}
@@ -309,7 +309,20 @@ export function CourseEditor({ course: initialCourse }: { course: Course }) {
 }
 
 // ===== Информация о курсе =====
-function CourseInfo({ course }: { course: Course }) {
+function CourseInfo({ course, onUpdate }: { course: Course; onUpdate: () => void }) {
+  const [toggling, setToggling] = useState(false);
+
+  const togglePublish = async () => {
+    setToggling(true);
+    await fetch(`/api/courses/${course.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ isPublished: !course.isPublished }),
+    });
+    await onUpdate();
+    setToggling(false);
+  };
+
   // Считаем общее количество уроков
   const totalLessons = course.units.reduce((s, u) => s + u.lessons.length, 0);
   return (
@@ -320,6 +333,15 @@ function CourseInfo({ course }: { course: Course }) {
           <Badge variant={course.isPublished ? "default" : "secondary"}>
             {course.isPublished ? "Опубликован" : "Черновик"}
           </Badge>
+          <Button
+            variant={course.isPublished ? "outline" : "default"}
+            size="sm"
+            onClick={togglePublish}
+            disabled={toggling}
+            className="ml-auto"
+          >
+            {toggling ? "..." : course.isPublished ? "Снять с публикации" : "Опубликовать"}
+          </Button>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">

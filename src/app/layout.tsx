@@ -15,8 +15,8 @@ import { Providers } from "@/components/providers";
 const figtree = Figtree({subsets:['latin'],variable:'--font-sans'});
 
 export const metadata: Metadata = {
-  title: "ElevraLingua Admin",
-  description: "Панель управления контентом ElevraLingua",
+  title: "ElevraLingua",
+  description: "B2B SaaS платформа для преподавателей иностранных языков",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

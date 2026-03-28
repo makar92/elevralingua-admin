@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <defs>
+    <linearGradient id="bg-s" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#e9d5ff"/>
+      <stop offset="100%" stop-color="#c084fc"/>
+    </linearGradient>
+    <linearGradient id="skin-s" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fde8d0"/>
+      <stop offset="100%" stop-color="#f5d0a9"/>
+    </linearGradient>
+  </defs>
+  <!-- Background -->
+  <circle cx="60" cy="60" r="60" fill="url(#bg-s)"/>
+  <!-- Body / Shoulders -->
+  <ellipse cx="60" cy="115" rx="38" ry="30" fill="#10b981"/>
+  <ellipse cx="60" cy="113" rx="32" ry="26" fill="#059669"/>
+  <!-- Neck -->
+  <rect x="52" y="80" width="16" height="14" rx="6" fill="url(#skin-s)"/>
+  <!-- Head -->
+  <ellipse cx="60" cy="55" rx="28" ry="30" fill="url(#skin-s)"/>
+  <!-- Hair back -->
+  <ellipse cx="60" cy="38" rx="30" ry="22" fill="#1c1917"/>
+  <!-- Hair front shape -->
+  <path d="M30 50 Q32 28 60 24 Q88 28 90 50 Q88 38 60 34 Q32 38 30 50Z" fill="#292524"/>
+  <!-- Hair sides -->
+  <path d="M30 50 Q28 65 34 78" stroke="#1c1917" stroke-width="8" fill="none" stroke-linecap="round"/>
+  <path d="M90 50 Q92 65 86 78" stroke="#1c1917" stroke-width="8" fill="none" stroke-linecap="round"/>
+  <!-- Eyes -->
+  <ellipse cx="47" cy="55" rx="3.5" ry="4" fill="#1c1917"/>
+  <ellipse cx="73" cy="55" rx="3.5" ry="4" fill="#1c1917"/>
+  <circle cx="48.5" cy="54" r="1.2" fill="white" opacity="0.8"/>
+  <circle cx="74.5" cy="54" r="1.2" fill="white" opacity="0.8"/>
+  <!-- Eyebrows -->
+  <path d="M41 48 Q47 45 53 48" stroke="#44403c" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+  <path d="M67 48 Q73 45 79 48" stroke="#44403c" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+  <!-- Nose -->
+  <path d="M58 60 Q60 64 62 60" stroke="#d4a574" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+  <!-- Mouth - friendly smile -->
+  <path d="M50 69 Q60 76 70 69" stroke="#e87461" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <!-- Blush -->
+  <circle cx="40" cy="65" r="5" fill="#fca5a5" opacity="0.25"/>
+  <circle cx="80" cy="65" r="5" fill="#fca5a5" opacity="0.25"/>
+  <!-- Earrings -->
+  <circle cx="32" cy="62" r="2" fill="#c084fc"/>
+  <circle cx="88" cy="62" r="2" fill="#c084fc"/>
+</svg>

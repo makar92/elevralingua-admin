@@ -12,17 +12,17 @@ export default async function StudentLayout({ children }: { children: React.Reac
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
 
-  const user = await prisma.user.findUnique({
+  const dbUser = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { role: true },
+    select: { role: true, name: true, email: true, image: true },
   });
-  if (!user) redirect("/login");
-  if (user.role === "PENDING") redirect("/choose-role");
-  if (user.role !== "STUDENT") redirect("/");
+  if (!dbUser) redirect("/login");
+  if (dbUser.role === "PENDING") redirect("/choose-role");
+  if (dbUser.role !== "STUDENT") redirect("/");
 
   return (
     <div className="h-screen flex flex-col overflow-hidden bg-background">
-      <StudentNav user={session.user} />
+      <StudentNav user={{ ...session.user, role: dbUser.role, image: dbUser.image }} />
       <main className="flex-1 overflow-auto">
         {children}
       </main>

@@ -2,7 +2,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 // Роли соответствуют enum UserRole из Prisma schema
-type UserRole = "SUPER_ADMIN" | "ADMIN" | "LINGUIST" | "TEACHER" | "STUDENT";
+type UserRole = "SUPER_ADMIN" | "ADMIN" | "LINGUIST" | "TEACHER" | "STUDENT" | "PENDING";
 
 interface UserBadgeProps {
   user: { name?: string | null; email?: string | null; image?: string | null; role?: string | null; lastSeenAt?: string | null };
@@ -36,6 +36,7 @@ const roleStyles: Record<UserRole, { border: string; bg: string; text: string; l
   LINGUIST:    { border: "border-amber-500",  bg: "bg-amber-100",  text: "text-amber-700",  label: "linguist" },
   TEACHER:     { border: "border-emerald-500", bg: "bg-emerald-100", text: "text-emerald-700", label: "teacher" },
   STUDENT:     { border: "border-blue-500",   bg: "bg-blue-100",   text: "text-blue-700",   label: "student" },
+  PENDING:     { border: "border-gray-400",   bg: "bg-gray-100",   text: "text-gray-600",   label: "new user" },
 };
 
 // Определяем роль: из явного пропса, из user.role, или fallback
