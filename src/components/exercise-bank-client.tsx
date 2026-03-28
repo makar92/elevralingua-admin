@@ -29,7 +29,7 @@ interface Exercise {
   referenceAnswer: string | null; gradingCriteria: string | null;
   isDefaultInWorkbook: boolean; isPublished: boolean;
   lesson?: { id: string; title: string; module: { id: string; title: string; course: { id: string; title: string } } };
-  _count?: { workbookEntries: number };
+  _count?: { answers: number };
 }
 
 // ===== Словарь типов упражнений =====
