@@ -5,7 +5,7 @@
 //   После выбора роли — редирект на /, где роль читается из БД.
 // ===========================================
 
-"use client";
+"use client"; 
 
 import { useState } from "react";
 import { signOut } from "next-auth/react";
