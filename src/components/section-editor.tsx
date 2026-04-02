@@ -58,6 +58,7 @@ const BLOCK_TYPES = [
   { type: "DIVIDER",      icon: "—",  name: "Divider",     desc: "Horizontal line" },
   { type: "SPACER",       icon: "↕️", name: "Spacer",          desc: "Empty space between blocks" },
   { type: "HTML_EMBED",   icon: "🧩", name: "HTML code",        desc: "Custom HTML/iframe" },
+  { type: "TEACHER_NOTE", icon: "🎓", name: "Teacher Note",     desc: "Visible to teacher only" },
 ];
 
 // ===== Typeы упражнений (тетрадь + банк) =====

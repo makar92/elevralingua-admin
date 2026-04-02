@@ -42,7 +42,10 @@ export function PreviewTextbook({ blocks, isTeacher }: Props) {
 
   return (
     <div className="space-y-3">
-        {blocks.map((block) => (
+        {blocks.map((block) => {
+          // TEACHER_NOTE — скрываем от учеников полностью
+          if (block.type === "TEACHER_NOTE" && !isTeacher) return null;
+          return (
           <div key={block.id}>
             {/* Рендер блока */}
             <PreviewBlock block={block} />
@@ -55,7 +58,8 @@ export function PreviewTextbook({ blocks, isTeacher }: Props) {
               </div>
             )}
           </div>
-        ))}
+          );
+        })}
       </div>
   );
 }
@@ -70,6 +74,19 @@ function PreviewBlock({ block }: { block: ContentBlock }) {
       return (
         <div className={TIPTAP_CONTENT_STYLES}
           dangerouslySetInnerHTML={{ __html: c.html || "" }} />
+      );
+
+    // --- Заметка для учителя (teacher-only, жёлтый фон) ---
+    case "TEACHER_NOTE":
+      return (
+        <div className="rounded-xl bg-amber-50 border border-amber-300/40 px-6 py-5 shadow-sm">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-base">🎓</span>
+            <span className="text-xs font-bold text-amber-700 uppercase tracking-wider">Teacher Note</span>
+          </div>
+          <div className={`${TIPTAP_CONTENT_STYLES} text-amber-900/85`}
+            dangerouslySetInnerHTML={{ __html: c.html || "" }} />
+        </div>
       );
 
     // --- Картинка ---

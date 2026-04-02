@@ -36,6 +36,19 @@ export function BlockRenderer({ block }: { block: ContentBlock }) {
           dangerouslySetInnerHTML={{ __html: c.html || "<p>Empty text</p>" }} />
       );
 
+    // --- Заметка для учителя (teacher-only) ---
+    case "TEACHER_NOTE":
+      return (
+        <div className="rounded-lg bg-amber-50 border border-amber-300/50 p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-sm">🎓</span>
+            <span className="text-xs font-semibold text-amber-700 uppercase tracking-wider">Teacher Note</span>
+          </div>
+          <div className={`${TIPTAP_CONTENT_STYLES} text-amber-900/80`}
+            dangerouslySetInnerHTML={{ __html: c.html || "<p>Empty note</p>" }} />
+        </div>
+      );
+
     // --- Картинка с подписью ---
     case "IMAGE":
       return (

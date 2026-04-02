@@ -172,6 +172,7 @@ enum ContentBlockType {
   HTML_EMBED
   VOCAB_CARD
   DIALOGUE
+  TEACHER_NOTE
 }
 
 // ==================== СЛОЙ УЧИТЕЛЯ ====================

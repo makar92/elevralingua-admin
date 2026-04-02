@@ -83,6 +83,7 @@ export function BlockForm({ type, initialData, onSave, onCancel }: Props) {
     <div className="space-y-5">
       {/* Рендерим форму в зависимости от типа блока */}
       {type === "TEXT" && <TextForm data={data} set={set} />}
+      {type === "TEACHER_NOTE" && <TeacherNoteBlockForm data={data} set={set} />}
       {type === "IMAGE" && <ImageForm data={data} set={set} upload={uploadFile} uploading={uploading} />}
       {type === "AUDIO" && <AudioForm data={data} set={set} upload={uploadFile} uploading={uploading} />}
       {type === "YOUTUBE" && <YouTubeForm data={data} set={set} />}
@@ -92,7 +93,7 @@ export function BlockForm({ type, initialData, onSave, onCancel }: Props) {
       {type === "DIALOGUE" && <DialogueForm data={data} set={set} />}
 
       {/* Заметка для учителя — для ВСЕХ типов кроме DIVIDER и SPACER */}
-      {type !== "DIVIDER" && type !== "SPACER" && (
+      {type !== "DIVIDER" && type !== "SPACER" && type !== "TEACHER_NOTE" && (
         <>
           <Separator />
           <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg p-4">
@@ -130,6 +131,24 @@ function TextForm({ data, set }: { data: any; set: any }) {
     <div className="space-y-2">
       <Label className="text-base text-foreground">Text</Label>
       <TiptapEditor content={data.html || ""} onChange={(html) => set("html", html)} />
+    </div>
+  );
+}
+
+// ===== TEACHER NOTE — текст, видимый только учителю =====
+function TeacherNoteBlockForm({ data, set }: { data: any; set: any }) {
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center gap-2 mb-1">
+        <span className="text-lg">🎓</span>
+        <Label className="text-base text-amber-700 font-semibold">Teacher Note</Label>
+      </div>
+      <p className="text-sm text-muted-foreground">
+        This block is visible only to the teacher. Use it for teaching instructions, tips, and guidelines.
+      </p>
+      <div className="border-2 border-amber-400/30 rounded-lg overflow-hidden">
+        <TiptapEditor content={data.html || ""} onChange={(html) => set("html", html)} />
+      </div>
     </div>
   );
 }
@@ -568,6 +587,8 @@ function DialogueForm({ data, set }: { data: any; set: any }) {
 function getDefaultData(type: string): any {
   switch (type) {
     case "TEXT":
+      return { html: "" };
+    case "TEACHER_NOTE":
       return { html: "" };
     case "IMAGE":
       return { url: "", caption: "", alt: "" };
