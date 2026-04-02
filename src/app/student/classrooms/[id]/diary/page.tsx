@@ -2,8 +2,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { formatTime12h } from "@/lib/utils";
 import { useParams } from "next/navigation";
-import { ClassroomTabs, STUDENT_TABS } from "@/components/shared/classroom-tabs";
-import { ClassroomHeader } from "@/components/shared/classroom-header";
+import { useStudentClassroom } from "../layout";
 import { Badge } from "@/components/ui/badge";
 import { GradeBadge } from "@/components/shared/grade-badge";
 
@@ -15,13 +14,14 @@ const greens=["","bg-emerald-200 text-emerald-900","bg-emerald-400 text-emerald-
 
 export default function StudentDiary(){
   const{id}=useParams();
-  const[classroom,setClassroom]=useState<any>(null);const[logs,setLogs]=useState<any[]>([]);
+  const{ classroom }=useStudentClassroom();
+  const[logs,setLogs]=useState<any[]>([]);
   const[selectedLog,setSelectedLog]=useState<any>(null);const[dayLogs,setDayLogs]=useState<any[]>([]);
   const[year,setYear]=useState(new Date().getFullYear());const[month,setMonth]=useState(new Date().getMonth());
   const[loading,setLoading]=useState(true);
   const ms=`${year}-${String(month+1).padStart(2,"0")}`;
 
-  const load=useCallback(async()=>{setLoading(true);const[c,l]=await Promise.all([fetch(`/api/classrooms/${id}`).then(r=>r.ok?r.json():null),fetch(`/api/lesson-log?classroomId=${id}&month=${ms}&studentId=me`).then(r=>r.ok?r.json():[])]);setClassroom(c);setLogs((Array.isArray(l)?l:[]).filter((x:any)=>x.status!=="CANCELLED"));setLoading(false);},[id,ms]);
+  const load=useCallback(async()=>{setLoading(true);const l=await fetch(`/api/lesson-log?classroomId=${id}&month=${ms}&studentId=me`).then(r=>r.ok?r.json():[]);setLogs((Array.isArray(l)?l:[]).filter((x:any)=>x.status!=="CANCELLED"));setLoading(false);},[id,ms]);
   useEffect(()=>{load();},[load]);
 
   const chM=(d:number)=>{let m=month+d,y=year;if(m>11){m=0;y++;}if(m<0){m=11;y--;}setMonth(m);setYear(y);setSelectedLog(null);setDayLogs([]);};
@@ -35,8 +35,6 @@ export default function StudentDiary(){
 
   return(
     <div className="p-6 max-w-7xl mx-auto">
-      <ClassroomHeader classroom={classroom||{}}/>
-      <ClassroomTabs basePath={`/student/classrooms/${id}`} tabs={STUDENT_TABS()}/>
       <div className="flex gap-5">
         <div className="w-52 flex-shrink-0">
           <div className="flex items-center justify-between mb-2"><button onClick={()=>chM(-1)} className="text-sm text-muted-foreground hover:text-foreground px-1">&lt;</button><span className="text-xs font-semibold text-foreground">{MO[month]} {year}</span><button onClick={()=>chM(1)} className="text-sm text-muted-foreground hover:text-foreground px-1">&gt;</button></div>

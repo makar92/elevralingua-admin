@@ -9,8 +9,7 @@
 "use client";
 import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
-import { ClassroomTabs, TEACHER_TABS } from "@/components/shared/classroom-tabs";
-import { ClassroomHeader } from "@/components/shared/classroom-header";
+import { useClassroom } from "../layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -27,7 +26,7 @@ const greens = ["","bg-emerald-200 text-emerald-900","bg-emerald-400 text-emeral
 
 export default function TeacherJournal() {
   const { id } = useParams();
-  const [classroom, setClassroom] = useState<any>(null);
+  const { classroom } = useClassroom();
   const [logs, setLogs] = useState<any[]>([]);
   const [selectedLog, setSelectedLog] = useState<any>(null);
   const [dayLogs, setDayLogs] = useState<any[]>([]);
@@ -48,11 +47,7 @@ export default function TeacherJournal() {
   const sc = classroom?.enrollments?.length || 0;
 
   const load = useCallback(async () => {
-    const [c, l] = await Promise.all([
-      fetch(`/api/classrooms/${id}`).then(r => r.ok ? r.json() : null),
-      fetch(`/api/lesson-log?classroomId=${id}&month=${ms}`).then(r => r.ok ? r.json() : []),
-    ]);
-    setClassroom(c);
+    const l = await fetch(`/api/lesson-log?classroomId=${id}&month=${ms}`).then(r => r.ok ? r.json() : []);
     setLogs(Array.isArray(l) ? l : []);
     setLoading(false);
   }, [id, ms]);
@@ -205,8 +200,6 @@ export default function TeacherJournal() {
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
-      <ClassroomHeader classroom={classroom || {}} />
-      <ClassroomTabs basePath={`/teacher/classrooms/${id}`} tabs={TEACHER_TABS(sc)} />
 
       <div className="flex gap-5">
         {/* === Левая панель: календарь === */}

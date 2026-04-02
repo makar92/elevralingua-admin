@@ -1,8 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { ClassroomTabs, TEACHER_TABS } from "@/components/shared/classroom-tabs";
-import { ClassroomHeader } from "@/components/shared/classroom-header";
+import { useClassroom } from "../layout";
 import { PreviewTextbook } from "@/components/preview-textbook";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,7 +10,7 @@ import { GradeBadge, GradePicker } from "@/components/shared/grade-badge";
 
 export default function TeacherTextbook() {
   const { id } = useParams();
-  const [classroom, setClassroom] = useState<any>(null);
+  const { classroom } = useClassroom();
   const [selSec, setSelSec] = useState("");
   const [secBlocks, setSecBlocks] = useState<any[]>([]);
   const [secTitle, setSecTitle] = useState("");
@@ -34,16 +33,15 @@ export default function TeacherTextbook() {
 
   useEffect(() => {
     Promise.all([
-      fetch(`/api/classrooms/${id}`).then(r => r.json()),
       fetch(`/api/section-visibility?classroomId=${id}`).then(r => r.ok ? r.json() : []),
       fetch(`/api/study-assignments?classroomId=${id}`).then(r => r.ok ? r.json() : []),
-    ]).then(([c, v, a]) => {
-      setClassroom(c); setVis(Array.isArray(v)?v:[]); setAssigns(Array.isArray(a)?a:[]);
-      const first = c.course?.units?.[0]?.lessons?.[0]?.sections?.[0];
+    ]).then(([v, a]) => {
+      setVis(Array.isArray(v)?v:[]); setAssigns(Array.isArray(a)?a:[]);
+      const first = classroom?.course?.units?.[0]?.lessons?.[0]?.sections?.[0];
       if (first) loadSec(first.id, first.title);
       setLoading(false);
     });
-  }, [id]);
+  }, [id, classroom]);
 
   const loadSec = async (sid: string, t: string) => {
     setSelSec(sid); setSecTitle(t); setBlocksLoading(true);
@@ -132,11 +130,6 @@ export default function TeacherTextbook() {
   if (loading) return <div className="p-6 text-muted-foreground animate-pulse">Loading textbook...</div>;
 
   return (
-    <div className="flex flex-col h-[calc(100vh-57px)]">
-      <div className="flex-shrink-0 px-6 pt-6">
-        <ClassroomHeader classroom={classroom||{}}/>
-        <ClassroomTabs basePath={`/teacher/classrooms/${id}`} tabs={TEACHER_TABS(sc)}/>
-      </div>
       <div className="flex flex-1 min-h-0 gap-4 px-6 pb-20">
         {!sidebarOpen && (
           <button onClick={() => setSidebarOpen(true)} className="flex-shrink-0 self-start w-8 h-8 flex items-center justify-center rounded-lg bg-muted hover:bg-accent text-muted-foreground hover:text-foreground transition-colors" title="Expand panel">
@@ -251,6 +244,5 @@ export default function TeacherTextbook() {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
   );
 }

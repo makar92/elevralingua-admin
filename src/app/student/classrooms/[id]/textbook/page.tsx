@@ -1,15 +1,14 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { ClassroomTabs, STUDENT_TABS } from "@/components/shared/classroom-tabs";
-import { ClassroomHeader } from "@/components/shared/classroom-header";
+import { useStudentClassroom } from "../layout";
 import { PreviewTextbook } from "@/components/preview-textbook";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 export default function StudentTextbook(){
   const{id}=useParams();
-  const[classroom,setClassroom]=useState<any>(null);
+  const{ classroom }=useStudentClassroom();
   const[selSec,setSelSec]=useState("");const[secBlocks,setSecBlocks]=useState<any[]>([]);const[secTitle,setSecTitle]=useState("");
   const[loading,setLoading]=useState(true);const[bLoading,setBLoading]=useState(false);
   const[uCol,setUCol]=useState<Set<string>>(new Set());const[lCol,setLCol]=useState<Set<string>>(new Set());
@@ -20,19 +19,17 @@ export default function StudentTextbook(){
 
   useEffect(()=>{
     Promise.all([
-      fetch(`/api/classrooms/${id}`).then(r=>r.json()),
       fetch(`/api/section-visibility?classroomId=${id}`).then(r=>r.ok?r.json():[]),
       fetch(`/api/study-assignments?classroomId=${id}`).then(r=>r.ok?r.json():[]),
-    ]).then(([c,v,a])=>{
-      setClassroom(c);
+    ]).then(([v,a])=>{
       const ids=new Set((Array.isArray(v)?v:[]).map((x:any)=>x.sectionId));
       setOpenIds(ids);setAssigns(Array.isArray(a)?a:[]);
-      const allSecs=c.course?.units?.flatMap((u:any)=>u.lessons?.flatMap((l:any)=>l.sections||[])||[])||[];
+      const allSecs=classroom?.course?.units?.flatMap((u:any)=>u.lessons?.flatMap((l:any)=>l.sections||[])||[])||[];
       const first=allSecs.find((s:any)=>ids.has(s.id));
       if(first)loadSec(first.id,first.title);
       setLoading(false);
     });
-  },[id]);
+  },[id,classroom]);
 
   const loadSec=async(sid:string,t:string)=>{setSelSec(sid);setSecTitle(t);setBLoading(true);setCommenting(false);
     try{const d=await fetch(`/api/sections/${sid}/blocks`).then(r=>r.json());setSecBlocks(Array.isArray(d)?d:[]);}catch{setSecBlocks([]);}setBLoading(false);};
@@ -67,14 +64,9 @@ export default function StudentTextbook(){
     if(tl===0)return null;return{completed:cl,total:tl};
   };
 
-  if(filtered.length===0)return(<div className="p-6 max-w-6xl mx-auto"><ClassroomHeader classroom={classroom||{}}/><ClassroomTabs basePath={`/student/classrooms/${id}`} tabs={STUDENT_TABS()}/><div className="text-center py-16"><p className="text-lg text-muted-foreground">Textbook is empty</p><p className="text-sm text-muted-foreground mt-1">The teacher hasn't opened any materials yet</p></div></div>);
+  if(filtered.length===0)return(<div className="p-6 max-w-6xl mx-auto"><div className="text-center py-16"><p className="text-lg text-muted-foreground">Textbook is empty</p><p className="text-sm text-muted-foreground mt-1">The teacher hasn't opened any materials yet</p></div></div>);
 
   return(
-    <div className="flex flex-col h-[calc(100vh-57px)]">
-      <div className="flex-shrink-0 px-6 pt-6">
-        <ClassroomHeader classroom={classroom||{}}/>
-        <ClassroomTabs basePath={`/student/classrooms/${id}`} tabs={STUDENT_TABS()}/>
-      </div>
       <div className="flex flex-1 min-h-0 gap-4 px-6 pb-6">
         {!sidebarOpen && (
           <button onClick={() => setSidebarOpen(true)} className="flex-shrink-0 self-start w-8 h-8 flex items-center justify-center rounded-lg bg-muted hover:bg-accent text-muted-foreground hover:text-foreground transition-colors" title="Expand panel">
@@ -109,6 +101,5 @@ export default function StudentTextbook(){
           </div>):<p className="text-muted-foreground text-center py-16">Select a section</p>}
         </div>
       </div>
-    </div>
   );
 }

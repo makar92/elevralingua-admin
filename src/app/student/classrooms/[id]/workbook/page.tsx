@@ -8,14 +8,13 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { ClassroomTabs, STUDENT_TABS } from "@/components/shared/classroom-tabs";
-import { ClassroomHeader } from "@/components/shared/classroom-header";
+import { useStudentClassroom } from "../layout";
 import { ExercisePreview } from "@/components/exercise-preview";
 import { Badge } from "@/components/ui/badge";
 
 export default function StudentWorkbook() {
   const { id } = useParams();
-  const [classroom, setClassroom] = useState<any>(null);
+  const { classroom } = useStudentClassroom();
   const [selSection, setSelSection] = useState("");
   const [selSectionTitle, setSelSectionTitle] = useState("");
   const [exercises, setExercises] = useState<any[]>([]);
@@ -29,13 +28,10 @@ export default function StudentWorkbook() {
 
   useEffect(() => {
     Promise.all([
-      fetch(`/api/classrooms/${id}`).then(r => r.json()),
       fetch(`/api/exercise-assignments?classroomId=${id}`).then(r => r.ok ? r.json() : []),
       fetch(`/api/answers?classroomId=${id}`).then(r => r.ok ? r.json() : []),
-    ]).then(([c, ea, ans]) => {
-      setClassroom(c);
+    ]).then(([ea, ans]) => {
       setEaList(Array.isArray(ea) ? ea : []);
-      // Index answers by exerciseId — take latest, include all (not just non-homework)
       const ansMap: Record<string, any> = {};
       if (Array.isArray(ans)) {
         for (const a of ans) {
@@ -46,12 +42,12 @@ export default function StudentWorkbook() {
       }
       setAnswers(ansMap);
       const assignedSecIds = new Set((Array.isArray(ea) ? ea : []).map((a: any) => a.exercise?.section?.id).filter(Boolean));
-      const allSecs = c.course?.units?.flatMap((u: any) => u.lessons?.flatMap((l: any) => l.sections || []) || []) || [];
+      const allSecs = classroom?.course?.units?.flatMap((u: any) => u.lessons?.flatMap((l: any) => l.sections || []) || []) || [];
       const firstAssigned = allSecs.find((s: any) => assignedSecIds.has(s.id));
       if (firstAssigned) loadExBySec(firstAssigned.id, firstAssigned.title, ea);
       setLoading(false);
     });
-  }, [id]);
+  }, [id, classroom]);
 
   const loadExBySec = async (secId: string, title: string, eaOverride?: any[]) => {
     setSelSection(secId); setSelSectionTitle(title); setExLoading(true);
@@ -121,12 +117,7 @@ export default function StudentWorkbook() {
   })).filter((u: any) => u.lessons.length > 0);
 
   return (
-    <div className="flex flex-col h-[calc(100vh-57px)]">
-      <div className="flex-shrink-0 px-6 pt-6">
-        <ClassroomHeader classroom={classroom || {}} />
-        <ClassroomTabs basePath={`/student/classrooms/${id}`} tabs={STUDENT_TABS()} />
-      </div>
-
+    <>
       {filtered.length === 0 ? (
         <div className="text-center py-16 px-6">
           <p className="text-lg text-muted-foreground">Workbook is empty</p>
@@ -205,6 +196,6 @@ export default function StudentWorkbook() {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }

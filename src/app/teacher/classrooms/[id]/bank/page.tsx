@@ -1,8 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { ClassroomTabs, TEACHER_TABS } from "@/components/shared/classroom-tabs";
-import { ClassroomHeader } from "@/components/shared/classroom-header";
+import { useClassroom } from "../layout";
 import { ExercisePreview } from "@/components/exercise-preview";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 
 export default function TeacherBank() {
   const { id } = useParams();
-  const [classroom, setClassroom] = useState<any>(null);
+  const { classroom } = useClassroom();
   const [selSection, setSelSection] = useState("");
   const [selSectionTitle, setSelSectionTitle] = useState("");
   const [exercises, setExercises] = useState<any[]>([]);
@@ -30,16 +29,13 @@ export default function TeacherBank() {
   const total = classroom?.enrollments?.length || 0;
 
   useEffect(() => {
-    Promise.all([
-      fetch(`/api/classrooms/${id}`).then(r => r.json()),
-      fetch(`/api/exercise-assignments?classroomId=${id}`).then(r => r.ok ? r.json() : []),
-    ]).then(([c, ea]) => {
-      setClassroom(c); setEaList(Array.isArray(ea) ? ea : []);
-      const firstSec = c.course?.units?.[0]?.lessons?.[0]?.sections?.[0];
+    fetch(`/api/exercise-assignments?classroomId=${id}`).then(r => r.ok ? r.json() : []).then(ea => {
+      setEaList(Array.isArray(ea) ? ea : []);
+      const firstSec = classroom?.course?.units?.[0]?.lessons?.[0]?.sections?.[0];
       if (firstSec) loadBank(firstSec.id, firstSec.title);
       setLoading(false);
     });
-  }, [id]);
+  }, [id, classroom]);
 
   const loadBank = async (secId: string, title: string) => {
     setSelSection(secId); setSelSectionTitle(title); setChecked(new Set()); setExLoading(true);
@@ -67,11 +63,6 @@ export default function TeacherBank() {
   if (loading) return <div className="p-6 text-muted-foreground animate-pulse">Loading exercise bank...</div>;
 
   return (
-    <div className="flex flex-col h-[calc(100vh-57px)]">
-      <div className="flex-shrink-0 px-6 pt-6">
-        <ClassroomHeader classroom={classroom || {}} />
-        <ClassroomTabs basePath={`/teacher/classrooms/${id}`} tabs={TEACHER_TABS(sc)} />
-      </div>
       <div className="flex flex-1 min-h-0 gap-4 px-6 pb-20">
         {!sidebarOpen && (
           <button onClick={() => setSidebarOpen(true)} className="flex-shrink-0 self-start w-8 h-8 flex items-center justify-center rounded-lg bg-muted hover:bg-accent text-muted-foreground hover:text-foreground transition-colors" title="Expand panel">
@@ -151,6 +142,5 @@ export default function TeacherBank() {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
   );
 }

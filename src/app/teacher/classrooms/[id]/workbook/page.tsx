@@ -6,8 +6,7 @@
 "use client";
 import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
-import { ClassroomTabs, TEACHER_TABS } from "@/components/shared/classroom-tabs";
-import { ClassroomHeader } from "@/components/shared/classroom-header";
+import { useClassroom } from "../layout";
 import { ExercisePreview } from "@/components/exercise-preview";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -26,7 +25,7 @@ type AnswerData = {
 
 export default function TeacherWorkbook() {
   const { id } = useParams();
-  const [classroom, setClassroom] = useState<any>(null);
+  const { classroom } = useClassroom();
   const [selSection, setSelSection] = useState("");
   const [selSectionTitle, setSelSectionTitle] = useState("");
   const [exercises, setExercises] = useState<any[]>([]);
@@ -54,16 +53,14 @@ export default function TeacherWorkbook() {
   const hasSelection = checkedSections.size > 0 || checkedExercises.size > 0;
 
   const loadAll = useCallback(async () => {
-    const [c, ea, ans] = await Promise.all([
-      fetch(`/api/classrooms/${id}`).then(r => r.json()),
+    const [ea, ans] = await Promise.all([
       fetch(`/api/exercise-assignments?classroomId=${id}`).then(r => r.ok ? r.json() : []),
       fetch(`/api/answers/by-classroom?classroomId=${id}`).then(r => r.ok ? r.json() : []),
     ]);
-    setClassroom(c); setEaList(Array.isArray(ea) ? ea : []); setAllAnswers(Array.isArray(ans) ? ans : []);
-    return c;
+    setEaList(Array.isArray(ea) ? ea : []); setAllAnswers(Array.isArray(ans) ? ans : []);
   }, [id]);
 
-  useEffect(() => { loadAll().then(c => { const f = c?.course?.units?.[0]?.lessons?.[0]?.sections?.[0]; if (f) loadExBySec(f.id, f.title); setLoading(false); }); }, [loadAll]);
+  useEffect(() => { loadAll().then(() => { const f = classroom?.course?.units?.[0]?.lessons?.[0]?.sections?.[0]; if (f) loadExBySec(f.id, f.title); setLoading(false); }); }, [loadAll, classroom]);
 
   const loadExBySec = async (secId: string, title: string) => {
     setSelSection(secId); setSelSectionTitle(title); setExLoading(true);
@@ -181,11 +178,6 @@ export default function TeacherWorkbook() {
   if (loading) return <div className="p-6 text-muted-foreground animate-pulse">Loading workbook...</div>;
 
   return (
-    <div className="flex flex-col h-[calc(100vh-57px)]">
-      <div className="flex-shrink-0 px-6 pt-6">
-        <ClassroomHeader classroom={classroom || {}} />
-        <ClassroomTabs basePath={`/teacher/classrooms/${id}`} tabs={TEACHER_TABS(sc)} />
-      </div>
       <div className="flex flex-1 min-h-0 gap-4 px-6 pb-20">
         {!sidebarOpen && (
           <button onClick={() => setSidebarOpen(true)} className="flex-shrink-0 self-start w-8 h-8 flex items-center justify-center rounded-lg bg-muted hover:bg-accent text-muted-foreground hover:text-foreground transition-colors" title="Expand panel">
@@ -390,6 +382,5 @@ export default function TeacherWorkbook() {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
   );
 }
