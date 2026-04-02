@@ -178,6 +178,7 @@ export default function TeacherWorkbook() {
   if (loading) return <div className="p-6 text-muted-foreground animate-pulse">Loading workbook...</div>;
 
   return (
+    <>
       <div className="flex flex-1 min-h-0 gap-4 px-6 pb-20">
         {!sidebarOpen && (
           <button onClick={() => setSidebarOpen(true)} className="flex-shrink-0 self-start w-8 h-8 flex items-center justify-center rounded-lg bg-muted hover:bg-accent text-muted-foreground hover:text-foreground transition-colors" title="Expand panel">
@@ -382,5 +383,6 @@ export default function TeacherWorkbook() {
           </div>
         </DialogContent>
       </Dialog>
+    </>
   );
 }
