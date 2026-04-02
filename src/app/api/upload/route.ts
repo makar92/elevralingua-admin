@@ -37,7 +37,14 @@ export async function POST(request: NextRequest) {
       // === Vercel Blob ===
       const { put } = await import("@vercel/blob");
       const ext = file.name.split(".").pop() || "bin";
-      const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const baseName = file.name
+        .replace(/\.[^.]+$/, "")           // убрать расширение
+        .replace(/[^a-zA-Z0-9_\-\u0400-\u04FF\u4e00-\u9fff]/g, "_") // безопасные символы
+        .replace(/_+/g, "_")               // убрать дубли подчёркиваний
+        .replace(/^_|_$/g, "")             // убрать крайние
+        .slice(0, 80);                     // ограничить длину
+      const prefix = `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+      const filename = `${prefix}_${baseName || "file"}.${ext}`;
 
       const blob = await put(filename, file, {
         access: "public",
@@ -54,7 +61,14 @@ export async function POST(request: NextRequest) {
       await mkdir(uploadDir, { recursive: true });
 
       const ext = file.name.split(".").pop() || "bin";
-      const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const baseName = file.name
+        .replace(/\.[^.]+$/, "")
+        .replace(/[^a-zA-Z0-9_\-\u0400-\u04FF\u4e00-\u9fff]/g, "_")
+        .replace(/_+/g, "_")
+        .replace(/^_|_$/g, "")
+        .slice(0, 80);
+      const prefix = `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+      const filename = `${prefix}_${baseName || "file"}.${ext}`;
       const filepath = path.join(uploadDir, filename);
 
       const buffer = Buffer.from(await file.arrayBuffer());
