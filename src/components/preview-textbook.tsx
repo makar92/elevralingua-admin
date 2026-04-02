@@ -242,6 +242,12 @@ function DialoguePreview({ c }: { c: any }) {
           );
         })}
       </div>
+      {/* Аудио диалога */}
+      {c.audioUrl && (
+        <div className="px-7 pb-6">
+          <AudioPlayer src={c.audioUrl} title="Listen to dialogue" />
+        </div>
+      )}
     </div>
   );
 }

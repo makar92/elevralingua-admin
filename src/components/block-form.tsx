@@ -90,7 +90,7 @@ export function BlockForm({ type, initialData, onSave, onCancel }: Props) {
       {type === "HTML_EMBED" && <HtmlEmbedForm data={data} set={set} />}
       {type === "SPACER" && <SpacerForm data={data} set={set} />}
       {type === "VOCAB_CARD" && <VocabCardForm data={data} set={set} upload={uploadFile} uploading={uploading} />}
-      {type === "DIALOGUE" && <DialogueForm data={data} set={set} />}
+      {type === "DIALOGUE" && <DialogueForm data={data} set={set} upload={uploadFile} uploading={uploading} />}
 
       {/* Заметка для учителя — для ВСЕХ типов кроме DIVIDER и SPACER */}
       {type !== "DIVIDER" && type !== "SPACER" && type !== "TEACHER_NOTE" && (
@@ -330,7 +330,7 @@ function VocabCardForm({ data, set, upload, uploading }: { data: any; set: any; 
 }
 
 // ===== ДИАЛОГ — визуальный конструктор с аватарками и фонами =====
-function DialogueForm({ data, set }: { data: any; set: any }) {
+function DialogueForm({ data, set, upload, uploading }: { data: any; set: any; upload: any; uploading: boolean }) {
   // Dialogue Participants
   const speakers: any[] = data.speakers || [];
   // Lines
@@ -438,6 +438,25 @@ function DialogueForm({ data, set }: { data: any; set: any }) {
             </div>
           )}
         </div>
+      </div>
+
+      {/* Аудио диалога (необязательное) */}
+      <div className="space-y-2 p-4 rounded-xl bg-muted/50 border border-border">
+        <Label className="text-base text-foreground">Dialogue Audio (optional)</Label>
+        <p className="text-sm text-muted-foreground">
+          Upload an audio recording of this dialogue for students to listen.
+        </p>
+        <input type="file" accept="audio/*" disabled={uploading}
+          onChange={(e) => { const f = e.target.files?.[0]; if (f) upload(f, "audioUrl"); }}
+          className="block w-full text-base text-foreground file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-primary file:text-primary-foreground file:cursor-pointer" />
+        {uploading && <p className="text-sm text-muted-foreground">Uploading...</p>}
+        {data.audioUrl && (
+          <div className="flex items-center gap-3 mt-2">
+            <audio controls src={data.audioUrl} className="flex-1" />
+            <button onClick={() => set("audioUrl", "")}
+              className="text-xs text-red-500 hover:underline flex-shrink-0">Remove</button>
+          </div>
+        )}
       </div>
 
       <Separator />
@@ -610,7 +629,7 @@ function getDefaultData(type: string): any {
         exampleSentence: "", exampleTranslation: "",
       };
     case "DIALOGUE":
-      return { situationTitle: "", speakers: ["", ""], speakerAvatars: ["man", "woman"], sceneId: "none", lines: [] };
+      return { situationTitle: "", speakers: ["", ""], speakerAvatars: ["man", "woman"], sceneId: "none", lines: [], audioUrl: "" };
     default:
       return {};
   }

@@ -178,6 +178,11 @@ export function BlockRenderer({ block }: { block: ContentBlock }) {
               </div>
             ))}
           </div>
+          {c.audioUrl && (
+            <div className="mt-3">
+              <AudioPlayer src={c.audioUrl} title="Dialogue audio" />
+            </div>
+          )}
         </div>
       );
 
