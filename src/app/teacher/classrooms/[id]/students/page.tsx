@@ -1,6 +1,6 @@
 "use client";
 import { useParams } from "next/navigation";
-import { useClassroom } from "../layout";
+import { useClassroom } from "../classroom-context";
 import { StudentsTab } from "./students-tab";
 export default function P(){
   const{id}=useParams();

@@ -7,24 +7,11 @@
 
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { ClassroomHeader } from "@/components/shared/classroom-header";
 import { ClassroomTabs, STUDENT_TABS } from "@/components/shared/classroom-tabs";
-
-interface StudentClassroomContextType {
-  classroom: any;
-  reloadClassroom: () => Promise<void>;
-}
-
-const StudentClassroomContext = createContext<StudentClassroomContextType>({
-  classroom: null,
-  reloadClassroom: async () => {},
-});
-
-export function useStudentClassroom() {
-  return useContext(StudentClassroomContext);
-}
+import { StudentClassroomContext } from "./classroom-context";
 
 export default function StudentClassroomLayout({
   children,

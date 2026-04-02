@@ -2,7 +2,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { formatTime12h } from "@/lib/utils";
 import { useParams } from "next/navigation";
-import { useStudentClassroom } from "../layout";
+import { useStudentClassroom } from "../classroom-context";
 import { Badge } from "@/components/ui/badge";
 import { GradeBadge } from "@/components/shared/grade-badge";
 

@@ -8,7 +8,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { useStudentClassroom } from "../layout";
+import { useStudentClassroom } from "../classroom-context";
 import { ExercisePreview } from "@/components/exercise-preview";
 import { Badge } from "@/components/ui/badge";
 

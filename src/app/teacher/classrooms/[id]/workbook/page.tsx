@@ -6,7 +6,7 @@
 "use client";
 import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
-import { useClassroom } from "../layout";
+import { useClassroom } from "../classroom-context";
 import { ExercisePreview } from "@/components/exercise-preview";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
