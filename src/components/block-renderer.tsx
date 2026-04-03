@@ -15,6 +15,32 @@
 
 import { AudioPlayer } from "@/components/audio-player";
 import { TIPTAP_CONTENT_STYLES } from "@/lib/utils";
+import React from "react";
+
+
+function HtmlEmbed({ html }: { html: string }) {
+  const ref = React.useRef<HTMLDivElement>(null);
+  React.useEffect(() => {
+    if (!ref.current) return;
+    ref.current.innerHTML = "";
+    const wrapper = document.createElement("div");
+    wrapper.innerHTML = html;
+    // Вставляем все не-script узлы
+    Array.from(wrapper.childNodes).forEach(node => {
+      if ((node as Element).tagName !== "SCRIPT") {
+        ref.current!.appendChild(node.cloneNode(true));
+      }
+    });
+    // Выполняем скрипты отдельно
+    Array.from(wrapper.querySelectorAll("script")).forEach(oldScript => {
+      const newScript = document.createElement("script");
+      Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+      newScript.textContent = oldScript.textContent;
+      ref.current!.appendChild(newScript);
+    });
+  }, [html]);
+  return <div ref={ref} />;
+}
 
 // ===== Typeы =====
 interface ContentBlock {
@@ -105,17 +131,16 @@ export function BlockRenderer({ block }: { block: ContentBlock }) {
       );
 
     // --- HTML-вставка (iframe и т.п.) ---
-    case "HTML_EMBED":
-      return (
-        <div className="rounded-lg overflow-hidden border border-border">
-          {c.html ? (
-            <div dangerouslySetInnerHTML={{ __html: c.html }} />
-          ) : (
-            <div className="bg-muted p-4 text-muted-foreground text-center">HTML code is empty</div>
-          )}
-        </div>
-      );
-
+case "HTML_EMBED":
+  return (
+    <div className="rounded-lg overflow-hidden border border-border">
+      {c.html ? (
+        <HtmlEmbed html={c.html} />
+      ) : (
+        <div className="bg-muted p-4 text-muted-foreground text-center">HTML code is empty</div>
+      )}
+    </div>
+  );
     // --- Универсальная карточка слова ---
     case "VOCAB_CARD":
       return (
