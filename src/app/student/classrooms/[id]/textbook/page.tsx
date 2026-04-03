@@ -25,13 +25,16 @@ export default function StudentTextbook(){
       const ids=new Set((Array.isArray(v)?v:[]).map((x:any)=>x.sectionId));
       setOpenIds(ids);setAssigns(Array.isArray(a)?a:[]);
       const allSecs=classroom?.course?.units?.flatMap((u:any)=>u.lessons?.flatMap((l:any)=>l.sections||[])||[])||[];
-      const first=allSecs.find((s:any)=>ids.has(s.id));
-      if(first)loadSec(first.id,first.title);
+      const hashSid=window.location.hash.replace("#sec=","");
+      const fromHash=hashSid&&allSecs.find((s:any)=>s.id===hashSid&&ids.has(s.id));
+      const target=fromHash||allSecs.find((s:any)=>ids.has(s.id));
+      if(target)loadSec(target.id,target.title);
       setLoading(false);
     });
   },[id,classroom]);
 
   const loadSec=async(sid:string,t:string)=>{setSelSec(sid);setSecTitle(t);setBLoading(true);setCommenting(false);
+    try{window.location.hash=`sec=${sid}`;}catch{}
     try{const d=await fetch(`/api/sections/${sid}/blocks`).then(r=>r.json());setSecBlocks(Array.isArray(d)?d:[]);}catch{setSecBlocks([]);}setBLoading(false);};
   const toggleU=(uid:string)=>{setUCol(p=>{const n=new Set(p);n.has(uid)?n.delete(uid):n.add(uid);return n;});};
   const toggleL=(lid:string)=>{setLCol(p=>{const n=new Set(p);n.has(lid)?n.delete(lid):n.add(lid);return n;});};

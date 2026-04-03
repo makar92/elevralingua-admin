@@ -37,14 +37,19 @@ export default function TeacherTextbook() {
       fetch(`/api/study-assignments?classroomId=${id}`).then(r => r.ok ? r.json() : []),
     ]).then(([v, a]) => {
       setVis(Array.isArray(v)?v:[]); setAssigns(Array.isArray(a)?a:[]);
-      const first = classroom?.course?.units?.[0]?.lessons?.[0]?.sections?.[0];
-      if (first) loadSec(first.id, first.title);
+      // Restore section from URL hash or fall back to first
+      const hashSid = window.location.hash.replace("#sec=", "");
+      const allSecs = classroom?.course?.units?.flatMap((u:any) => u.lessons?.flatMap((l:any) => l.sections || []) || []) || [];
+      const fromHash = hashSid && allSecs.find((s:any) => s.id === hashSid);
+      const target = fromHash || allSecs[0];
+      if (target) loadSec(target.id, target.title);
       setLoading(false);
     });
   }, [id, classroom]);
 
   const loadSec = async (sid: string, t: string) => {
     setSelSec(sid); setSecTitle(t); setBlocksLoading(true);
+    try { window.location.hash = `sec=${sid}`; } catch {}
     try { const d = await fetch(`/api/sections/${sid}/blocks`).then(r=>r.json()); setSecBlocks(Array.isArray(d)?d:[]); } catch { setSecBlocks([]); }
     setBlocksLoading(false);
   };

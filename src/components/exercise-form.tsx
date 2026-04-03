@@ -131,13 +131,14 @@ export function ExerciseForm({ exerciseType, initialData, onSave, onCancel, save
   const gradingType    = getGradingType(exerciseType);
   const isTeacherGraded = gradingType === "TEACHER";
 
-  // Loading файла
+  // Loading файла с удалением старого
   const [uploading, setUploading] = useState(false);
-  const uploadFile = async (file: File, field: string) => {
+  const uploadFile = async (file: File, field: string, oldUrl?: string) => {
     setUploading(true);
     try {
       const fd = new FormData();
       fd.append("file", file);
+      if (oldUrl) fd.append("oldUrl", oldUrl);
       const res = await fetch("/api/upload", { method: "POST", body: fd });
       if (res.ok) {
         const { url } = await res.json();
@@ -718,11 +719,27 @@ function DictationForm({ content, setContent, upload, uploading }: any) {
     <div className="space-y-3">
       <div className="space-y-1.5">
         <Label className="text-sm font-medium text-foreground">Dictation Audio *</Label>
-        <input type="file" accept="audio/*" disabled={uploading}
-          onChange={(e) => { const f = e.target.files?.[0]; if (f) upload(f, "audioUrl"); }}
-          className="block w-full text-sm text-foreground file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-sm file:bg-primary file:text-primary-foreground file:cursor-pointer" />
-        {uploading && <p className="text-xs text-muted-foreground">Uploading...</p>}
-        {content.audioUrl && <audio controls src={content.audioUrl} className="mt-2 w-full" />}
+        {content.audioUrl ? (
+          <div className="space-y-2">
+            <audio controls src={content.audioUrl} className="w-full" />
+            <div className="flex items-center gap-3">
+              <label className="cursor-pointer inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border bg-card text-sm text-foreground hover:bg-accent transition-colors">
+                <span>Replace audio</span>
+                <input type="file" accept="audio/*" className="hidden" disabled={uploading}
+                  onChange={(e) => { const f = e.target.files?.[0]; if (f) upload(f, "audioUrl", content.audioUrl); }} />
+              </label>
+              <button onClick={() => setContent("audioUrl", "")} className="text-xs text-red-500 hover:underline">Remove</button>
+              {uploading && <span className="text-xs text-muted-foreground">Uploading...</span>}
+            </div>
+          </div>
+        ) : (
+          <>
+            <input type="file" accept="audio/*" disabled={uploading}
+              onChange={(e) => { const f = e.target.files?.[0]; if (f) upload(f, "audioUrl"); }}
+              className="block w-full text-sm text-foreground file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-sm file:bg-primary file:text-primary-foreground file:cursor-pointer" />
+            {uploading && <p className="text-xs text-muted-foreground">Uploading...</p>}
+          </>
+        )}
       </div>
       <div className="space-y-1.5">
         <Label className="text-sm font-medium text-foreground">
@@ -744,12 +761,26 @@ function DescribeImageForm({ content, setContent, upload, uploading }: any) {
     <div className="space-y-3">
       <div className="space-y-1.5">
         <Label className="text-sm font-medium text-foreground">Image *</Label>
-        <input type="file" accept="image/*" disabled={uploading}
-          onChange={(e) => { const f = e.target.files?.[0]; if (f) upload(f, "imageUrl"); }}
-          className="block w-full text-sm text-foreground file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-sm file:bg-primary file:text-primary-foreground file:cursor-pointer" />
-        {uploading && <p className="text-xs text-muted-foreground">Uploading...</p>}
-        {content.imageUrl && (
-          <img src={content.imageUrl} alt="" className="max-w-xs rounded-xl mt-2 border border-border" />
+        {content.imageUrl ? (
+          <div className="space-y-2">
+            <img src={content.imageUrl} alt="" className="max-w-xs rounded-xl border border-border" />
+            <div className="flex items-center gap-3">
+              <label className="cursor-pointer inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border bg-card text-sm text-foreground hover:bg-accent transition-colors">
+                <span>Replace image</span>
+                <input type="file" accept="image/*" className="hidden" disabled={uploading}
+                  onChange={(e) => { const f = e.target.files?.[0]; if (f) upload(f, "imageUrl", content.imageUrl); }} />
+              </label>
+              <button onClick={() => setContent("imageUrl", "")} className="text-xs text-red-500 hover:underline">Remove</button>
+              {uploading && <span className="text-xs text-muted-foreground">Uploading...</span>}
+            </div>
+          </div>
+        ) : (
+          <>
+            <input type="file" accept="image/*" disabled={uploading}
+              onChange={(e) => { const f = e.target.files?.[0]; if (f) upload(f, "imageUrl"); }}
+              className="block w-full text-sm text-foreground file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-sm file:bg-primary file:text-primary-foreground file:cursor-pointer" />
+            {uploading && <p className="text-xs text-muted-foreground">Uploading...</p>}
+          </>
         )}
       </div>
     </div>

@@ -43,14 +43,17 @@ export default function StudentWorkbook() {
       setAnswers(ansMap);
       const assignedSecIds = new Set((Array.isArray(ea) ? ea : []).map((a: any) => a.exercise?.section?.id).filter(Boolean));
       const allSecs = classroom?.course?.units?.flatMap((u: any) => u.lessons?.flatMap((l: any) => l.sections || []) || []) || [];
-      const firstAssigned = allSecs.find((s: any) => assignedSecIds.has(s.id));
-      if (firstAssigned) loadExBySec(firstAssigned.id, firstAssigned.title, ea);
+      const hashSid = window.location.hash.replace("#sec=", "");
+      const fromHash = hashSid && allSecs.find((s: any) => s.id === hashSid && assignedSecIds.has(s.id));
+      const target = fromHash || allSecs.find((s: any) => assignedSecIds.has(s.id));
+      if (target) loadExBySec(target.id, target.title, ea);
       setLoading(false);
     });
   }, [id, classroom]);
 
   const loadExBySec = async (secId: string, title: string, eaOverride?: any[]) => {
     setSelSection(secId); setSelSectionTitle(title); setExLoading(true);
+    try { window.location.hash = `sec=${secId}`; } catch {}
     try {
       const all = await fetch(`/api/sections/${secId}/exercises`).then(r => r.json());
       const allEx = Array.isArray(all) ? all : [];

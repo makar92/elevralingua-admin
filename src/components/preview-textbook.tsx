@@ -1,24 +1,20 @@
 // ===========================================
 // Файл: src/components/preview-textbook.tsx
-// Путь:  elevralingua-admin/src/components/preview-textbook.tsx
-//
 // Описание:
 //   Красивый рендер учебника для режима просмотра.
-//   Отображает блоки как в реальном учебнике:
-//   - Стандартный отступ между блоками (1-2 строки)
-//   - Карточки слов — визуально выразительные
-//   - Диалоги — с аватарками и фонами
-//   - Teacher Notes — видны только в режиме учителя
-//   Поддерживает все 10 типов блоков включая SPACER.
+//   Поддерживает все 11 типов блоков.
+//   VOCAB_CARD: вертикальный layout, word необязательное, example с лейблом.
+//   SOUND_CARDS: интерактивные карточки с аудио.
 // ===========================================
 
 "use client";
 
+import { useState, useRef, useCallback } from "react";
 import { AudioPlayer } from "@/components/audio-player";
 import { AVATAR_MAP, SCENE_MAP } from "@/lib/dialogue-assets";
 import { TIPTAP_CONTENT_STYLES } from "@/lib/utils";
 
-// ===== Typeы =====
+// ===== Типы =====
 interface ContentBlock {
   id: string; type: string; contentJson: any;
   teacherNote?: { noteHtml: string } | null;
@@ -26,12 +22,11 @@ interface ContentBlock {
 
 interface Props {
   blocks: ContentBlock[];
-  isTeacher: boolean;    // true = показывать заметки учителя
+  isTeacher: boolean;
 }
 
 // ===== Главный рендер учебника =====
 export function PreviewTextbook({ blocks, isTeacher }: Props) {
-  // Пустое состояние
   if (blocks.length === 0) {
     return (
       <div className="text-center py-20">
@@ -43,13 +38,10 @@ export function PreviewTextbook({ blocks, isTeacher }: Props) {
   return (
     <div className="space-y-3">
         {blocks.map((block) => {
-          // TEACHER_NOTE — скрываем от учеников полностью
           if (block.type === "TEACHER_NOTE" && !isTeacher) return null;
           return (
           <div key={block.id}>
-            {/* Рендер блока */}
             <PreviewBlock block={block} />
-            {/* Заметка учителя (если есть и режим учителя) */}
             {isTeacher && block.teacherNote?.noteHtml && (
               <div className="mt-4 ml-4 pl-4 border-l-2 border-amber-600/40">
                 <p className="text-xs font-semibold text-amber-700 uppercase tracking-wider mb-1">Teacher Note</p>
@@ -64,19 +56,29 @@ export function PreviewTextbook({ blocks, isTeacher }: Props) {
   );
 }
 
+// Sound Cards color map
+const SOUND_CARD_COLOR_MAP: Record<string, { border: string; bg: string; borderHover: string }> = {
+  blue:   { border: "#3B82F6", bg: "#EFF6FF", borderHover: "#1D4ED8" },
+  green:  { border: "#10B981", bg: "#ECFDF5", borderHover: "#065F46" },
+  yellow: { border: "#F59E0B", bg: "#FFFBEB", borderHover: "#92400E" },
+  red:    { border: "#EF4444", bg: "#FEF2F2", borderHover: "#991B1B" },
+  purple: { border: "#8B5CF6", bg: "#F5F3FF", borderHover: "#5B21B6" },
+  pink:   { border: "#EC4899", bg: "#FDF2F8", borderHover: "#9D174D" },
+  cyan:   { border: "#06B6D4", bg: "#ECFEFF", borderHover: "#155E75" },
+  gray:   { border: "#6B7280", bg: "#F3F4F6", borderHover: "#374151" },
+};
+
 // ===== Рендер одного блока =====
 function PreviewBlock({ block }: { block: ContentBlock }) {
   const c = block.contentJson;
 
   switch (block.type) {
-    // --- Форматированный текст ---
     case "TEXT":
       return (
         <div className={TIPTAP_CONTENT_STYLES}
           dangerouslySetInnerHTML={{ __html: c.html || "" }} />
       );
 
-    // --- Заметка для учителя (teacher-only, жёлтый фон) ---
     case "TEACHER_NOTE":
       return (
         <div className="rounded-xl bg-amber-50 border border-amber-300/40 px-6 py-5 shadow-sm">
@@ -89,7 +91,6 @@ function PreviewBlock({ block }: { block: ContentBlock }) {
         </div>
       );
 
-    // --- Картинка ---
     case "IMAGE":
       return c.url ? (
         <figure>
@@ -98,11 +99,9 @@ function PreviewBlock({ block }: { block: ContentBlock }) {
         </figure>
       ) : null;
 
-    // --- Аудио ---
     case "AUDIO":
       return c.url ? <AudioPlayer src={c.url} title={c.title} /> : null;
 
-    // --- YouTube ---
     case "YOUTUBE":
       return c.url ? (
         <div className="aspect-video rounded-xl overflow-hidden shadow-lg">
@@ -113,22 +112,18 @@ function PreviewBlock({ block }: { block: ContentBlock }) {
         </div>
       ) : null;
 
-    // --- Горизонтальный разделитель ---
     case "DIVIDER":
       return <div className="py-2"><div className="h-px bg-gradient-to-r from-transparent via-border to-transparent" /></div>;
 
-    // --- Пустая строка (отступ) ---
     case "SPACER":
       return <div className={c.size === "sm" ? "h-4" : c.size === "lg" ? "h-16" : "h-8"} />;
 
-    // --- HTML-вставка ---
     case "HTML_EMBED":
       return c.html ? <div className="rounded-xl overflow-hidden" dangerouslySetInnerHTML={{ __html: c.html }} /> : null;
 
-    // --- Карточка слова (универсальная) ---
     case "VOCAB_CARD": return <VocabCardPreview c={c} />;
-    // --- Диалог ---
     case "DIALOGUE": return <DialoguePreview c={c} />;
+    case "SOUND_CARDS": return <SoundCardsPreview c={c} />;
 
     default: return null;
   }
@@ -138,41 +133,39 @@ function PreviewBlock({ block }: { block: ContentBlock }) {
 // КАРТОЧКИ ПРОСМОТРА
 // =====================================================================
 
-// ===== Универсальная карточка слова =====
+// ===== VOCAB_CARD — вертикальный layout, word необязательное =====
 function VocabCardPreview({ c }: { c: any }) {
-  // Поддерживаем и старый формат (hanzi/pinyin) и новый (word/transcription)
   const word = c.word || c.hanzi || "";
   const transcription = c.transcription || c.pinyin || "";
+  const hasExample = !!(c.exampleSentence || c.exampleHanzi);
 
   return (
     <div className="rounded-2xl overflow-hidden bg-white border border-black/8 shadow-xl">
-      <div className="p-7 flex gap-8">
-        {/* Слово — очень крупно */}
-        <div className="flex flex-col items-center justify-center min-w-[130px]">
-          <span className="text-6xl font-bold text-foreground leading-none">{word}</span>
-        </div>
-        {/* Информация */}
-        <div className="flex-1 min-w-0 py-1">
-          {/* Транскрипция — яркая, крупная */}
-          {transcription && (
-            <p className="text-2xl font-semibold text-emerald-600">{transcription}</p>
-          )}
-          {/* Перевод */}
-          {c.translation && <p className="text-xl text-foreground mt-2">{c.translation}</p>}
-          {/* Картинка */}
-          {c.imageUrl && <img src={c.imageUrl} alt={word} className="max-w-[180px] rounded-xl mt-4" />}
-          {/* Аудио */}
-          {c.audioUrl && <div className="mt-4"><AudioPlayer src={c.audioUrl} title="Pronunciation" /></div>}
-        </div>
+      <div className="p-7 space-y-3 text-center">
+        {/* Картинка — сверху */}
+        {c.imageUrl && <img src={c.imageUrl} alt={word} className="max-w-[220px] rounded-xl mx-auto" />}
+        {/* Слово/фраза — крупно */}
+        {word && (
+          <div className="text-5xl font-bold text-foreground leading-tight">{word}</div>
+        )}
+        {/* Транскрипция */}
+        {transcription && (
+          <p className="text-2xl font-semibold text-emerald-600">{transcription}</p>
+        )}
+        {/* Аудио — сразу под транскрипцией */}
+        {c.audioUrl && <div className="flex justify-center"><AudioPlayer src={c.audioUrl} title="Pronunciation" /></div>}
+        {/* Перевод */}
+        {c.translation && <p className="text-xl text-foreground">{c.translation}</p>}
       </div>
-      {/* Пример в предложении */}
-      {(c.exampleSentence || c.exampleHanzi) && (
-        <div className="px-7 py-5 bg-black/[0.03] border-t border-black/8">
+      {/* Пример предложения — с лейблом "Example" */}
+      {hasExample && (
+        <div className="px-7 py-5 bg-black/[0.03] border-t border-black/8 text-center">
+          <p className="text-xs font-bold text-foreground/40 uppercase tracking-wider mb-2 italic">Example</p>
           {c.exampleSentence ? (
-            <div className="text-lg text-foreground" dangerouslySetInnerHTML={{ __html: c.exampleSentence }} />
+            <div className="text-lg text-foreground italic" dangerouslySetInnerHTML={{ __html: c.exampleSentence }} />
           ) : (
             <>
-              <p className="text-xl text-foreground">{c.exampleHanzi}</p>
+              <p className="text-xl text-foreground italic">{c.exampleHanzi}</p>
               {c.examplePinyin && <p className="text-base text-emerald-600/80 mt-1">{c.examplePinyin}</p>}
             </>
           )}
@@ -183,13 +176,12 @@ function VocabCardPreview({ c }: { c: any }) {
   );
 }
 
-// ===== Диалог — с аватарками и фоном =====
+// ===== DIALOGUE =====
 function DialoguePreview({ c }: { c: any }) {
   const speakerAvatars: string[] = c.speakerAvatars || [];
   const scene = SCENE_MAP[c.sceneId] || SCENE_MAP["none"];
   const hasScene = c.sceneId && c.sceneId !== "none" && scene;
 
-  // Цвета для участников
   const colors = [
     { bg: "bg-sky-500/12", border: "border-sky-400/25", name: "text-sky-700" },
     { bg: "bg-rose-500/12", border: "border-rose-400/25", name: "text-rose-700" },
@@ -201,13 +193,11 @@ function DialoguePreview({ c }: { c: any }) {
     <div className={`rounded-2xl overflow-hidden border border-black/8 shadow-xl relative ${
       hasScene ? `bg-gradient-to-br ${scene.gradient}` : "bg-white"
     }`}>
-      {/* Заголовок ситуации */}
       {c.situationTitle && (
         <div className="px-7 pt-6 pb-2 relative">
           <h3 className="text-xl font-bold text-foreground">{c.situationTitle}</h3>
         </div>
       )}
-      {/* Lines */}
       <div className="px-7 pb-7 pt-4 space-y-6 relative">
         {(c.lines || []).map((line: any, i: number) => {
           const spkIdx = line.speakerIndex || 0;
@@ -216,12 +206,10 @@ function DialoguePreview({ c }: { c: any }) {
           const avatarId = speakerAvatars[spkIdx] || "man";
           const avatar = AVATAR_MAP[avatarId];
           const speakerName = c.speakers?.[spkIdx] || "";
-          // Поддерживаем оба формата: text/transcription (новый) и hanzi/pinyin (старый)
           const text = line.text || line.hanzi || "";
           const transcription = line.transcription || line.pinyin || "";
           return (
             <div key={i} className={`flex items-end gap-4 ${isLeft ? "" : "flex-row-reverse"}`}>
-              {/* Аватарка */}
               <div className="flex flex-col items-center gap-1 flex-shrink-0">
                 <div className={`w-14 h-14 rounded-2xl ${col.bg} border-2 ${col.border} flex items-center justify-center text-3xl`}>
                   {avatar?.emoji || "👤"}
@@ -230,7 +218,6 @@ function DialoguePreview({ c }: { c: any }) {
                   <span className={`text-sm font-semibold ${col.name} max-w-[80px] truncate`}>{speakerName}</span>
                 )}
               </div>
-              {/* Пузырёк реплики */}
               <div className={`max-w-[75%] rounded-2xl ${col.bg} border ${col.border} px-5 py-4 ${
                 isLeft ? "rounded-bl-md" : "rounded-br-md"
               }`}>
@@ -242,12 +229,72 @@ function DialoguePreview({ c }: { c: any }) {
           );
         })}
       </div>
-      {/* Аудио диалога */}
       {c.audioUrl && (
         <div className="px-7 pb-6">
           <AudioPlayer src={c.audioUrl} title="Listen to dialogue" />
         </div>
       )}
+    </div>
+  );
+}
+
+// ===== SOUND CARDS — интерактивные карточки с аудио =====
+function SoundCardsPreview({ c }: { c: any }) {
+  const [playingIdx, setPlayingIdx] = useState<number | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const playCard = useCallback((audioUrl: string, idx: number) => {
+    if (!audioUrl) return;
+    // Stop previous
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+    const audio = new Audio(audioUrl);
+    audioRef.current = audio;
+    setPlayingIdx(idx);
+    audio.play().catch(() => {});
+    audio.onended = () => setPlayingIdx(null);
+  }, []);
+
+  return (
+    <div className="rounded-2xl overflow-hidden bg-white border border-black/8 shadow-xl py-6 px-7">
+      {c.title && (
+        <h3 className="text-center text-lg font-bold text-foreground mb-1">{c.title}</h3>
+      )}
+      {c.subtitle && (
+        <p className="text-center text-sm text-muted-foreground mb-5">{c.subtitle}</p>
+      )}
+      <div className="flex gap-3 justify-center flex-wrap">
+        {(c.cards || []).map((card: any, i: number) => {
+          const clr = SOUND_CARD_COLOR_MAP[card.color] || SOUND_CARD_COLOR_MAP.blue;
+          const isPlaying = playingIdx === i;
+          return (
+            <button
+              key={i}
+              onClick={() => playCard(card.audioUrl, i)}
+              className="rounded-xl border-2 p-4 min-w-[110px] text-center transition-all hover:-translate-y-0.5 hover:shadow-lg cursor-pointer"
+              style={{
+                borderColor: isPlaying ? clr.borderHover : clr.border,
+                background: isPlaying ? clr.bg : "#fff",
+              }}
+            >
+              {card.text && (
+                <div className="text-2xl font-bold text-foreground leading-none">{card.text}</div>
+              )}
+              {card.symbol && (
+                <div className="text-lg mt-1">{card.symbol}</div>
+              )}
+              {card.label && (
+                <div className="text-[10px] font-semibold text-gray-500 mt-1">{card.label}</div>
+              )}
+              {card.meaning && (
+                <div className="text-[10px] text-gray-400 mt-0.5">{card.meaning}</div>
+              )}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

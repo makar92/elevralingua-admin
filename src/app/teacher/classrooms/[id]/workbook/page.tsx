@@ -60,10 +60,18 @@ export default function TeacherWorkbook() {
     setEaList(Array.isArray(ea) ? ea : []); setAllAnswers(Array.isArray(ans) ? ans : []);
   }, [id]);
 
-  useEffect(() => { loadAll().then(() => { const f = classroom?.course?.units?.[0]?.lessons?.[0]?.sections?.[0]; if (f) loadExBySec(f.id, f.title); setLoading(false); }); }, [loadAll, classroom]);
+  useEffect(() => { loadAll().then(() => {
+    const hashSid = window.location.hash.replace("#sec=", "");
+    const allSecs = classroom?.course?.units?.flatMap((u:any) => u.lessons?.flatMap((l:any) => l.sections || []) || []) || [];
+    const fromHash = hashSid && allSecs.find((s:any) => s.id === hashSid);
+    const target = fromHash || allSecs[0];
+    if (target) loadExBySec(target.id, target.title);
+    setLoading(false);
+  }); }, [loadAll, classroom]);
 
   const loadExBySec = async (secId: string, title: string) => {
     setSelSection(secId); setSelSectionTitle(title); setExLoading(true);
+    try { window.location.hash = `sec=${secId}`; } catch {}
     try { const all = await fetch(`/api/sections/${secId}/exercises`).then(r => r.json()); setExercises((Array.isArray(all) ? all : []).filter((e: any) => e.isDefaultInWorkbook)); } catch { setExercises([]); }
     setExLoading(false);
   };

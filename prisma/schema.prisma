@@ -173,6 +173,7 @@ enum ContentBlockType {
   VOCAB_CARD
   DIALOGUE
   TEACHER_NOTE
+  SOUND_CARDS
 }
 
 // ==================== СЛОЙ УЧИТЕЛЯ ====================

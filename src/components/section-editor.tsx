@@ -59,6 +59,7 @@ const BLOCK_TYPES = [
   { type: "SPACER",       icon: "↕️", name: "Spacer",          desc: "Empty space between blocks" },
   { type: "HTML_EMBED",   icon: "🧩", name: "HTML code",        desc: "Custom HTML/iframe" },
   { type: "TEACHER_NOTE", icon: "🎓", name: "Teacher Note",     desc: "Visible to teacher only" },
+  { type: "SOUND_CARDS", icon: "🔈", name: "Sound Cards",     desc: "Clickable audio cards with colors" },
 ];
 
 // ===== Typeы упражнений (тетрадь + банк) =====
