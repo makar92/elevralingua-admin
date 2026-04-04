@@ -50,3 +50,58 @@ export async function withErrorHandling(handler: () => Promise<NextResponse>): P
     return apiError(message, 500);
   }
 }
+
+/**
+ * Извлекает все Vercel Blob URLs из произвольного JSON-объекта (рекурсивно).
+ * Работает с contentJson блоков и упражнений.
+ */
+export function extractBlobUrls(obj: unknown): string[] {
+  const urls: string[] = [];
+  if (!obj) return urls;
+  if (typeof obj === "string") {
+    if (obj.includes("blob.vercel-storage.com")) urls.push(obj);
+    return urls;
+  }
+  if (Array.isArray(obj)) {
+    for (const item of obj) urls.push(...extractBlobUrls(item));
+    return urls;
+  }
+  if (typeof obj === "object") {
+    for (const val of Object.values(obj as Record<string, unknown>)) {
+      urls.push(...extractBlobUrls(val));
+    }
+  }
+  return urls;
+}
+
+/**
+ * Удаляет файлы из Vercel Blob (или локальной ФС).
+ * Безопасно — ошибки логируются, но не прерывают выполнение.
+ */
+export async function cleanupStorageUrls(urls: string[]): Promise<void> {
+  if (urls.length === 0) return;
+
+  if (process.env.BLOB_READ_WRITE_TOKEN) {
+    const blobUrls = urls.filter(u => u.includes("blob.vercel-storage.com"));
+    if (blobUrls.length > 0) {
+      try {
+        const { del } = await import("@vercel/blob");
+        await del(blobUrls);
+      } catch (e) { console.warn("Blob cleanup error:", e); }
+    }
+  } else {
+    // Dev: удаляем локальные файлы
+    const localUrls = urls.filter(u => u.startsWith("/uploads/"));
+    if (localUrls.length > 0) {
+      try {
+        const { unlink } = await import("fs/promises");
+        const path = await import("path");
+        for (const u of localUrls) {
+          try {
+            await unlink(path.join(process.cwd(), "public", u));
+          } catch {}
+        }
+      } catch {}
+    }
+  }
+}

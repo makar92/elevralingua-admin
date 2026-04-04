@@ -11,7 +11,7 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
-import { apiSuccess, apiError, withErrorHandling } from "@/lib/api-helpers";
+import { apiSuccess, apiError, withErrorHandling, extractBlobUrls, cleanupStorageUrls } from "@/lib/api-helpers";
 
 // GET — получить одно упражнение со всеми данными
 export async function GET(
@@ -106,21 +106,26 @@ export async function PATCH(
   });
 }
 
-// DELETE — удалить упражнение из банка (каскадно удалит из тетрадей)
+// DELETE — удалить упражнение из банка (каскадно удалит из тетрадей + очистка storage)
 export async function DELETE(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   return withErrorHandling(async () => {
-    // Проверяем авторизацию
     const session = await auth();
     if (!session) return apiError("Unauthorized", 401);
 
     const { id } = await params;
 
-    // Удаляем упражнение (каскадно удалит ExerciseAnswer)
-    await prisma.exercise.delete({ where: { id } });
+    // Собираем файлы из contentJson перед удалением
+    const exercise = await prisma.exercise.findUnique({
+      where: { id },
+      select: { contentJson: true },
+    });
+    const allUrls = exercise ? extractBlobUrls(exercise.contentJson) : [];
 
+    await prisma.exercise.delete({ where: { id } });
+    await cleanupStorageUrls(allUrls);
     return apiSuccess({ success: true });
   });
 }

@@ -6,7 +6,7 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
-import { apiSuccess, apiError, withErrorHandling } from "@/lib/api-helpers";
+import { apiSuccess, apiError, withErrorHandling, extractBlobUrls, cleanupStorageUrls } from "@/lib/api-helpers";
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   return withErrorHandling(async () => {
@@ -43,7 +43,22 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
     const session = await auth();
     if (!session) return apiError("Unauthorized", 401);
     const { id } = await params;
+
+    const blocks = await prisma.contentBlock.findMany({
+      where: { section: { lessonId: id } },
+      select: { contentJson: true },
+    });
+    const exercises = await prisma.exercise.findMany({
+      where: { section: { lessonId: id } },
+      select: { contentJson: true },
+    });
+    const allUrls = [
+      ...blocks.flatMap(b => extractBlobUrls(b.contentJson)),
+      ...exercises.flatMap(e => extractBlobUrls(e.contentJson)),
+    ];
+
     await prisma.lesson.delete({ where: { id } });
+    await cleanupStorageUrls(allUrls);
     return apiSuccess({ ok: true });
   });
 }

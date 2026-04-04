@@ -9,7 +9,7 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
-import { apiSuccess, apiError, withErrorHandling } from "@/lib/api-helpers";
+import { apiSuccess, apiError, withErrorHandling, extractBlobUrls, cleanupStorageUrls } from "@/lib/api-helpers";
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   return withErrorHandling(async () => {
@@ -56,7 +56,22 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
       );
     }
 
+    // Собираем все файлы из блоков и упражнений перед удалением
+    const blocks = await prisma.contentBlock.findMany({
+      where: { section: { lesson: { unit: { courseId: id } } } },
+      select: { contentJson: true },
+    });
+    const exercises = await prisma.exercise.findMany({
+      where: { section: { lesson: { unit: { courseId: id } } } },
+      select: { contentJson: true },
+    });
+    const allUrls = [
+      ...blocks.flatMap(b => extractBlobUrls(b.contentJson)),
+      ...exercises.flatMap(e => extractBlobUrls(e.contentJson)),
+    ];
+
     await prisma.course.delete({ where: { id } });
+    await cleanupStorageUrls(allUrls);
     return apiSuccess({ success: true });
   });
 }

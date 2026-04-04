@@ -707,7 +707,7 @@ function SoundCardsForm({ data, set, setData, upload, uploading }: {
                       style={{
                         borderColor: clr.border,
                         background: clr.bgHover,
-                        ringColor: clr.border,
+                        outlineColor: card.color === clr.id ? clr.border : undefined,
                       }}
                       title={clr.label} />
                   ))}
