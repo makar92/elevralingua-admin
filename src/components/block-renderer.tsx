@@ -81,7 +81,7 @@ export function BlockRenderer({ block }: { block: ContentBlock }) {
       return (
         <div className="text-center">
           {c.url ? (
-            <img src={c.url} alt={c.alt || ""} className="max-w-full rounded-lg mx-auto" />
+            <img src={c.url} alt={c.alt || ""} className="max-h-[400px] w-auto max-w-full rounded-lg mx-auto object-contain" />
           ) : (
             <div className="bg-muted rounded-lg p-8 text-muted-foreground">Image not uploaded</div>
           )}

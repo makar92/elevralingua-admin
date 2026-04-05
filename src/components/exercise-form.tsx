@@ -728,7 +728,7 @@ function DictationForm({ content, setContent, upload, uploading }: any) {
                 <input type="file" accept="audio/*" className="hidden" disabled={uploading}
                   onChange={(e) => { const f = e.target.files?.[0]; if (f) upload(f, "audioUrl", content.audioUrl); }} />
               </label>
-              <button onClick={() => setContent("audioUrl", "")} className="text-xs text-red-500 hover:underline">Remove</button>
+              <button onClick={async () => { try { await fetch("/api/upload", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ url: content.audioUrl }) }); } catch {} setContent("audioUrl", ""); }} className="text-xs text-red-500 hover:underline">Remove</button>
               {uploading && <span className="text-xs text-muted-foreground">Uploading...</span>}
             </div>
           </div>
@@ -770,7 +770,7 @@ function DescribeImageForm({ content, setContent, upload, uploading }: any) {
                 <input type="file" accept="image/*" className="hidden" disabled={uploading}
                   onChange={(e) => { const f = e.target.files?.[0]; if (f) upload(f, "imageUrl", content.imageUrl); }} />
               </label>
-              <button onClick={() => setContent("imageUrl", "")} className="text-xs text-red-500 hover:underline">Remove</button>
+              <button onClick={async () => { try { await fetch("/api/upload", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ url: content.imageUrl }) }); } catch {} setContent("imageUrl", ""); }} className="text-xs text-red-500 hover:underline">Remove</button>
               {uploading && <span className="text-xs text-muted-foreground">Uploading...</span>}
             </div>
           </div>

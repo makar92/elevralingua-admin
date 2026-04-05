@@ -29,6 +29,17 @@ interface Props {
   onCancel: () => void;
 }
 
+// Удаление файла из storage
+async function deleteFileFromStorage(url: string) {
+  try {
+    await fetch("/api/upload", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url }),
+    });
+  } catch (e) { console.warn("Delete file error:", e); }
+}
+
 // ===== Компонент замены файла (переиспользуемый) =====
 function FileUploadField({
   label, accept, currentUrl, field, upload, uploading, onRemove, preview,
@@ -38,9 +49,14 @@ function FileUploadField({
   uploading: boolean; onRemove?: () => void;
   preview?: "image" | "audio";
 }) {
+  const handleRemove = async () => {
+    if (currentUrl) await deleteFileFromStorage(currentUrl);
+    if (onRemove) onRemove();
+  };
+
   return (
     <div className="space-y-2">
-      <Label className="text-base text-foreground">{label}</Label>
+      {label && <Label className="text-base text-foreground">{label}</Label>}
       {currentUrl ? (
         <div className="space-y-2">
           {preview === "image" && <img src={currentUrl} alt="" className="max-w-[200px] rounded-lg" />}
@@ -52,7 +68,7 @@ function FileUploadField({
                 onChange={(e) => { const f = e.target.files?.[0]; if (f) upload(f, field, currentUrl); }} />
             </label>
             {onRemove && (
-              <button onClick={onRemove} className="text-xs text-red-500 hover:underline">Remove</button>
+              <button onClick={handleRemove} className="text-xs text-red-500 hover:underline">Remove</button>
             )}
             {uploading && <span className="text-xs text-muted-foreground">Uploading...</span>}
           </div>

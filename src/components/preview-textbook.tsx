@@ -93,8 +93,8 @@ function PreviewBlock({ block }: { block: ContentBlock }) {
 
     case "IMAGE":
       return c.url ? (
-        <figure>
-          <img src={c.url} alt={c.alt || ""} className="w-full rounded-xl shadow-lg" />
+        <figure className="text-center">
+          <img src={c.url} alt={c.alt || ""} className="max-h-[400px] w-auto max-w-full rounded-xl shadow-lg mx-auto object-contain" />
           {c.caption && <figcaption className="text-center text-sm text-muted-foreground mt-3 italic">{c.caption}</figcaption>}
         </figure>
       ) : null;
