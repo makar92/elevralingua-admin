@@ -1,6 +1,6 @@
 // ===========================================
-// Файл: src/app/api/lessons/[id]/sections/route.ts
-// Описание: GET — список разделов lessons, POST — создать раздел.
+// Файл: src/app/api/lessons/[id]/textbook-sections/route.ts
+// Описание: GET — список секций учебника урока, POST — создать секцию.
 // ===========================================
 
 import { NextRequest } from "next/server";
@@ -14,18 +14,13 @@ export async function GET(
 ) {
   return withErrorHandling(async () => {
     const { id: lessonId } = await params;
-
-    const sections = await prisma.section.findMany({
+    const sections = await prisma.textbookSection.findMany({
       where: { lessonId },
       orderBy: { order: "asc" },
       include: {
-        blocks: {
-          orderBy: { order: "asc" },
-          include: { teacherNote: true },
-        },
+        blocks: { orderBy: { order: "asc" }, include: { teacherNote: true } },
       },
     });
-
     return apiSuccess(sections);
   });
 }
@@ -41,11 +36,11 @@ export async function POST(
     const { title } = await request.json();
     if (!title) return apiError("Section title is required");
 
-    const last = await prisma.section.findFirst({
+    const last = await prisma.textbookSection.findFirst({
       where: { lessonId }, orderBy: { order: "desc" },
     });
 
-    const section = await prisma.section.create({
+    const section = await prisma.textbookSection.create({
       data: { lessonId, title, order: (last?.order ?? -1) + 1 },
     });
 

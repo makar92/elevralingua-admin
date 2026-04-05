@@ -36,7 +36,7 @@ export default async function ExercisesPage() {
   const exercises = await prisma.exercise.findMany({
     orderBy: { order: "asc" },
     include: {
-      section: {
+      workbookSection: {
         select: {
           id: true, title: true,
           lesson: {
@@ -59,12 +59,12 @@ export default async function ExercisesPage() {
   const totalCount = exercises.length;
   const autoCount = exercises.filter((e) => e.gradingType === "AUTO").length;
   const teacherCount = exercises.filter((e) => e.gradingType === "TEACHER").length;
-  const workbookCount = exercises.filter((e) => e.isDefaultInWorkbook).length;
+  const publishedCount = exercises.filter((e) => e.isPublished).length;
 
   // Группируем по курсам
   const courseMap = new Map<string, { course: any; exercises: typeof exercises }>();
   for (const ex of exercises) {
-    const course = ex.section.lesson.unit.course;
+    const course = ex.workbookSection.lesson.unit.course;
     if (!courseMap.has(course.id)) {
       courseMap.set(course.id, { course, exercises: [] });
     }
@@ -78,7 +78,7 @@ export default async function ExercisesPage() {
         <div>
           <h1 className="text-2xl font-bold text-foreground">Exercise Bank</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Total: {totalCount} · ⚡ Auto: {autoCount} · 👩‍🏫 Teacher: {teacherCount} · 📓 In Workbook: {workbookCount}
+            Total: {totalCount} · ⚡ Auto: {autoCount} · 👩‍🏫 Teacher: {teacherCount} · 📗 Published: {publishedCount}
           </p>
         </div>
       </div>
@@ -115,7 +115,7 @@ export default async function ExercisesPage() {
           <div className="space-y-2">
             {courseExercises.map((ex, idx) => {
               const info = EX_TYPE_INFO[ex.exerciseType] || { icon: "❓", name: ex.exerciseType };
-              const section = ex.section;
+              const section = ex.workbookSection;
               const lesson = section.lesson;
               return (
                 <Card key={ex.id}>
@@ -132,7 +132,7 @@ export default async function ExercisesPage() {
                           <Badge variant={ex.gradingType === "AUTO" ? "default" : "secondary"} className="text-xs">
                             {ex.gradingType === "AUTO" ? "⚡ Auto" : "👩‍🏫 Teacher"}
                           </Badge>
-                          {ex.isDefaultInWorkbook && (
+                          {ex.isPublished && (
                             <Badge variant="outline" className="text-xs text-green-400 border-green-400/30">📓 In Workbook</Badge>
                           )}
                           <span className="text-xs text-muted-foreground">{"⭐".repeat(Math.min(ex.difficulty, 5))}</span>

@@ -1,0 +1,57 @@
+// ===========================================
+// Файл: src/app/api/textbook-sections/[id]/route.ts
+// Описание: PATCH — переименовать/переместить секцию учебника, DELETE — удалить.
+// ===========================================
+
+import { NextRequest } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { auth } from "@/lib/auth";
+import { apiSuccess, apiError, withErrorHandling, extractBlobUrls, cleanupStorageUrls } from "@/lib/api-helpers";
+
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  return withErrorHandling(async () => {
+    const session = await auth();
+    if (!session) return apiError("Unauthorized", 401);
+    const { id } = await params;
+    const body = await request.json();
+
+    if (body.title !== undefined) {
+      const section = await prisma.textbookSection.update({ where: { id }, data: { title: body.title } });
+      return apiSuccess(section);
+    }
+
+    if (body.direction === "up" || body.direction === "down") {
+      const section = await prisma.textbookSection.findUnique({ where: { id } });
+      if (!section) return apiError("Section not found", 404);
+      const siblings = await prisma.textbookSection.findMany({ where: { lessonId: section.lessonId }, orderBy: { order: "asc" } });
+      const idx = siblings.findIndex(s => s.id === id);
+      const swapIdx = body.direction === "up" ? idx - 1 : idx + 1;
+      if (swapIdx < 0 || swapIdx >= siblings.length) return apiError("Cannot move");
+      await prisma.$transaction([
+        prisma.textbookSection.update({ where: { id: siblings[idx].id }, data: { order: siblings[swapIdx].order } }),
+        prisma.textbookSection.update({ where: { id: siblings[swapIdx].id }, data: { order: siblings[idx].order } }),
+      ]);
+      return apiSuccess({ ok: true });
+    }
+
+    return apiError("Unknown action");
+  });
+}
+
+export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  return withErrorHandling(async () => {
+    const session = await auth();
+    if (!session) return apiError("Unauthorized", 401);
+    const { id } = await params;
+
+    const blocks = await prisma.contentBlock.findMany({
+      where: { textbookSectionId: id },
+      select: { contentJson: true },
+    });
+    const allUrls = blocks.flatMap(b => extractBlobUrls(b.contentJson));
+
+    await prisma.textbookSection.delete({ where: { id } });
+    await cleanupStorageUrls(allUrls);
+    return apiSuccess({ ok: true });
+  });
+}

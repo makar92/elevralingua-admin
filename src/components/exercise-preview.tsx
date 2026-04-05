@@ -26,7 +26,6 @@ interface Exercise {
   contentJson: any; gradingType: string;
   correctAnswers: string[]; referenceAnswer: string | null;
   teacherComment: string | null; gradingCriteria: string | null;
-  isDefaultInWorkbook: boolean;
 }
 
 interface ExistingAnswer {

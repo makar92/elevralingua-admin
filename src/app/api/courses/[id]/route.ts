@@ -1,9 +1,6 @@
 // ===========================================
 // Файл: src/app/api/courses/[id]/route.ts
-// Путь:  elevralingua-admin/src/app/api/courses/[id]/route.ts
-//
-// Описание:
-//   GET — один курс. PATCH — обновить. DELETE — удалить.
+// Описание: GET — один курс. PATCH — обновить (с очисткой старого cover). DELETE — удалить.
 // ===========================================
 
 import { NextRequest } from "next/server";
@@ -18,7 +15,20 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     const { id } = await params;
     const course = await prisma.course.findUnique({
       where: { id },
-      include: { units: { include: { lessons: { include: { sections: true }, orderBy: { order: "asc" } } }, orderBy: { order: "asc" } } },
+      include: {
+        units: {
+          include: {
+            lessons: {
+              include: {
+                textbookSections: { orderBy: { order: "asc" } },
+                workbookSections: { orderBy: { order: "asc" } },
+              },
+              orderBy: { order: "asc" },
+            },
+          },
+          orderBy: { order: "asc" },
+        },
+      },
     });
     if (!course) return apiError("Course not found", 404);
     return apiSuccess(course);
@@ -31,6 +41,19 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     if (!session) return apiError("Unauthorized", 401);
     const { id } = await params;
     const body = await request.json();
+
+    // If coverImageUrl is being changed or removed, clean up old file
+    if (body.coverImageUrl !== undefined) {
+      const oldCourse = await prisma.course.findUnique({
+        where: { id },
+        select: { coverImageUrl: true },
+      });
+      if (oldCourse?.coverImageUrl && oldCourse.coverImageUrl !== body.coverImageUrl) {
+        const oldUrls = extractBlobUrls(oldCourse.coverImageUrl);
+        if (oldUrls.length > 0) await cleanupStorageUrls(oldUrls);
+      }
+    }
+
     const course = await prisma.course.update({ where: { id }, data: body });
     return apiSuccess(course);
   });
@@ -42,7 +65,6 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
     if (!session) return apiError("Unauthorized", 401);
     const { id } = await params;
 
-    // Check if course is used in any classrooms
     const classrooms = await prisma.classroom.findMany({
       where: { courseId: id },
       select: { id: true, name: true, teacher: { select: { name: true } } },
@@ -56,16 +78,18 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
       );
     }
 
-    // Собираем все файлы из блоков и упражнений перед удалением
+    // Collect all files before deletion
+    const courseData = await prisma.course.findUnique({ where: { id }, select: { coverImageUrl: true } });
     const blocks = await prisma.contentBlock.findMany({
-      where: { section: { lesson: { unit: { courseId: id } } } },
+      where: { textbookSection: { lesson: { unit: { courseId: id } } } },
       select: { contentJson: true },
     });
     const exercises = await prisma.exercise.findMany({
-      where: { section: { lesson: { unit: { courseId: id } } } },
+      where: { workbookSection: { lesson: { unit: { courseId: id } } } },
       select: { contentJson: true },
     });
     const allUrls = [
+      ...(courseData?.coverImageUrl ? extractBlobUrls(courseData.coverImageUrl) : []),
       ...blocks.flatMap(b => extractBlobUrls(b.contentJson)),
       ...exercises.flatMap(e => extractBlobUrls(e.contentJson)),
     ];

@@ -1,3 +1,8 @@
+// ===========================================
+// Файл: src/app/api/classrooms/[id]/route.ts
+// Описание: GET classroom with course structure, PATCH, DELETE.
+// ===========================================
+
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
@@ -15,7 +20,10 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
           units: {
             include: {
               lessons: {
-                include: { sections: { orderBy: { order: "asc" } } },
+                include: {
+                  textbookSections: { orderBy: { order: "asc" } },
+                  workbookSections: { orderBy: { order: "asc" } },
+                },
                 orderBy: { order: "asc" },
               },
             },
@@ -50,7 +58,6 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  // Verify ownership
   const classroom = await prisma.classroom.findUnique({ where: { id } });
   if (!classroom || classroom.teacherId !== session.user.id) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });

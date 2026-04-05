@@ -1,3 +1,8 @@
+// ===========================================
+// Файл: src/components/shared/classroom-tabs.tsx
+// Описание: Табы навигации класса. Банк убран.
+// ===========================================
+
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -45,7 +50,6 @@ export const TEACHER_TABS = (n?: number) => [
   { id: "journal", name: "Gradebook", href: "/journal" },
   { id: "textbook", name: "Textbook", href: "/textbook" },
   { id: "workbook", name: "Workbook", href: "/workbook" },
-  { id: "bank", name: "Exercise Bank", href: "/bank" },
   { id: "students", name: `Students${n != null ? ` (${n})` : ""}`, href: "/students" },
 ];
 

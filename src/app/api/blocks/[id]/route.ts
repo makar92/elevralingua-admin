@@ -1,10 +1,6 @@
 // ===========================================
 // Файл: src/app/api/blocks/[id]/route.ts
-// Путь:  elevralingua-admin/src/app/api/blocks/[id]/route.ts
-//
-// Описание:
-//   PATCH — обновить содержимое блока (+ очистка старых файлов из Vercel Blob).
-//   DELETE — удалить блок (+ очистка файлов из Vercel Blob).
+// Описание: PATCH — обновить блок. DELETE — удалить блок.
 // ===========================================
 
 import { NextRequest } from "next/server";
@@ -12,7 +8,6 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { apiSuccess, apiError, withErrorHandling, extractBlobUrls, cleanupStorageUrls } from "@/lib/api-helpers";
 
-// PATCH — обновить содержимое блока (+ очистка старых файлов)
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -20,11 +15,9 @@ export async function PATCH(
   return withErrorHandling(async () => {
     const session = await auth();
     if (!session) return apiError("Unauthorized", 401);
-
     const { id } = await params;
     const body = await request.json();
 
-    // Если обновляется contentJson — находим удалённые файлы
     if (body.contentJson) {
       const oldBlock = await prisma.contentBlock.findUnique({ where: { id } });
       if (oldBlock) {
@@ -48,7 +41,6 @@ export async function PATCH(
   });
 }
 
-// DELETE — удалить блок (+ очистка файлов из storage)
 export async function DELETE(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -56,7 +48,6 @@ export async function DELETE(
   return withErrorHandling(async () => {
     const session = await auth();
     if (!session) return apiError("Unauthorized", 401);
-
     const { id } = await params;
 
     const block = await prisma.contentBlock.findUnique({ where: { id } });

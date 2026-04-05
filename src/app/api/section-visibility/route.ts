@@ -1,3 +1,8 @@
+// ===========================================
+// Файл: src/app/api/section-visibility/route.ts
+// Описание: Видимость секций учебника для учеников.
+// ===========================================
+
 import { getAuthUser } from "@/lib/api-helpers";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
@@ -14,7 +19,7 @@ export async function GET(req: Request) {
     if (user.role === "STUDENT") {
       where.OR = [{ studentId: "_ALL_" }, { studentId: user.id }];
     }
-    const records = await prisma.sectionVisibility.findMany({ where, select: { id: true, sectionId: true, studentId: true } });
+    const records = await prisma.textbookSectionVisibility.findMany({ where, select: { id: true, textbookSectionId: true, studentId: true } });
     return NextResponse.json(records);
   } catch (err) {
     console.error("[GET section-visibility]", err);
@@ -31,13 +36,13 @@ export async function POST(req: Request) {
 
     const targets = studentIds?.length ? studentIds : ["_ALL_"];
     let count = 0;
-    for (const sectionId of sectionIds) {
+    for (const textbookSectionId of sectionIds) {
       for (const studentId of targets) {
         try {
-          await prisma.sectionVisibility.upsert({
-            where: { sectionId_classroomId_studentId: { sectionId, classroomId, studentId } },
+          await prisma.textbookSectionVisibility.upsert({
+            where: { textbookSectionId_classroomId_studentId: { textbookSectionId, classroomId, studentId } },
             update: {},
-            create: { sectionId, classroomId, studentId, openedBy: user.id },
+            create: { textbookSectionId, classroomId, studentId, openedBy: user.id },
           });
           count++;
         } catch {}

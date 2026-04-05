@@ -135,7 +135,7 @@ export function ClassroomCard({ classroom, href }: ClassroomCardProps) {
 
       {/* === Кнопка === */}
       <Link href={href} className="block px-5 py-3 border-t border-border/50 text-center">
-        <span className="text-sm text-primary font-medium hover:underline">Open Class →</span>
+        <span className="inline-flex items-center justify-center px-5 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity">Open Class</span>
       </Link>
     </div>
   );

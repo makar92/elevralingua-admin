@@ -76,7 +76,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
           data: body.topics.map((t: any) => ({
             lessonLogId: id,
             lessonId: t.lessonId,
-            sectionId: t.sectionId || null,
+            textbookSectionId: t.textbookSectionId || null,
             completed: t.completed ?? true,
           })),
         });
@@ -89,7 +89,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
         data: {
           lessonLogId: id,
           lessonId: body.topic.lessonId,
-          sectionId: body.topic.sectionId || null,
+          textbookSectionId: body.topic.textbookSectionId || null,
           completed: body.topic.completed ?? true,
         },
       });

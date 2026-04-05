@@ -170,7 +170,6 @@ export function ExerciseForm({ exerciseType, initialData, onSave, onCancel, save
     referenceAnswer: referenceAnswer || null,
     teacherComment:  teacherComment  || null,
     gradingCriteria: null,
-    isDefaultInWorkbook: true,
   };
 
   // ===== РЕЖИМ ПРЕДПРОСМОТРА =====

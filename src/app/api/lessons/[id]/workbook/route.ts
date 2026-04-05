@@ -1,8 +1,6 @@
 // ===========================================
 // Файл: src/app/api/lessons/[id]/workbook/route.ts
-// Описание: GET exercises рабочей тетради lessons.
-//   Тетрадь = exercises с isDefaultInWorkbook=true,
-//   сгруппированные по секциям lessons.
+// Описание: GET упражнения тетради урока по секциям тетради.
 // ===========================================
 
 import { NextRequest } from "next/server";
@@ -17,22 +15,16 @@ export async function GET(
   try {
     const session = await auth();
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
     const { id: lessonId } = await params;
 
-    // Получаем все секции lessons с exercisesми для тетради
-    const sections = await prisma.section.findMany({
+    const sections = await prisma.workbookSection.findMany({
       where: { lessonId },
       orderBy: { order: "asc" },
       include: {
-        exercises: {
-          where: { isDefaultInWorkbook: true },
-          orderBy: { order: "asc" },
-        },
+        exercises: { orderBy: { order: "asc" } },
       },
     });
 
-    // Возвращаем плоский список упражнений
     const exercises = sections.flatMap(s =>
       s.exercises.map(e => ({ ...e, sectionTitle: s.title }))
     );

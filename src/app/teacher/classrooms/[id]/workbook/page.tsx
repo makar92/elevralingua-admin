@@ -62,7 +62,7 @@ export default function TeacherWorkbook() {
 
   useEffect(() => { loadAll().then(() => {
     const hashSid = window.location.hash.replace("#sec=", "");
-    const allSecs = classroom?.course?.units?.flatMap((u:any) => u.lessons?.flatMap((l:any) => l.sections || []) || []) || [];
+    const allSecs = classroom?.course?.units?.flatMap((u:any) => u.lessons?.flatMap((l:any) => l.workbookSections || []) || []) || [];
     const fromHash = hashSid && allSecs.find((s:any) => s.id === hashSid);
     const target = fromHash || allSecs[0];
     if (target) loadExBySec(target.id, target.title);
@@ -72,7 +72,7 @@ export default function TeacherWorkbook() {
   const loadExBySec = async (secId: string, title: string) => {
     setSelSection(secId); setSelSectionTitle(title); setExLoading(true);
     try { window.location.hash = `sec=${secId}`; } catch {}
-    try { const all = await fetch(`/api/sections/${secId}/exercises`).then(r => r.json()); setExercises((Array.isArray(all) ? all : []).filter((e: any) => e.isDefaultInWorkbook)); } catch { setExercises([]); }
+    try { const all = await fetch(`/api/workbook-sections/${secId}/exercises`).then(r => r.json()); setExercises((Array.isArray(all) ? all : [])); } catch { setExercises([]); }
     setExLoading(false);
   };
 
@@ -88,7 +88,7 @@ export default function TeacherWorkbook() {
   const getExAnswers = (eid: string) => allAnswers.filter(a => a.exerciseId === eid);
 
   const getSecStats = (secId: string) => {
-    const secExIds = new Set(eaList.filter((a: any) => a.exercise?.section?.id === secId).map((a: any) => a.exerciseId));
+    const secExIds = new Set(eaList.filter((a: any) => a.exercise?.workbookSection?.id === secId).map((a: any) => a.exerciseId));
     if (secExIds.size === 0) return null;
     const secAns = allAnswers.filter(a => secExIds.has(a.exerciseId));
     const pending = secAns.filter(a => a.status === "PENDING").length;
@@ -110,7 +110,7 @@ export default function TeacherWorkbook() {
   const toggleU = (uid: string) => { setUCol(p => { const n = new Set(p); n.has(uid) ? n.delete(uid) : n.add(uid); return n; }); };
   const toggleL = (lid: string) => { setLCol(p => { const n = new Set(p); n.has(lid) ? n.delete(lid) : n.add(lid); return n; }); };
   const toggleCheckSection = (sid: string) => { setCheckedSections(p => { const n = new Set(p); n.has(sid) ? n.delete(sid) : n.add(sid); return n; }); };
-  const checkLesson = (lesson: any) => { const sids = (lesson.sections || []).map((s: any) => s.id); setCheckedSections(p => { const n = new Set(p); const all = sids.every((s: string) => n.has(s)); sids.forEach((s: string) => all ? n.delete(s) : n.add(s)); return n; }); };
+  const checkLesson = (lesson: any) => { const sids = (lesson.workbookSections || []).map((s: any) => s.id); setCheckedSections(p => { const n = new Set(p); const all = sids.every((s: string) => n.has(s)); sids.forEach((s: string) => all ? n.delete(s) : n.add(s)); return n; }); };
   const toggleCheckEx = (eid: string) => { setCheckedExercises(p => { const n = new Set(p); n.has(eid) ? n.delete(eid) : n.add(eid); return n; }); };
   const togglePick = (sid: string) => { setPicked(p => { const n = new Set(p); n.has(sid) ? n.delete(sid) : n.add(sid); return n; }); };
   const startAction = (type: string) => { setAssignType(type); setShowPicker(true); setPicked(new Set()); };
@@ -119,7 +119,7 @@ export default function TeacherWorkbook() {
   const doAssign = async (studentIds?: string[]) => {
     if (!hasSelection) return; setBusy(true);
     let allExIds = new Set(checkedExercises);
-    for (const secId of checkedSections) { try { const all = await fetch(`/api/sections/${secId}/exercises`).then(r => r.json()); (Array.isArray(all) ? all : []).filter((e: any) => e.isDefaultInWorkbook).forEach((e: any) => allExIds.add(e.id)); } catch {} }
+    for (const secId of checkedSections) { try { const all = await fetch(`/api/workbook-sections/${secId}/exercises`).then(r => r.json()); (Array.isArray(all) ? all : []).forEach((e: any) => allExIds.add(e.id)); } catch {} }
     if (allExIds.size > 0) {
       await fetch("/api/exercise-assignments", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ classroomId: id, exerciseIds: Array.from(allExIds), type: assignType, studentIds: studentIds?.length ? studentIds : undefined }) });
     }
@@ -187,7 +187,7 @@ export default function TeacherWorkbook() {
 
   return (
     <>
-      <div className="flex flex-1 min-h-0 gap-4 px-6 pb-20">
+      <div className="flex h-full overflow-hidden gap-4 px-6 pb-6">
         {!sidebarOpen && (
           <button onClick={() => setSidebarOpen(true)} className="flex-shrink-0 self-start w-8 h-8 flex items-center justify-center rounded-lg bg-muted hover:bg-accent text-muted-foreground hover:text-foreground transition-colors" title="Expand panel">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
@@ -208,7 +208,7 @@ export default function TeacherWorkbook() {
                   <span className="text-sm font-semibold text-foreground truncate flex-1">{unit.title}</span>
                 </button>
                 {!uh && unit.lessons?.map((lesson: any) => {
-                  const lh = lCol.has(lesson.id); const secs = lesson.sections || [];
+                  const lh = lCol.has(lesson.id); const secs = lesson.workbookSections || [];
                   return (<div key={lesson.id}>
                     <div className="group flex items-center gap-1.5 pl-4 pr-2 py-1.5 rounded-md hover:bg-accent/50">
                       <input type="checkbox" className={`w-3.5 h-3.5 rounded cursor-pointer flex-shrink-0 transition-opacity ${secs.some((s: any) => checkedSections.has(s.id)) ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`} checked={secs.length > 0 && secs.every((s: any) => checkedSections.has(s.id))} onChange={() => checkLesson(lesson)} />

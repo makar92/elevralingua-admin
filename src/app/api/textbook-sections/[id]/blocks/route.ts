@@ -1,6 +1,6 @@
 // ===========================================
-// Файл: src/app/api/sections/[id]/blocks/route.ts
-// Описание: GET — список блоков sections. POST — создать блок.
+// Файл: src/app/api/textbook-sections/[id]/blocks/route.ts
+// Описание: GET — список блоков секции учебника. POST — создать блок.
 // ===========================================
 
 import { NextRequest } from "next/server";
@@ -8,7 +8,6 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { apiSuccess, apiError, withErrorHandling } from "@/lib/api-helpers";
 
-// GET — все блоки sections, отсортированные по order
 export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -18,7 +17,7 @@ export async function GET(
     if (!session) return apiError("Unauthorized", 401);
     const { id } = await params;
     const blocks = await prisma.contentBlock.findMany({
-      where: { sectionId: id },
+      where: { textbookSectionId: id },
       orderBy: { order: "asc" },
       include: { teacherNote: true },
     });
@@ -26,7 +25,6 @@ export async function GET(
   });
 }
 
-// POST — создать новый блок
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -34,7 +32,7 @@ export async function POST(
   return withErrorHandling(async () => {
     const session = await auth();
     if (!session) return apiError("Unauthorized", 401);
-    const { id: sectionId } = await params;
+    const { id: textbookSectionId } = await params;
     const { type, contentJson, insertAfterOrder } = await request.json();
 
     if (!type || !contentJson) return apiError("Block type and content are required");
@@ -42,30 +40,27 @@ export async function POST(
     let newOrder: number;
 
     if (insertAfterOrder === -1) {
-      // Вставка в НАЧАЛО: сдвигаем ВСЕ блоки на 1 вперёд
       await prisma.contentBlock.updateMany({
-        where: { sectionId },
+        where: { textbookSectionId },
         data: { order: { increment: 1 } },
       });
       newOrder = 0;
     } else if (insertAfterOrder !== undefined && insertAfterOrder !== null) {
-      // Вставка ПОСЛЕ указанного блока: сдвигаем блоки с order > insertAfterOrder
       await prisma.contentBlock.updateMany({
-        where: { sectionId, order: { gt: insertAfterOrder } },
+        where: { textbookSectionId, order: { gt: insertAfterOrder } },
         data: { order: { increment: 1 } },
       });
       newOrder = insertAfterOrder + 1;
     } else {
-      // Вставка в КОНЕЦ (по умолчанию)
       const last = await prisma.contentBlock.findFirst({
-        where: { sectionId },
+        where: { textbookSectionId },
         orderBy: { order: "desc" },
       });
       newOrder = (last?.order ?? -1) + 1;
     }
 
     const block = await prisma.contentBlock.create({
-      data: { sectionId, type, order: newOrder, contentJson },
+      data: { textbookSectionId, type, order: newOrder, contentJson },
       include: { teacherNote: true },
     });
 

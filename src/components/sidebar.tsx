@@ -20,7 +20,7 @@ import { signOut } from "next-auth/react";
 const nav = [
   { name: "Dashboard",         href: "/dashboard",          icon: "📊" },
   { name: "Courses",           href: "/dashboard/courses",   icon: "📚" },
-  { name: "Exercise Bank", href: "/dashboard/exercises", icon: "📝" },
+  { name: "Exercises", href: "/dashboard/exercises", icon: "📝" },
 ];
 
 export function Sidebar({ user }: { user: { name?: string | null; email?: string | null } }) {

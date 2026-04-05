@@ -29,7 +29,7 @@ export default function TeacherTextbook() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const sc = classroom?.enrollments?.length || 0;
-  const openIds = new Set(vis.map((v: any) => v.sectionId));
+  const openIds = new Set(vis.map((v: any) => v.textbookSectionId));
 
   useEffect(() => {
     Promise.all([
@@ -39,7 +39,7 @@ export default function TeacherTextbook() {
       setVis(Array.isArray(v)?v:[]); setAssigns(Array.isArray(a)?a:[]);
       // Restore section from URL hash or fall back to first
       const hashSid = window.location.hash.replace("#sec=", "");
-      const allSecs = classroom?.course?.units?.flatMap((u:any) => u.lessons?.flatMap((l:any) => l.sections || []) || []) || [];
+      const allSecs = classroom?.course?.units?.flatMap((u:any) => u.lessons?.flatMap((l:any) => l.textbookSections || []) || []) || [];
       const fromHash = hashSid && allSecs.find((s:any) => s.id === hashSid);
       const target = fromHash || allSecs[0];
       if (target) loadSec(target.id, target.title);
@@ -50,7 +50,7 @@ export default function TeacherTextbook() {
   const loadSec = async (sid: string, t: string) => {
     setSelSec(sid); setSecTitle(t); setBlocksLoading(true);
     try { window.location.hash = `sec=${sid}`; } catch {}
-    try { const d = await fetch(`/api/sections/${sid}/blocks`).then(r=>r.json()); setSecBlocks(Array.isArray(d)?d:[]); } catch { setSecBlocks([]); }
+    try { const d = await fetch(`/api/textbook-sections/${sid}/blocks`).then(r=>r.json()); setSecBlocks(Array.isArray(d)?d:[]); } catch { setSecBlocks([]); }
     setBlocksLoading(false);
   };
 
@@ -58,7 +58,7 @@ export default function TeacherTextbook() {
   const toggleL = (lid:string) => { setLCol(p=>{const n=new Set(p);n.has(lid)?n.delete(lid):n.add(lid);return n;}); };
   const toggleCheck = (sid:string) => { setChecked(p=>{const n=new Set(p);n.has(sid)?n.delete(sid):n.add(sid);return n;}); };
   const checkLesson = (lesson:any) => {
-    const sids = (lesson.sections||[]).map((s:any)=>s.id);
+    const sids = (lesson.textbookSections||[]).map((s:any)=>s.id);
     setChecked(p=>{const n=new Set(p);const all=sids.every((s:string)=>n.has(s));sids.forEach((s:string)=>all?n.delete(s):n.add(s));return n;});
   };
 
@@ -93,7 +93,7 @@ export default function TeacherTextbook() {
   const toggleStudent = (sid:string) => { setPickedStudents(p=>{const n=new Set(p);n.has(sid)?n.delete(sid):n.add(sid);return n;}); };
 
   const getSecStatus = (sectionId:string) => {
-    const sa = assigns.filter((a:any)=>a.sectionId===sectionId);
+    const sa = assigns.filter((a:any)=>a.textbookSectionId===sectionId);
     if(!sa.length) return null;
     const all = sa.flatMap((a:any)=>a.students||[]);
     return { assigned:all.filter((s:any)=>s.status==="ASSIGNED").length, completed:all.filter((s:any)=>s.status==="COMPLETED").length, questions:all.filter((s:any)=>s.status==="HAS_QUESTION").length };
@@ -101,7 +101,7 @@ export default function TeacherTextbook() {
 
   // Lesson-level progress: count sections with all students completed
   const getLessonProgress = (lesson: any) => {
-    const secs = lesson.sections || [];
+    const secs = lesson.textbookSections || [];
     if (secs.length === 0) return null;
     let completed = 0;
     let hasAssignment = false;
@@ -136,7 +136,7 @@ export default function TeacherTextbook() {
 
   return (
     <>
-      <div className="flex flex-1 min-h-0 gap-4 px-6 pb-20">
+      <div className="flex h-full overflow-hidden gap-8 px-6 pb-6">
         {!sidebarOpen && (
           <button onClick={() => setSidebarOpen(true)} className="flex-shrink-0 self-start w-8 h-8 flex items-center justify-center rounded-lg bg-muted hover:bg-accent text-muted-foreground hover:text-foreground transition-colors" title="Expand panel">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
@@ -159,7 +159,7 @@ export default function TeacherTextbook() {
                   {up&&<span className="text-[10px] text-muted-foreground flex-shrink-0">{up.completed}/{up.total}</span>}
                 </button>
                 {!uh&&unit.lessons?.map((lesson:any)=>{
-                  const lh=lCol.has(lesson.id); const secs=lesson.sections||[];
+                  const lh=lCol.has(lesson.id); const secs=lesson.textbookSections||[];
                   const lp=getLessonProgress(lesson);
                   return(<div key={lesson.id}>
                     <div className="group flex items-center gap-1.5 pl-4 pr-2 py-1.5 rounded-md hover:bg-accent/50">
@@ -187,35 +187,30 @@ export default function TeacherTextbook() {
         <div className="flex-1 min-w-0 overflow-y-auto pr-4">
           {blocksLoading?<div className="text-muted-foreground animate-pulse py-8 text-center">Uploading...</div>:
           selSec?(<div>
-            <div className="mb-6">
-              <h2 className="text-xl font-bold text-foreground mb-3">{secTitle}</h2>
-              {(()=>{const sa=assigns.filter((a:any)=>a.sectionId===selSec);const sts=sa.flatMap((a:any)=>a.students||[]);if(!sts.length)return null;
-                const completed=sts.filter((s:any)=>s.status==="COMPLETED").length;
-                const questions=sts.filter((s:any)=>s.status==="HAS_QUESTION").length;
-                const assigned=sts.filter((s:any)=>s.status==="ASSIGNED").length;
-                return(<div>
-                  <button onClick={()=>setEditingGrade(editingGrade?"":selSec)} className="text-[11px] text-primary hover:underline flex items-center gap-1 mb-2">
-                    <span>{editingGrade===selSec?"▾":"▸"}</span>
-                    <span>Students ({sts.length})</span>
-                    {questions>0&&<span className="text-[10px] text-amber-600 ml-1">· {questions} q.</span>}
-                    {assigned>0&&<span className="text-[10px] text-red-600 ml-1">· {assigned} pending</span>}
-                    {completed===sts.length&&sts.length>0&&<span className="text-[10px] text-emerald-600 ml-1">· all reviewed</span>}
-                  </button>
-                  {editingGrade===selSec&&(<div className="border border-border rounded-lg p-3 bg-accent/20 space-y-1.5 mb-3">{sts.map((s:any)=>(
-                    <div key={s.id} className="flex items-center gap-2 py-1">
-                      <span className={`w-2 h-2 rounded-full flex-shrink-0 ${s.status==="COMPLETED"?"bg-emerald-400":s.status==="HAS_QUESTION"?"bg-amber-400":"bg-red-400"}`}/>
-                      <span className="text-sm text-foreground flex-1 truncate">{s.student?.name}</span>
-                      <span className="text-[10px] text-muted-foreground">{s.status==="COMPLETED"?"Reviewed":s.status==="HAS_QUESTION"?"Question":"Not started"}</span>
-                      <GradePicker value={s.grade} onChange={(g:string)=>updateGrade(s.id,g)} size="sm"/>
-                      {s.comment&&<p className="text-[10px] text-amber-600 truncate max-w-48 ml-1">💬 {s.comment}</p>}
-                    </div>
-                  ))}</div>)}
-                </div>);})()}
-            </div>
-            <div className="bg-card rounded-xl shadow-sm border border-border/50 px-10 py-8 max-w-4xl">
-              {secBlocks.length===0?<p className="text-muted-foreground text-center py-8">No content</p>:
-              <PreviewTextbook blocks={secBlocks} isTeacher={true}/>}
-            </div>
+            {(()=>{const sa=assigns.filter((a:any)=>a.textbookSectionId===selSec);const sts=sa.flatMap((a:any)=>a.students||[]);if(!sts.length)return null;
+              const completed=sts.filter((s:any)=>s.status==="COMPLETED").length;
+              const questions=sts.filter((s:any)=>s.status==="HAS_QUESTION").length;
+              const assigned=sts.filter((s:any)=>s.status==="ASSIGNED").length;
+              return(<div className="mb-4">
+                <button onClick={()=>setEditingGrade(editingGrade?"":selSec)} className="text-[11px] text-primary hover:underline flex items-center gap-1 mb-2">
+                  <span>{editingGrade===selSec?"▾":"▸"}</span>
+                  <span>Students ({sts.length})</span>
+                  {questions>0&&<span className="text-[10px] text-amber-600 ml-1">· {questions} q.</span>}
+                  {assigned>0&&<span className="text-[10px] text-red-600 ml-1">· {assigned} pending</span>}
+                  {completed===sts.length&&sts.length>0&&<span className="text-[10px] text-emerald-600 ml-1">· all reviewed</span>}
+                </button>
+                {editingGrade===selSec&&(<div className="border border-border rounded-lg p-3 bg-accent/20 space-y-1.5 mb-3">{sts.map((s:any)=>(
+                  <div key={s.id} className="flex items-center gap-2 py-1">
+                    <span className={`w-2 h-2 rounded-full flex-shrink-0 ${s.status==="COMPLETED"?"bg-emerald-400":s.status==="HAS_QUESTION"?"bg-amber-400":"bg-red-400"}`}/>
+                    <span className="text-sm text-foreground flex-1 truncate">{s.student?.name}</span>
+                    <span className="text-[10px] text-muted-foreground">{s.status==="COMPLETED"?"Reviewed":s.status==="HAS_QUESTION"?"Question":"Not started"}</span>
+                    <GradePicker value={s.grade} onChange={(g:string)=>updateGrade(s.id,g)} size="sm"/>
+                    {s.comment&&<p className="text-[10px] text-amber-600 truncate max-w-48 ml-1">💬 {s.comment}</p>}
+                  </div>
+                ))}</div>)}
+              </div>);})()}
+            {secBlocks.length===0?<p className="text-muted-foreground text-center py-8">No content</p>:
+            <PreviewTextbook blocks={secBlocks} isTeacher={true}/>}
           </div>):<p className="text-muted-foreground text-center py-16">Select a section</p>}
         </div>
       </div>

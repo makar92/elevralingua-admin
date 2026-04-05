@@ -1,8 +1,6 @@
 // ===========================================
 // Файл: src/app/api/lessons/[id]/exercises/route.ts
-// Описание:
-//   GET — все упражнения для конкретного урока.
-//   Запрашивает через цепочку Lesson -> Sections -> Exercises.
+// Описание: GET — все упражнения урока через WorkbookSection.
 // ===========================================
 
 import { NextRequest } from "next/server";
@@ -17,11 +15,9 @@ export async function GET(
   return withErrorHandling(async () => {
     const session = await auth();
     if (!session) return apiError("Unauthorized", 401);
-
     const { id: lessonId } = await params;
 
-    // Get all exercises through lesson -> sections -> exercises
-    const sections = await prisma.section.findMany({
+    const sections = await prisma.workbookSection.findMany({
       where: { lessonId },
       select: { id: true },
     });
@@ -29,10 +25,10 @@ export async function GET(
     const sectionIds = sections.map(s => s.id);
 
     const exercises = await prisma.exercise.findMany({
-      where: { sectionId: { in: sectionIds } },
+      where: { workbookSectionId: { in: sectionIds } },
       orderBy: { order: "asc" },
       include: {
-        section: { select: { id: true, title: true } },
+        workbookSection: { select: { id: true, title: true } },
       },
     });
 

@@ -41,8 +41,8 @@ export default function StudentWorkbook() {
         }
       }
       setAnswers(ansMap);
-      const assignedSecIds = new Set((Array.isArray(ea) ? ea : []).map((a: any) => a.exercise?.section?.id).filter(Boolean));
-      const allSecs = classroom?.course?.units?.flatMap((u: any) => u.lessons?.flatMap((l: any) => l.sections || []) || []) || [];
+      const assignedSecIds = new Set((Array.isArray(ea) ? ea : []).map((a: any) => a.exercise?.workbookSection?.id).filter(Boolean));
+      const allSecs = classroom?.course?.units?.flatMap((u: any) => u.lessons?.flatMap((l: any) => l.workbookSections || []) || []) || [];
       const hashSid = window.location.hash.replace("#sec=", "");
       const fromHash = hashSid && allSecs.find((s: any) => s.id === hashSid && assignedSecIds.has(s.id));
       const target = fromHash || allSecs.find((s: any) => assignedSecIds.has(s.id));
@@ -55,12 +55,12 @@ export default function StudentWorkbook() {
     setSelSection(secId); setSelSectionTitle(title); setExLoading(true);
     try { window.location.hash = `sec=${secId}`; } catch {}
     try {
-      const all = await fetch(`/api/sections/${secId}/exercises`).then(r => r.json());
+      const all = await fetch(`/api/workbook-sections/${secId}/exercises`).then(r => r.json());
       const allEx = Array.isArray(all) ? all : [];
       const ea = eaOverride || eaList;
       const assignedIds = new Set(ea.map((a: any) => a.exerciseId));
       const assigned = allEx.filter((e: any) => assignedIds.has(e.id));
-      const bankIds = new Set(ea.filter((a: any) => a.isFromBank).map((a: any) => a.exerciseId));
+      
       // Build type map
       const typeMap = new Map<string, Set<string>>();
       for (const a of ea) {
@@ -70,7 +70,7 @@ export default function StudentWorkbook() {
       }
       setExercises(assigned.map((e: any) => ({
         ...e,
-        _isFromBank: bankIds.has(e.id),
+        
         _types: typeMap.get(e.id) || new Set(["CLASS_WORK"]),
       })));
     } catch { setExercises([]); }
@@ -94,11 +94,11 @@ export default function StudentWorkbook() {
   const toggleU = (uid: string) => { setUCol(p => { const n = new Set(p); n.has(uid) ? n.delete(uid) : n.add(uid); return n; }); };
   const toggleL = (lid: string) => { setLCol(p => { const n = new Set(p); n.has(lid) ? n.delete(lid) : n.add(lid); return n; }); };
 
-  const getSecExCount = (secId: string) => eaList.filter((a: any) => a.exercise?.section?.id === secId).length;
+  const getSecExCount = (secId: string) => eaList.filter((a: any) => a.exercise?.workbookSection?.id === secId).length;
 
   // Section-level answer stats
   const getSecAnswerStats = (secId: string) => {
-    const secExIds = new Set(eaList.filter((a: any) => a.exercise?.section?.id === secId).map((a: any) => a.exerciseId));
+    const secExIds = new Set(eaList.filter((a: any) => a.exercise?.workbookSection?.id === secId).map((a: any) => a.exerciseId));
     if (secExIds.size === 0) return null;
     let answered = 0, graded = 0;
     for (const eid of secExIds) {
@@ -110,13 +110,13 @@ export default function StudentWorkbook() {
 
   if (loading) return <div className="p-6 text-muted-foreground animate-pulse">Loading workbook...</div>;
 
-  const assignedSecIds = new Set(eaList.map((a: any) => a.exercise?.section?.id).filter(Boolean));
+  const assignedSecIds = new Set(eaList.map((a: any) => a.exercise?.workbookSection?.id).filter(Boolean));
   const filtered = (classroom?.course?.units || []).map((u: any) => ({
     ...u,
     lessons: (u.lessons || []).map((l: any) => ({
       ...l,
-      sections: (l.sections || []).filter((s: any) => assignedSecIds.has(s.id)),
-    })).filter((l: any) => l.sections.length > 0),
+      sections: (l.workbookSections || []).filter((s: any) => assignedSecIds.has(s.id)),
+    })).filter((l: any) => l.workbookSections.length > 0),
   })).filter((u: any) => u.lessons.length > 0);
 
   return (
@@ -127,7 +127,7 @@ export default function StudentWorkbook() {
           <p className="text-sm text-muted-foreground mt-1">The teacher hasn't assigned any exercises yet</p>
         </div>
       ) : (
-        <div className="flex flex-1 min-h-0 gap-4 px-6 pb-6">
+        <div className="flex h-full overflow-hidden gap-4 px-6 pb-6">
           {!sidebarOpen && (
           <button onClick={() => setSidebarOpen(true)} className="flex-shrink-0 self-start w-8 h-8 flex items-center justify-center rounded-lg bg-muted hover:bg-accent text-muted-foreground hover:text-foreground transition-colors" title="Expand panel">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
@@ -154,7 +154,7 @@ export default function StudentWorkbook() {
                         <span className="text-muted-foreground text-[10px]">{lh ? "▸" : "▾"}</span>
                         <span className="truncate font-medium flex-1">{l.title}</span>
                       </button>
-                      {!lh && l.sections.map((s: any) => {
+                      {!lh && l.workbookSections.map((s: any) => {
                         const st = getSecAnswerStats(s.id);
                         return (
                           <button key={s.id} onClick={() => loadExBySec(s.id, s.title)} title={s.title}
@@ -190,7 +190,6 @@ export default function StudentWorkbook() {
                     const types: Set<string> = ex._types || new Set();
                     return (
                       <div key={ex.id} className="bg-card rounded-xl border border-border p-6 shadow-sm">
-                        {ex._isFromBank && <div className="mb-2"><Badge variant="outline" className="text-[10px] text-amber-600 border-amber-300">supplemental</Badge></div>}
                         <ExercisePreview exercise={ex} mode="student" onAnswer={handleAnswer} existingAnswer={existingAnswer} />
                       </div>
                     );

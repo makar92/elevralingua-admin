@@ -141,7 +141,7 @@ export default function TeacherJournal() {
     if (!selectedLog) return;
     await fetch(`/api/lesson-log/${selectedLog.id}`, {
       method: "PATCH", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ topic: { lessonId: lid, sectionId: sid || null } }),
+      body: JSON.stringify({ topic: { lessonId: lid, textbookSectionId: sid || null } }),
     });
     await reloadLog();
   });

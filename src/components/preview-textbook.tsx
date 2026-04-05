@@ -36,7 +36,7 @@ export function PreviewTextbook({ blocks, isTeacher }: Props) {
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-6">
         {blocks.map((block) => {
           if (block.type === "TEACHER_NOTE" && !isTeacher) return null;
           return (
@@ -81,7 +81,7 @@ function PreviewBlock({ block }: { block: ContentBlock }) {
 
     case "TEACHER_NOTE":
       return (
-        <div className="rounded-xl bg-amber-50 border border-amber-300/40 px-6 py-5 shadow-sm">
+        <div className="rounded-xl bg-amber-50 border border-amber-300/40 px-6 py-5 shadow-sm max-w-[90%] mx-auto">
           <div className="flex items-center gap-2 mb-3">
             <span className="text-base">🎓</span>
             <span className="text-xs font-bold text-amber-700 uppercase tracking-wider">Teacher Note</span>
@@ -140,7 +140,7 @@ function VocabCardPreview({ c }: { c: any }) {
   const hasExample = !!(c.exampleSentence || c.exampleHanzi);
 
   return (
-    <div className="rounded-2xl overflow-hidden bg-white border border-black/8 shadow-xl">
+    <div className="rounded-2xl overflow-hidden bg-white border border-black/8 shadow-xl max-w-[90%] mx-auto">
       <div className="p-7 space-y-3 text-center">
         {/* Картинка — сверху */}
         {c.imageUrl && <img src={c.imageUrl} alt={word} className="max-w-[220px] rounded-xl mx-auto" />}
@@ -159,13 +159,13 @@ function VocabCardPreview({ c }: { c: any }) {
       </div>
       {/* Пример предложения — с лейблом "Example" */}
       {hasExample && (
-        <div className="px-7 py-5 bg-black/[0.03] border-t border-black/8 text-center">
-          <p className="text-xs font-bold text-foreground/40 uppercase tracking-wider mb-2 italic">Example</p>
+        <div className="px-7 py-5 bg-black/[0.06] border-t border-black/8 text-center italic">
+          <p className="text-xs font-bold text-foreground/40 uppercase tracking-wider mb-2">Example</p>
           {c.exampleSentence ? (
-            <div className="text-lg text-foreground italic" dangerouslySetInnerHTML={{ __html: c.exampleSentence }} />
+            <div className="text-lg text-foreground" dangerouslySetInnerHTML={{ __html: c.exampleSentence }} />
           ) : (
             <>
-              <p className="text-xl text-foreground italic">{c.exampleHanzi}</p>
+              <p className="text-xl text-foreground">{c.exampleHanzi}</p>
               {c.examplePinyin && <p className="text-base text-emerald-600/80 mt-1">{c.examplePinyin}</p>}
             </>
           )}
@@ -190,7 +190,7 @@ function DialoguePreview({ c }: { c: any }) {
   ];
 
   return (
-    <div className={`rounded-2xl overflow-hidden border border-black/8 shadow-xl relative ${
+    <div className={`rounded-2xl overflow-hidden border border-black/8 shadow-xl relative max-w-[90%] mx-auto ${
       hasScene ? `bg-gradient-to-br ${scene.gradient}` : "bg-white"
     }`}>
       {c.situationTitle && (

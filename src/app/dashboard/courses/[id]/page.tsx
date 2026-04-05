@@ -1,11 +1,7 @@
 // ===========================================
 // Файл: src/app/dashboard/courses/[id]/page.tsx
-// Путь:  elevralingua-admin/src/app/dashboard/courses/[id]/page.tsx
-//
-// Описание:
-//   Страница редактирования курса. Загружает курс с сервера
-//   со всеми юнитами, lessonsми и sectionsми. Передаёт данные
-//   в клиентский компонент CourseEditor.
+// Описание: Страница редактирования курса. Загружает курс
+//   и передаёт в CourseEditor.
 // ===========================================
 
 import { prisma } from "@/lib/prisma";
@@ -19,7 +15,6 @@ interface Props {
 export default async function CourseDetailPage({ params }: Props) {
   const { id } = await params;
 
-  // Загружаем курс со всей вложенной структурой
   const course = await prisma.course.findUnique({
     where: { id },
     include: {
@@ -27,7 +22,8 @@ export default async function CourseDetailPage({ params }: Props) {
         include: {
           lessons: {
             include: {
-              sections: true, // Разделы lessons (лексика, грамматика и т.д.)
+              textbookSections: { orderBy: { order: "asc" } },
+              workbookSections: { orderBy: { order: "asc" } },
             },
             orderBy: { order: "asc" },
           },
@@ -37,7 +33,6 @@ export default async function CourseDetailPage({ params }: Props) {
     },
   });
 
-  // Если курс не найден — показываем 404
   if (!course) notFound();
 
   return <CourseEditor course={course} />;

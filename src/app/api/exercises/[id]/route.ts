@@ -1,11 +1,6 @@
 // ===========================================
 // Файл: src/app/api/exercises/[id]/route.ts
-// Путь:  elevralingua-admin/src/app/api/exercises/[id]/route.ts
-//
-// Описание:
-//   GET    — получить одно упражнение по id.
-//   PATCH  — обновить упражнение.
-//   DELETE — удалить упражнение из банка (и из всех тетрадей).
+// Описание: GET, PATCH, DELETE для упражнения.
 // ===========================================
 
 import { NextRequest } from "next/server";
@@ -13,30 +8,24 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { apiSuccess, apiError, withErrorHandling, extractBlobUrls, cleanupStorageUrls } from "@/lib/api-helpers";
 
-// GET — получить одно упражнение со всеми данными
 export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   return withErrorHandling(async () => {
-    // Проверяем авторизацию
     const session = await auth();
     if (!session) return apiError("Unauthorized", 401);
-
     const { id } = await params;
 
-    // Загружаем упражнение с информацией о разделе/уроке
     const exercise = await prisma.exercise.findUnique({
       where: { id },
       include: {
-        section: {
+        workbookSection: {
           select: {
-            id: true,
-            title: true,
+            id: true, title: true,
             lesson: {
               select: {
-                id: true,
-                title: true,
+                id: true, title: true,
                 unit: { select: { id: true, title: true, course: { select: { id: true, title: true } } } },
               },
             },
@@ -45,27 +34,21 @@ export async function GET(
       },
     });
 
-    // Если не найдено — 404
     if (!exercise) return apiError("Exercise not found", 404);
-
     return apiSuccess(exercise);
   });
 }
 
-// PATCH — обновить упражнение
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   return withErrorHandling(async () => {
-    // Проверяем авторизацию
     const session = await auth();
     if (!session) return apiError("Unauthorized", 401);
-
     const { id } = await params;
     const body = await request.json();
 
-    // Собираем только те поля, которые пришли в запросе
     const data: any = {};
     if (body.title !== undefined) data.title = body.title;
     if (body.instructionText !== undefined) data.instructionText = body.instructionText;
@@ -76,24 +59,20 @@ export async function PATCH(
     if (body.referenceAnswer !== undefined) data.referenceAnswer = body.referenceAnswer;
     if (body.gradingCriteria !== undefined) data.gradingCriteria = body.gradingCriteria;
     if (body.teacherComment !== undefined) data.teacherComment = body.teacherComment;
-    if (body.isDefaultInWorkbook !== undefined) data.isDefaultInWorkbook = body.isDefaultInWorkbook;
     if (body.isPublished !== undefined) data.isPublished = body.isPublished;
     if (body.exerciseType !== undefined) data.exerciseType = body.exerciseType;
     if (body.order !== undefined) data.order = body.order;
 
-    // Обновляем упражнение в базе
     const exercise = await prisma.exercise.update({
       where: { id },
       data,
       include: {
-        section: {
+        workbookSection: {
           select: {
-            id: true,
-            title: true,
+            id: true, title: true,
             lesson: {
               select: {
-                id: true,
-                title: true,
+                id: true, title: true,
                 unit: { select: { id: true, title: true, course: { select: { id: true, title: true } } } },
               },
             },
@@ -106,7 +85,6 @@ export async function PATCH(
   });
 }
 
-// DELETE — удалить упражнение из банка (каскадно удалит из тетрадей + очистка storage)
 export async function DELETE(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -114,10 +92,8 @@ export async function DELETE(
   return withErrorHandling(async () => {
     const session = await auth();
     if (!session) return apiError("Unauthorized", 401);
-
     const { id } = await params;
 
-    // Собираем файлы из contentJson перед удалением
     const exercise = await prisma.exercise.findUnique({
       where: { id },
       select: { contentJson: true },

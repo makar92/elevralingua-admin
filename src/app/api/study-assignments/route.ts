@@ -1,3 +1,8 @@
+// ===========================================
+// Файл: src/app/api/study-assignments/route.ts
+// Описание: Назначение секций учебника ученикам.
+// ===========================================
+
 import { getAuthUser } from "@/lib/api-helpers";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
@@ -19,7 +24,7 @@ export async function GET(req: Request) {
           ...(user.role === "STUDENT" ? { where: { studentId: user.id } } : {}),
           include: { student: { select: { id: true, name: true, image: true } } },
         },
-        section: { select: { id: true, title: true, lessonId: true } },
+        textbookSection: { select: { id: true, title: true, lessonId: true } },
       },
       orderBy: { createdAt: "desc" },
     });
@@ -44,22 +49,22 @@ export async function POST(req: Request) {
     }
 
     let count = 0;
-    for (const sectionId of sectionIds) {
+    for (const textbookSectionId of sectionIds) {
       // Auto-open visibility
       try {
         const visTargets = studentIds?.length ? studentIds : ["_ALL_"];
         for (const sid of visTargets) {
-          await prisma.sectionVisibility.upsert({
-            where: { sectionId_classroomId_studentId: { sectionId, classroomId, studentId: sid } },
+          await prisma.textbookSectionVisibility.upsert({
+            where: { textbookSectionId_classroomId_studentId: { textbookSectionId, classroomId, studentId: sid } },
             update: {},
-            create: { sectionId, classroomId, studentId: sid, openedBy: user.id },
+            create: { textbookSectionId, classroomId, studentId: sid, openedBy: user.id },
           });
         }
       } catch {}
 
-      const assignment = await prisma.studyAssignment.create({
+      await prisma.studyAssignment.create({
         data: {
-          sectionId, classroomId, assignedBy: user.id, type: type || "HOMEWORK",
+          textbookSectionId, classroomId, assignedBy: user.id, type: type || "HOMEWORK",
           students: { create: targetIds.map((sid: string) => ({ studentId: sid })) },
         },
       });

@@ -1,10 +1,11 @@
 // ===========================================
 // Файл: prisma/schema.prisma
 // Описание:
-//   БЛОЧНАЯ АРХИТЕКТУРА v5 + КАБИНЕТЫ.
-//   Иерархия контента: Course → Unit → Lesson → Section → Blocks.
-//   Банк упражнений (10 типов) привязан к разделам.
+//   БЛОЧНАЯ АРХИТЕКТУРА v6 — РАЗДЕЛЬНЫЕ СЕКЦИИ.
+//   Иерархия контента: Course → Unit → Lesson → TextbookSection → Blocks.
+//   Упражнения: Course → Unit → Lesson → WorkbookSection → Exercise.
 //   Кабинеты: Classroom, Enrollment, Invitation, Homework, Progress, Schedule.
+//   Банк упражнений убран — все упражнения в WorkbookSection.
 // ===========================================
 
 generator client {
@@ -72,7 +73,7 @@ enum UserRole {
   PENDING
 }
 
-// ==================== ИЕРАРХИЯ: КУРС > ЮНИТ > УРОК > РАЗДЕЛ ====================
+// ==================== ИЕРАРХИЯ: КУРС > ЮНИТ > УРОК ====================
 
 model Course {
   id             String   @id @default(cuid())
@@ -118,17 +119,20 @@ model Lesson {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  unit            Unit             @relation(fields: [unitId], references: [id], onDelete: Cascade)
-  sections        Section[]
-  lessonPlan      LessonPlan?
-  progress        LessonProgress[]
-  homeworkLessons HomeworkLesson[]
-  logTopics       LessonLogTopic[]
+  unit              Unit               @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  textbookSections  TextbookSection[]
+  workbookSections  WorkbookSection[]
+  lessonPlan        LessonPlan?
+  progress          LessonProgress[]
+  homeworkLessons   HomeworkLesson[]
+  logTopics         LessonLogTopic[]
 
   @@index([unitId])
 }
 
-model Section {
+// ==================== СЕКЦИИ УЧЕБНИКА ====================
+
+model TextbookSection {
   id        String   @id @default(cuid())
   lessonId  String
   title     String
@@ -136,11 +140,26 @@ model Section {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  lesson    Lesson         @relation(fields: [lessonId], references: [id], onDelete: Cascade)
-  blocks    ContentBlock[]
-  exercises Exercise[]
-  visibility       SectionVisibility[]
+  lesson     Lesson              @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  blocks     ContentBlock[]
+  visibility TextbookSectionVisibility[]
   studyAssignments StudyAssignment[]
+
+  @@index([lessonId])
+}
+
+// ==================== СЕКЦИИ ТЕТРАДИ ====================
+
+model WorkbookSection {
+  id        String   @id @default(cuid())
+  lessonId  String
+  title     String
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  lesson    Lesson     @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  exercises Exercise[]
 
   @@index([lessonId])
 }
@@ -148,18 +167,18 @@ model Section {
 // ==================== БЛОКИ КОНТЕНТА ====================
 
 model ContentBlock {
-  id          String           @id @default(cuid())
-  sectionId   String
-  type        ContentBlockType
-  order       Int              @default(0)
-  contentJson Json
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  id               String           @id @default(cuid())
+  textbookSectionId String
+  type             ContentBlockType
+  order            Int              @default(0)
+  contentJson      Json
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
 
-  section     Section      @relation(fields: [sectionId], references: [id], onDelete: Cascade)
-  teacherNote TeacherNote?
+  textbookSection TextbookSection @relation(fields: [textbookSectionId], references: [id], onDelete: Cascade)
+  teacherNote     TeacherNote?
 
-  @@index([sectionId])
+  @@index([textbookSectionId])
 }
 
 enum ContentBlockType {
@@ -205,7 +224,7 @@ model LessonPlan {
 
 model Exercise {
   id                  String       @id @default(cuid())
-  sectionId           String
+  workbookSectionId   String
   exerciseType        ExerciseType
   order               Int          @default(0)
   title               String       @default("")
@@ -217,17 +236,16 @@ model Exercise {
   referenceAnswer     String?      @db.Text
   gradingCriteria     String?      @db.Text
   teacherComment      String?      @db.Text
-  isDefaultInWorkbook Boolean      @default(true)
   isPublished         Boolean      @default(false)
   createdAt           DateTime     @default(now())
   updatedAt           DateTime     @updatedAt
 
-  section           Section           @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  workbookSection   WorkbookSection   @relation(fields: [workbookSectionId], references: [id], onDelete: Cascade)
   answers           ExerciseAnswer[]
   homeworkExercises HomeworkExercise[]
   assignments       ExerciseAssignment[]
 
-  @@index([sectionId])
+  @@index([workbookSectionId])
   @@index([exerciseType])
 }
 
@@ -305,7 +323,7 @@ model Classroom {
   progress    LessonProgress[]
   invitations Invitation[]
   lessonLogs  LessonLog[]
-  sectionVisibility    SectionVisibility[]
+  textbookSectionVisibility TextbookSectionVisibility[]
   studyAssignments     StudyAssignment[]
   exerciseAssignments  ExerciseAssignment[]
   exerciseAnswers      ExerciseAnswer[]
@@ -480,7 +498,6 @@ model ScheduleSlot {
 
 // ==================== ЭЛЕКТРОННЫЙ ЖУРНАЛ ====================
 
-// Запись о занятии
 model LessonLog {
   id              String          @id @default(cuid())
   classroomId     String
@@ -512,7 +529,6 @@ enum LessonLogStatus {
   CANCELLED
 }
 
-// Посещаемость
 model LessonLogAttendance {
   id          String           @id @default(cuid())
   lessonLogId String
@@ -534,12 +550,11 @@ enum AttendanceStatus {
   EXCUSED
 }
 
-// Пройденные темы (привязка к учебнику)
 model LessonLogTopic {
   id          String  @id @default(cuid())
   lessonLogId String
   lessonId    String
-  sectionId   String?
+  textbookSectionId String?
   completed   Boolean @default(true)
 
   lessonLog   LessonLog @relation(fields: [lessonLogId], references: [id], onDelete: Cascade)
@@ -548,14 +563,13 @@ model LessonLogTopic {
   @@index([lessonLogId])
 }
 
-// Оценки
 model LessonLogGrade {
   id          String    @id @default(cuid())
   lessonLogId String
   studentId   String
   exerciseId  String?
   type        GradeType @default(CLASS_WORK)
-  grade       String                // A, B, C, D, F, N/A
+  grade       String
   comment     String?
   createdAt   DateTime  @default(now())
 
@@ -573,40 +587,40 @@ enum GradeType {
   QUIZ
 }
 
-// ==================== ВИДИМОСТЬ СЕКЦИЙ ДЛЯ УЧЕНИКОВ ====================
+// ==================== ВИДИМОСТЬ СЕКЦИЙ УЧЕБНИКА ДЛЯ УЧЕНИКОВ ====================
 // studentId = "_ALL_" означает открыто для всех
 
-model SectionVisibility {
-  id          String   @id @default(cuid())
-  sectionId   String
-  classroomId String
-  studentId   String   @default("_ALL_")
-  openedBy    String
-  createdAt   DateTime @default(now())
+model TextbookSectionVisibility {
+  id                  String   @id @default(cuid())
+  textbookSectionId   String
+  classroomId         String
+  studentId           String   @default("_ALL_")
+  openedBy            String
+  createdAt           DateTime @default(now())
 
-  section   Section   @relation(fields: [sectionId], references: [id], onDelete: Cascade)
-  classroom Classroom @relation(fields: [classroomId], references: [id], onDelete: Cascade)
+  textbookSection TextbookSection @relation(fields: [textbookSectionId], references: [id], onDelete: Cascade)
+  classroom       Classroom       @relation(fields: [classroomId], references: [id], onDelete: Cascade)
 
-  @@unique([sectionId, classroomId, studentId])
+  @@unique([textbookSectionId, classroomId, studentId])
   @@index([classroomId])
 }
 
 // ==================== НАЗНАЧЕНИЕ СЕКЦИЙ УЧЕБНИКА ====================
 
 model StudyAssignment {
-  id          String              @id @default(cuid())
-  sectionId   String
-  classroomId String
-  assignedBy  String
-  type        StudyAssignmentType @default(HOMEWORK)
-  createdAt   DateTime            @default(now())
+  id                  String              @id @default(cuid())
+  textbookSectionId   String
+  classroomId         String
+  assignedBy          String
+  type                StudyAssignmentType @default(HOMEWORK)
+  createdAt           DateTime            @default(now())
 
-  section   Section                @relation(fields: [sectionId], references: [id], onDelete: Cascade)
-  classroom Classroom              @relation(fields: [classroomId], references: [id], onDelete: Cascade)
-  students  StudyAssignmentStudent[]
+  textbookSection TextbookSection        @relation(fields: [textbookSectionId], references: [id], onDelete: Cascade)
+  classroom       Classroom              @relation(fields: [classroomId], references: [id], onDelete: Cascade)
+  students        StudyAssignmentStudent[]
 
   @@index([classroomId])
-  @@index([sectionId])
+  @@index([textbookSectionId])
 }
 
 enum StudyAssignmentType {
@@ -644,7 +658,6 @@ model ExerciseAssignment {
   exerciseId  String
   classroomId String
   studentId   String                @default("_ALL_")
-  isFromBank  Boolean               @default(false)
   type        ExerciseAssignmentType @default(CLASS_WORK)
   createdAt   DateTime              @default(now())
 
