@@ -45,11 +45,11 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
     const { id } = await params;
 
     const blocks = await prisma.contentBlock.findMany({
-      where: { section: { lessonId: id } },
+      where: { textbookSection: { lessonId: id } },
       select: { contentJson: true },
     });
     const exercises = await prisma.exercise.findMany({
-      where: { section: { lessonId: id } },
+      where: { workbookSection: { lessonId: id } },
       select: { contentJson: true },
     });
     const allUrls = [

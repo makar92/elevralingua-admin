@@ -15,13 +15,11 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     const { id } = await params;
     const body = await request.json();
 
-    // Переименование
     if (body.title !== undefined) {
       const unit = await prisma.unit.update({ where: { id }, data: { title: body.title } });
       return apiSuccess(unit);
     }
 
-    // Перемещение (swap order with sibling)
     if (body.direction === "up" || body.direction === "down") {
       const unit = await prisma.unit.findUnique({ where: { id } });
       if (!unit) return apiError("Unit not found", 404);
@@ -47,11 +45,11 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
     const { id } = await params;
 
     const blocks = await prisma.contentBlock.findMany({
-      where: { section: { lesson: { unitId: id } } },
+      where: { textbookSection: { lesson: { unitId: id } } },
       select: { contentJson: true },
     });
     const exercises = await prisma.exercise.findMany({
-      where: { section: { lesson: { unitId: id } } },
+      where: { workbookSection: { lesson: { unitId: id } } },
       select: { contentJson: true },
     });
     const allUrls = [
