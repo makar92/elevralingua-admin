@@ -276,20 +276,20 @@ function SoundCardsPreview({ c }: { c: any }) {
               className="rounded-xl border-2 p-4 min-w-[110px] text-center transition-all hover:-translate-y-0.5 hover:shadow-lg cursor-pointer"
               style={{
                 borderColor: isPlaying ? clr.borderHover : clr.border,
-                background: isPlaying ? clr.bg : "#fff",
+                background: clr.bg,
               }}
             >
               {card.text && (
-                <div className="text-2xl font-bold text-foreground leading-none">{card.text}</div>
+                <div className="text-3xl font-bold text-foreground leading-none">{card.text}</div>
               )}
               {card.symbol && (
-                <div className="text-lg mt-1">{card.symbol}</div>
+                <div className="text-xl font-semibold mt-1">{card.symbol}</div>
               )}
               {card.label && (
-                <div className="text-[10px] font-semibold text-gray-500 mt-1">{card.label}</div>
+                <div className="text-xs font-bold text-gray-600 mt-1.5">{card.label}</div>
               )}
               {card.meaning && (
-                <div className="text-[10px] text-gray-400 mt-0.5">{card.meaning}</div>
+                <div className="text-xs font-semibold text-gray-500 mt-0.5">{card.meaning}</div>
               )}
             </button>
           );

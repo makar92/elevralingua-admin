@@ -180,11 +180,7 @@ function TextbookSectionEditor({ section }: { section: Section }) {
 
   // Main view: preview with hover controls
   return (
-    <div className="min-h-[60vh]">
-      <div className="flex items-center justify-between mb-5">
-        <h2 className="text-2xl font-bold text-foreground">📕 {section.title}</h2>
-      </div>
-
+    <div>
       {loading && <p className="text-lg text-muted-foreground">Loading...</p>}
 
       {!loading && blocks.length === 0 && (
@@ -197,8 +193,6 @@ function TextbookSectionEditor({ section }: { section: Section }) {
 
       {!loading && blocks.length > 0 && (
         <div>
-          <InsertZone onClick={() => openAddBlock(-1)} />
-
           {blocks.map((block, idx) => (
             <div key={block.id}>
               <div className="group relative">
@@ -334,9 +328,8 @@ function WorkbookSectionEditor({ section }: { section: Section }) {
 
   // Main view: full exercise previews with hover controls
   return (
-    <div className="min-h-[60vh]">
+    <div>
       <div className="flex items-center justify-between mb-5">
-        <h2 className="text-2xl font-bold text-foreground">📓 {section.title}</h2>
         <Button onClick={() => setExMode("pickType")}>+ Create Exercise</Button>
       </div>
 
