@@ -28,6 +28,9 @@ interface Props {
   onSave: (data: any) => void;
   onCancel: () => void;
   courseId?: string;
+  unitId?: string;
+  lessonId?: string;
+  sectionId?: string;
 }
 
 // Удаление файла из storage
@@ -87,7 +90,7 @@ function FileUploadField({
 }
 
 // ===== Главный компонент формы =====
-export function BlockForm({ type, initialData, onSave, onCancel, courseId }: Props) {
+export function BlockForm({ type, initialData, onSave, onCancel, courseId, unitId, lessonId, sectionId }: Props) {
   const [data, setData] = useState(initialData || getDefaultData(type));
   const [uploading, setUploading] = useState(false);
   const [teacherNote, setTeacherNote] = useState(initialData?._teacherNote || "");
@@ -101,6 +104,9 @@ export function BlockForm({ type, initialData, onSave, onCancel, courseId }: Pro
     fd.append("file", file);
     if (oldUrl) fd.append("oldUrl", oldUrl);
     if (courseId) fd.append("courseId", courseId);
+    if (unitId) fd.append("unitId", unitId);
+    if (lessonId) fd.append("lessonId", lessonId);
+    if (sectionId) fd.append("sectionId", sectionId);
     try {
       const res = await fetch("/api/upload", { method: "POST", body: fd });
       if (res.ok) {
@@ -131,8 +137,8 @@ export function BlockForm({ type, initialData, onSave, onCancel, courseId }: Pro
       {type === "HTML_EMBED" && <HtmlEmbedForm data={data} set={set} />}
       {type === "SPACER" && <SpacerForm data={data} set={set} />}
       {type === "VOCAB_CARD" && <VocabCardForm data={data} set={set} upload={uploadFile} uploading={uploading} />}
-      {type === "DIALOGUE" && <DialogueForm data={data} set={set} upload={uploadFile} uploading={uploading} courseId={courseId} />}
-      {type === "SOUND_CARDS" && <SoundCardsForm data={data} set={set} setData={setData} upload={uploadFile} uploading={uploading} courseId={courseId} />}
+      {type === "DIALOGUE" && <DialogueForm data={data} set={set} upload={uploadFile} uploading={uploading} courseId={courseId} unitId={unitId} lessonId={lessonId} sectionId={sectionId} />}
+      {type === "SOUND_CARDS" && <SoundCardsForm data={data} set={set} setData={setData} upload={uploadFile} uploading={uploading} courseId={courseId} unitId={unitId} lessonId={lessonId} sectionId={sectionId} />}
 
       {/* Заметка для учителя */}
       {type !== "DIVIDER" && type !== "SPACER" && type !== "TEACHER_NOTE" && (
@@ -341,7 +347,7 @@ function VocabCardForm({ data, set, upload, uploading }: { data: any; set: any; 
 }
 
 // ===== ДИАЛОГ =====
-function DialogueForm({ data, set, upload, uploading, courseId }: { data: any; set: any; upload: any; uploading: boolean; courseId?: string }) {
+function DialogueForm({ data, set, upload, uploading, courseId, unitId, lessonId, sectionId }: { data: any; set: any; upload: any; uploading: boolean; courseId?: string; unitId?: string; lessonId?: string; sectionId?: string }) {
   const speakers: any[] = data.speakers || [];
   const lines: any[] = data.lines || [];
   const speakerAvatars: string[] = data.speakerAvatars || [];
@@ -358,6 +364,9 @@ function DialogueForm({ data, set, upload, uploading, courseId }: { data: any; s
     fd.append("file", file);
     if (oldUrl) fd.append("oldUrl", oldUrl);
     if (courseId) fd.append("courseId", courseId);
+    if (unitId) fd.append("unitId", unitId);
+    if (lessonId) fd.append("lessonId", lessonId);
+    if (sectionId) fd.append("sectionId", sectionId);
     try {
       const res = await fetch("/api/upload", { method: "POST", body: fd });
       if (res.ok) {
@@ -617,8 +626,8 @@ const SOUND_CARD_COLORS = [
   { id: "gray",   label: "Gray",   border: "#6B7280", bgHover: "#F3F4F6", borderHover: "#374151" },
 ];
 
-function SoundCardsForm({ data, set, setData, upload, uploading, courseId }: {
-  data: any; set: any; setData: any; upload: any; uploading: boolean; courseId?: string;
+function SoundCardsForm({ data, set, setData, upload, uploading, courseId, unitId, lessonId, sectionId }: {
+  data: any; set: any; setData: any; upload: any; uploading: boolean; courseId?: string; unitId?: string; lessonId?: string; sectionId?: string;
 }) {
   const cards: any[] = data.cards || [];
   const [uploadingIdx, setUploadingIdx] = useState<number | null>(null);
@@ -657,6 +666,9 @@ function SoundCardsForm({ data, set, setData, upload, uploading, courseId }: {
     fd.append("file", file);
     if (oldUrl) fd.append("oldUrl", oldUrl);
     if (courseId) fd.append("courseId", courseId);
+    if (unitId) fd.append("unitId", unitId);
+    if (lessonId) fd.append("lessonId", lessonId);
+    if (sectionId) fd.append("sectionId", sectionId);
     try {
       const res = await fetch("/api/upload", { method: "POST", body: fd });
       if (res.ok) {

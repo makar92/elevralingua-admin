@@ -18,6 +18,9 @@ export async function POST(request: NextRequest) {
     const file = formData.get("file") as File | null;
     const oldUrl = formData.get("oldUrl") as string | null;
     const courseId = formData.get("courseId") as string | null;
+    const unitId = formData.get("unitId") as string | null;
+    const lessonId = formData.get("lessonId") as string | null;
+    const sectionId = formData.get("sectionId") as string | null;
 
     if (!file) return apiError("No file selected");
 
@@ -35,11 +38,23 @@ export async function POST(request: NextRequest) {
       return apiError("File too large (max 10MB)");
     }
 
-    // Санитизируем courseId для безопасности (на всякий случай — чтобы в путь не пролезли "../" и т.п.)
-    const safeCourseId = courseId
-      ? courseId.replace(/[^a-zA-Z0-9_\-]/g, "").slice(0, 64)
-      : "";
-    const folderPrefix = safeCourseId ? `${safeCourseId}/` : "";
+    // Санитизируем идентификаторы — в путь не должны пролезть "../", слэши и прочие опасные символы.
+    // Разрешаем только алфавит/цифры/_/- (cuid подходит), режем до 64 символов.
+    const sanitizeId = (v: string | null) =>
+      v ? v.replace(/[^a-zA-Z0-9_\-]/g, "").slice(0, 64) : "";
+
+    const safeCourseId = sanitizeId(courseId);
+    const safeUnitId = sanitizeId(unitId);
+    const safeLessonId = sanitizeId(lessonId);
+    const safeSectionId = sanitizeId(sectionId);
+
+    // Путь складывается из тех частей, которые переданы (обратная совместимость сохранена).
+    // Полный путь для контента секции: {courseId}/{unitId}/{lessonId}/{sectionId}/filename
+    // Для обложки курса (без unit/lesson/section): {courseId}/filename
+    const folderPrefix = [safeCourseId, safeUnitId, safeLessonId, safeSectionId]
+      .filter(Boolean)
+      .map((p) => `${p}/`)
+      .join("");
 
     // Vercel Blob для продакшена, локальная ФС для dev
     if (process.env.BLOB_READ_WRITE_TOKEN) {
@@ -72,7 +87,9 @@ export async function POST(request: NextRequest) {
       const { writeFile, mkdir, unlink } = await import("fs/promises");
       const path = await import("path");
 
-      const uploadDir = path.join(process.cwd(), "public", "uploads", safeCourseId);
+      // Собираем папку из тех же id, что и для Blob, чтобы структура на диске совпадала.
+      const subPath = [safeCourseId, safeUnitId, safeLessonId, safeSectionId].filter(Boolean);
+      const uploadDir = path.join(process.cwd(), "public", "uploads", ...subPath);
       await mkdir(uploadDir, { recursive: true });
 
       // Удаляем старый файл если передан oldUrl
@@ -97,7 +114,8 @@ export async function POST(request: NextRequest) {
       const buffer = Buffer.from(await file.arrayBuffer());
       await writeFile(filepath, buffer);
 
-      const url = safeCourseId ? `/uploads/${safeCourseId}/${filename}` : `/uploads/${filename}`;
+      const urlSubPath = subPath.length ? subPath.join("/") + "/" : "";
+      const url = `/uploads/${urlSubPath}${filename}`;
       return apiSuccess({ url, filename, type: file.type, size: file.size });
     }
   });

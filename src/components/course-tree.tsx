@@ -82,7 +82,8 @@ export function CourseTree({ course, selectedId, onSelect, onAddLesson, onAddTex
       <button onClick={() => onSelect({ type: "course", id: course.id, data: course })}
         className={`w-full text-left px-3 py-2 rounded-md font-semibold transition-colors ${
           selectedId === course.id ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-accent"
-        }`}>📚 {course.title}</button>
+        }`}
+        title={`${course.title} · ${course.id}`}>📚 {course.title}</button>
 
       {course.units.map((unit, unitIdx) => (
         <div key={unit.id} className="ml-2">
@@ -94,7 +95,7 @@ export function CourseTree({ course, selectedId, onSelect, onAddLesson, onAddTex
             <button onClick={() => onSelect({ type: "unit", id: unit.id, data: unit })}
               className={`flex-1 text-left px-2 py-1.5 rounded-md transition-colors truncate ${
                 selectedId === unit.id ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-accent"
-              }`} title={unit.title}>📖 {unit.title}</button>
+              }`} title={`${unit.title} · ${unit.id}`}>📖 {unit.title}</button>
             <ActionButtons type="unit" id={unit.id} title={unit.title} index={unitIdx} total={course.units.length} />
             <Button variant="ghost" size="sm"
               className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 text-muted-foreground ml-0.5"
@@ -111,7 +112,7 @@ export function CourseTree({ course, selectedId, onSelect, onAddLesson, onAddTex
                 <button onClick={() => onSelect({ type: "lesson", id: lesson.id, data: lesson })}
                   className={`flex-1 text-left px-2 py-1 rounded-md transition-colors truncate ${
                     selectedId === lesson.id ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-accent"
-                  }`} title={lesson.title}>📝 {lesson.title}</button>
+                  }`} title={`${lesson.title} · ${lesson.id}`}>📝 {lesson.title}</button>
                 <ActionButtons type="lesson" id={lesson.id} title={lesson.title} index={lessonIdx} total={unit.lessons.length} />
               </div>
 
@@ -133,7 +134,7 @@ export function CourseTree({ course, selectedId, onSelect, onAddLesson, onAddTex
                       <button onClick={() => onSelect({ type: "textbookSection", id: sec.id, data: sec })}
                         className={`flex-1 text-left px-2 py-1 rounded-md transition-colors truncate ${
                           selectedId === sec.id ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent hover:text-foreground"
-                        }`} title={sec.title}>📄 {sec.title}</button>
+                        }`} title={`${sec.title} · ${sec.id}`}>📄 {sec.title}</button>
                       <ActionButtons type="textbookSection" id={sec.id} title={sec.title} index={secIdx} total={lesson.textbookSections.length} />
                     </div>
                   ))}
@@ -154,7 +155,7 @@ export function CourseTree({ course, selectedId, onSelect, onAddLesson, onAddTex
                       <button onClick={() => onSelect({ type: "workbookSection", id: sec.id, data: sec })}
                         className={`flex-1 text-left px-2 py-1 rounded-md transition-colors truncate ${
                           selectedId === sec.id ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent hover:text-foreground"
-                        }`} title={sec.title}>📝 {sec.title}</button>
+                        }`} title={`${sec.title} · ${sec.id}`}>📝 {sec.title}</button>
                       <ActionButtons type="workbookSection" id={sec.id} title={sec.title} index={secIdx} total={lesson.workbookSections.length} />
                     </div>
                   ))}

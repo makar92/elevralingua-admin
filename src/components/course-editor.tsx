@@ -189,8 +189,29 @@ export function CourseEditor({ course: initialCourse }: { course: Course }) {
           {selected.type === "course" && <CourseInfo course={course} onUpdate={reloadCourse} />}
           {selected.type === "unit" && <UnitInfo unit={selected.data} />}
           {selected.type === "lesson" && <LessonInfo lesson={selected.data} />}
-          {selected.type === "textbookSection" && <SectionEditor section={selected.data} kind="textbook" courseId={course.id} />}
-          {selected.type === "workbookSection" && <SectionEditor section={selected.data} kind="workbook" courseId={course.id} />}
+          {(selected.type === "textbookSection" || selected.type === "workbookSection") && (() => {
+            // Находим родителей секции в дереве курса — это нужно, чтобы сложить
+            // путь для Blob: {courseId}/{unitId}/{lessonId}/{sectionId}/file
+            let parentUnitId = "";
+            let parentLessonId = "";
+            const field = selected.type === "textbookSection" ? "textbookSections" : "workbookSections";
+            outer: for (const u of course.units) {
+              for (const l of u.lessons) {
+                if (((l as any)[field] as any[] | undefined)?.some((s) => s.id === selected.id)) {
+                  parentUnitId = u.id; parentLessonId = l.id; break outer;
+                }
+              }
+            }
+            return (
+              <SectionEditor
+                section={selected.data}
+                kind={selected.type === "textbookSection" ? "textbook" : "workbook"}
+                courseId={course.id}
+                unitId={parentUnitId}
+                lessonId={parentLessonId}
+              />
+            );
+          })()}
         </div>
       </div>
 
