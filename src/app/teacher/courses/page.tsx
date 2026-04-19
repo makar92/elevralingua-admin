@@ -51,7 +51,7 @@ export default function TeacherCourses() {
                 {/* Cover image */}
                 <div className="h-44 bg-gradient-to-br from-primary/10 via-primary/5 to-accent overflow-hidden relative">
                   {course.coverImageUrl ? (
-                    <img src={course.coverImageUrl} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    <img src={course.coverImageUrl} alt="" className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
                       <span className="text-6xl opacity-30">📚</span>

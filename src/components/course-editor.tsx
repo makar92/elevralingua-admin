@@ -369,7 +369,7 @@ function CourseInfo({ course, onUpdate }: { course: Course; onUpdate: () => void
           <p className="text-sm font-medium text-muted-foreground mb-2">Cover Image</p>
           {(course as any).coverImageUrl ? (
             <div className="relative group rounded-xl overflow-hidden h-48 bg-accent">
-              <img src={(course as any).coverImageUrl} alt="" className="w-full h-full object-cover" />
+              <img src={(course as any).coverImageUrl} alt="" className="w-full h-full object-contain" />
               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
                 <label className="px-4 py-2 rounded-lg bg-white text-foreground text-sm font-medium cursor-pointer hover:bg-gray-100">
                   Change

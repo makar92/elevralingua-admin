@@ -11,9 +11,7 @@
     "db:seed": "tsx prisma/seed.ts",
     "db:seed-cabinets": "tsx prisma/seed-cabinets.ts",
     "db:studio": "prisma studio",
-    "postinstall": "prisma generate",
-    "seed:sfc:u1:ru": "tsx prisma/seeds/courses/speak-first-chinese/unit1-ru.ts",
-    "seed:sfc:u1:en": "tsx prisma/seeds/courses/speak-first-chinese/unit1-en.ts"
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@hugeicons/core-free-icons": "^4.0.0",

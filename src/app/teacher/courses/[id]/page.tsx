@@ -121,8 +121,8 @@ export default function CoursePreviewPage() {
         {activeTab === "about" && (
           <div className="p-6 max-w-3xl mx-auto">
             {course.coverImageUrl && (
-              <div className="rounded-2xl overflow-hidden mb-6 shadow-lg">
-                <img src={course.coverImageUrl} alt="" className="w-full h-64 object-cover" />
+              <div className="rounded-2xl overflow-hidden mb-6 shadow-lg bg-muted">
+                <img src={course.coverImageUrl} alt="" className="w-full h-64 object-contain" />
               </div>
             )}
             <h2 className="text-xl font-bold text-foreground mb-3">About This Course</h2>
