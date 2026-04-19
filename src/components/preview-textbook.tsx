@@ -9,11 +9,11 @@
 
 "use client";
 
-import { useState, useRef, useCallback } from "react";
 import { AudioPlayer } from "@/components/audio-player";
 import { AVATAR_MAP, SCENE_MAP } from "@/lib/dialogue-assets";
 import { TIPTAP_CONTENT_STYLES } from "@/lib/utils";
 import { AudioIndicator } from "@/components/shared/audio-indicator";
+import { useAudioStore } from "@/lib/audio-store";
 
 // ===== Типы =====
 interface ContentBlock {
@@ -123,8 +123,8 @@ function PreviewBlock({ block }: { block: ContentBlock }) {
       return c.html ? <div className="rounded-xl overflow-hidden" dangerouslySetInnerHTML={{ __html: c.html }} /> : null;
 
     case "VOCAB_CARD": return <VocabCardPreview c={c} />;
-    case "DIALOGUE": return <DialoguePreview c={c} />;
-    case "SOUND_CARDS": return <SoundCardsPreview c={c} />;
+    case "DIALOGUE": return <DialoguePreview c={c} blockId={block.id} />;
+    case "SOUND_CARDS": return <SoundCardsPreview c={c} blockId={block.id} />;
 
     default: return null;
   }
@@ -178,41 +178,17 @@ function VocabCardPreview({ c }: { c: any }) {
 }
 
 // ===== DIALOGUE =====
-function DialoguePreview({ c }: { c: any }) {
+function DialoguePreview({ c, blockId }: { c: any; blockId: string }) {
   const speakerAvatars: string[] = c.speakerAvatars || [];
   const scene = SCENE_MAP[c.sceneId] || SCENE_MAP["none"];
   const hasScene = c.sceneId && c.sceneId !== "none" && scene;
 
-  const [playingLineIdx, setPlayingLineIdx] = useState<number | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-
-  // Остановка текущего воспроизведения
-  const stopLine = useCallback(() => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-      audioRef.current = null;
-    }
-    setPlayingLineIdx(null);
-  }, []);
-
-  // Старт/перезапуск воспроизведения с начала
-  const playLine = useCallback((audioUrl: string, idx: number) => {
-    if (!audioUrl) return;
-    // Останавливаем предыдущее
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-    }
-    const audio = new Audio(audioUrl);
-    audioRef.current = audio;
-    setPlayingLineIdx(idx);
-    audio.play().catch(() => {});
-    audio.onended = () => {
-      setPlayingLineIdx(null);
-      audioRef.current = null;
-    };
-  }, []);
+  // Селекторы из глобального audio-store (каждый — отдельный селектор,
+  // чтобы re-render происходил только при изменении нужного поля)
+  const currentId = useAudioStore((s) => s.currentId);
+  const isPlayingGlobal = useAudioStore((s) => s.isPlaying);
+  const play = useAudioStore((s) => s.play);
+  const stop = useAudioStore((s) => s.stop);
 
   const colors = [
     { bg: "bg-sky-500/12", border: "border-sky-400/25", name: "text-sky-700" },
@@ -241,7 +217,10 @@ function DialoguePreview({ c }: { c: any }) {
           const text = line.text || line.hanzi || "";
           const transcription = line.transcription || line.pinyin || "";
           const hasAudio = !!line.audioUrl;
-          const isPlaying = playingLineIdx === i;
+
+          // Уникальный id этой реплики в пределах всего приложения
+          const myAudioId = `dialogue:${blockId}:line:${i}`;
+          const isPlaying = isPlayingGlobal && currentId === myAudioId;
 
           // Базовые классы реплики
           const bubbleBase = `max-w-[75%] rounded-2xl ${col.bg} border ${col.border} px-5 py-4 relative ${
@@ -256,7 +235,7 @@ function DialoguePreview({ c }: { c: any }) {
             <>
               {/* Иконка аудио в правом верхнем углу */}
               {hasAudio && (
-                <AudioIndicator isPlaying={isPlaying} onStop={stopLine} />
+                <AudioIndicator isPlaying={isPlaying} onStop={stop} />
               )}
               <p className={`text-xl text-foreground leading-relaxed ${hasAudio ? "pr-8" : ""}`}>{text}</p>
               {transcription && <p className="text-base text-emerald-600/70 mt-1.5">{transcription}</p>}
@@ -277,7 +256,7 @@ function DialoguePreview({ c }: { c: any }) {
               {hasAudio ? (
                 <button
                   type="button"
-                  onClick={() => playLine(line.audioUrl, i)}
+                  onClick={() => play(line.audioUrl, myAudioId)}
                   className={`${bubbleBase} ${bubbleInteractive} ${bubbleActive} text-left`}
                 >
                   {bubbleContent}
@@ -296,37 +275,12 @@ function DialoguePreview({ c }: { c: any }) {
 }
 
 // ===== SOUND CARDS — интерактивные карточки с аудио =====
-function SoundCardsPreview({ c }: { c: any }) {
-  const [playingIdx, setPlayingIdx] = useState<number | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-
-  // Остановка текущего воспроизведения
-  const stopCard = useCallback(() => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-      audioRef.current = null;
-    }
-    setPlayingIdx(null);
-  }, []);
-
-  // Старт/перезапуск воспроизведения с начала
-  const playCard = useCallback((audioUrl: string, idx: number) => {
-    if (!audioUrl) return;
-    // Stop previous
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-    }
-    const audio = new Audio(audioUrl);
-    audioRef.current = audio;
-    setPlayingIdx(idx);
-    audio.play().catch(() => {});
-    audio.onended = () => {
-      setPlayingIdx(null);
-      audioRef.current = null;
-    };
-  }, []);
+function SoundCardsPreview({ c, blockId }: { c: any; blockId: string }) {
+  // Селекторы из глобального audio-store
+  const currentId = useAudioStore((s) => s.currentId);
+  const isPlayingGlobal = useAudioStore((s) => s.isPlaying);
+  const play = useAudioStore((s) => s.play);
+  const stop = useAudioStore((s) => s.stop);
 
   return (
     <div className="rounded-2xl overflow-hidden bg-white border border-black/8 shadow-xl py-6 px-7">
@@ -339,12 +293,16 @@ function SoundCardsPreview({ c }: { c: any }) {
       <div className="flex gap-3 justify-center flex-wrap">
         {(c.cards || []).map((card: any, i: number) => {
           const clr = SOUND_CARD_COLOR_MAP[card.color] || SOUND_CARD_COLOR_MAP.blue;
-          const isPlaying = playingIdx === i;
           const hasAudio = !!card.audioUrl;
+
+          // Уникальный id этой карточки в пределах всего приложения
+          const myAudioId = `soundcard:${blockId}:card:${i}`;
+          const isPlaying = isPlayingGlobal && currentId === myAudioId;
+
           return (
             <button
               key={i}
-              onClick={() => playCard(card.audioUrl, i)}
+              onClick={() => play(card.audioUrl, myAudioId)}
               className="relative rounded-xl border-2 px-8 py-6 min-w-[110px] text-center transition-all hover:-translate-y-0.5 hover:shadow-lg cursor-pointer"
               style={{
                 borderColor: isPlaying ? clr.borderHover : clr.border,
@@ -352,7 +310,7 @@ function SoundCardsPreview({ c }: { c: any }) {
               }}
             >
               {hasAudio && (
-                <AudioIndicator isPlaying={isPlaying} onStop={stopCard} />
+                <AudioIndicator isPlaying={isPlaying} onStop={stop} />
               )}
               {card.text && (
                 <div className="text-3xl font-bold text-foreground leading-none">{card.text}</div>
