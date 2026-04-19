@@ -289,7 +289,7 @@ model ExerciseAnswer {
   exercise  Exercise   @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
   student   User       @relation(fields: [studentId], references: [id])
   homework  Homework?  @relation(fields: [homeworkId], references: [id])
-  classroom Classroom? @relation(fields: [classroomId], references: [id])
+  classroom Classroom? @relation(fields: [classroomId], references: [id], onDelete: Cascade)
 
   @@index([exerciseId])
   @@index([studentId])
@@ -365,7 +365,7 @@ model Invitation {
 
   sender    User      @relation("InvitationSender", fields: [senderId], references: [id])
   receiver  User      @relation("InvitationReceiver", fields: [receiverId], references: [id])
-  classroom Classroom @relation(fields: [classroomId], references: [id])
+  classroom Classroom @relation(fields: [classroomId], references: [id], onDelete: Cascade)
 
   @@index([receiverId, status])
   @@index([classroomId])

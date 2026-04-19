@@ -13,6 +13,7 @@ import { useState, useRef, useCallback } from "react";
 import { AudioPlayer } from "@/components/audio-player";
 import { AVATAR_MAP, SCENE_MAP } from "@/lib/dialogue-assets";
 import { TIPTAP_CONTENT_STYLES } from "@/lib/utils";
+import { AudioIndicator } from "@/components/shared/audio-indicator";
 
 // ===== Типы =====
 interface ContentBlock {
@@ -182,6 +183,37 @@ function DialoguePreview({ c }: { c: any }) {
   const scene = SCENE_MAP[c.sceneId] || SCENE_MAP["none"];
   const hasScene = c.sceneId && c.sceneId !== "none" && scene;
 
+  const [playingLineIdx, setPlayingLineIdx] = useState<number | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Остановка текущего воспроизведения
+  const stopLine = useCallback(() => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      audioRef.current = null;
+    }
+    setPlayingLineIdx(null);
+  }, []);
+
+  // Старт/перезапуск воспроизведения с начала
+  const playLine = useCallback((audioUrl: string, idx: number) => {
+    if (!audioUrl) return;
+    // Останавливаем предыдущее
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+    const audio = new Audio(audioUrl);
+    audioRef.current = audio;
+    setPlayingLineIdx(idx);
+    audio.play().catch(() => {});
+    audio.onended = () => {
+      setPlayingLineIdx(null);
+      audioRef.current = null;
+    };
+  }, []);
+
   const colors = [
     { bg: "bg-sky-500/12", border: "border-sky-400/25", name: "text-sky-700" },
     { bg: "bg-rose-500/12", border: "border-rose-400/25", name: "text-rose-700" },
@@ -208,6 +240,30 @@ function DialoguePreview({ c }: { c: any }) {
           const speakerName = c.speakers?.[spkIdx] || "";
           const text = line.text || line.hanzi || "";
           const transcription = line.transcription || line.pinyin || "";
+          const hasAudio = !!line.audioUrl;
+          const isPlaying = playingLineIdx === i;
+
+          // Базовые классы реплики
+          const bubbleBase = `max-w-[75%] rounded-2xl ${col.bg} border ${col.border} px-5 py-4 relative ${
+            isLeft ? "rounded-bl-md" : "rounded-br-md"
+          }`;
+          const bubbleInteractive = hasAudio
+            ? "cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-md"
+            : "";
+          const bubbleActive = isPlaying ? "ring-2 ring-offset-1 ring-primary/40" : "";
+
+          const bubbleContent = (
+            <>
+              {/* Иконка аудио в правом верхнем углу */}
+              {hasAudio && (
+                <AudioIndicator isPlaying={isPlaying} onStop={stopLine} />
+              )}
+              <p className={`text-xl text-foreground leading-relaxed ${hasAudio ? "pr-8" : ""}`}>{text}</p>
+              {transcription && <p className="text-base text-emerald-600/70 mt-1.5">{transcription}</p>}
+              {line.translation && <p className="text-sm text-foreground/50 mt-1">{line.translation}</p>}
+            </>
+          );
+
           return (
             <div key={i} className={`flex items-end gap-4 ${isLeft ? "" : "flex-row-reverse"}`}>
               <div className="flex flex-col items-center gap-1 flex-shrink-0">
@@ -218,22 +274,23 @@ function DialoguePreview({ c }: { c: any }) {
                   <span className={`text-sm font-semibold ${col.name} max-w-[80px] truncate`}>{speakerName}</span>
                 )}
               </div>
-              <div className={`max-w-[75%] rounded-2xl ${col.bg} border ${col.border} px-5 py-4 ${
-                isLeft ? "rounded-bl-md" : "rounded-br-md"
-              }`}>
-                <p className="text-xl text-foreground leading-relaxed">{text}</p>
-                {transcription && <p className="text-base text-emerald-600/70 mt-1.5">{transcription}</p>}
-                {line.translation && <p className="text-sm text-foreground/50 mt-1">{line.translation}</p>}
-              </div>
+              {hasAudio ? (
+                <button
+                  type="button"
+                  onClick={() => playLine(line.audioUrl, i)}
+                  className={`${bubbleBase} ${bubbleInteractive} ${bubbleActive} text-left`}
+                >
+                  {bubbleContent}
+                </button>
+              ) : (
+                <div className={bubbleBase}>
+                  {bubbleContent}
+                </div>
+              )}
             </div>
           );
         })}
       </div>
-      {c.audioUrl && (
-        <div className="px-7 pb-6">
-          <AudioPlayer src={c.audioUrl} title="Listen to dialogue" />
-        </div>
-      )}
     </div>
   );
 }
@@ -243,6 +300,17 @@ function SoundCardsPreview({ c }: { c: any }) {
   const [playingIdx, setPlayingIdx] = useState<number | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  // Остановка текущего воспроизведения
+  const stopCard = useCallback(() => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      audioRef.current = null;
+    }
+    setPlayingIdx(null);
+  }, []);
+
+  // Старт/перезапуск воспроизведения с начала
   const playCard = useCallback((audioUrl: string, idx: number) => {
     if (!audioUrl) return;
     // Stop previous
@@ -254,7 +322,10 @@ function SoundCardsPreview({ c }: { c: any }) {
     audioRef.current = audio;
     setPlayingIdx(idx);
     audio.play().catch(() => {});
-    audio.onended = () => setPlayingIdx(null);
+    audio.onended = () => {
+      setPlayingIdx(null);
+      audioRef.current = null;
+    };
   }, []);
 
   return (
@@ -269,16 +340,20 @@ function SoundCardsPreview({ c }: { c: any }) {
         {(c.cards || []).map((card: any, i: number) => {
           const clr = SOUND_CARD_COLOR_MAP[card.color] || SOUND_CARD_COLOR_MAP.blue;
           const isPlaying = playingIdx === i;
+          const hasAudio = !!card.audioUrl;
           return (
             <button
               key={i}
               onClick={() => playCard(card.audioUrl, i)}
-              className="rounded-xl border-2 p-4 min-w-[110px] text-center transition-all hover:-translate-y-0.5 hover:shadow-lg cursor-pointer"
+              className="relative rounded-xl border-2 px-8 py-6 min-w-[110px] text-center transition-all hover:-translate-y-0.5 hover:shadow-lg cursor-pointer"
               style={{
                 borderColor: isPlaying ? clr.borderHover : clr.border,
                 background: clr.bg,
               }}
             >
+              {hasAudio && (
+                <AudioIndicator isPlaying={isPlaying} onStop={stopCard} />
+              )}
               {card.text && (
                 <div className="text-3xl font-bold text-foreground leading-none">{card.text}</div>
               )}

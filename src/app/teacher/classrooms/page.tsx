@@ -14,11 +14,15 @@ export default function TeacherClassrooms() {
   const [classrooms, setClassrooms] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const loadClassrooms = () => {
     fetch("/api/classrooms").then(r => r.json()).then(d => {
       setClassrooms(Array.isArray(d) ? d : []);
       setLoading(false);
     });
+  };
+
+  useEffect(() => {
+    loadClassrooms();
   }, []);
 
   if (loading) return <div className="p-6 text-muted-foreground">Uploading...</div>;
@@ -46,6 +50,8 @@ export default function TeacherClassrooms() {
               key={c.id}
               classroom={c}
               href={`/teacher/classrooms/${c.id}`}
+              showDelete={true}
+              onDeleted={loadClassrooms}
             />
           ))}
         </div>

@@ -27,6 +27,7 @@ interface Props {
   initialData?: any;
   onSave: (data: any) => void;
   onCancel: () => void;
+  courseId?: string;
 }
 
 // Удаление файла из storage
@@ -86,7 +87,7 @@ function FileUploadField({
 }
 
 // ===== Главный компонент формы =====
-export function BlockForm({ type, initialData, onSave, onCancel }: Props) {
+export function BlockForm({ type, initialData, onSave, onCancel, courseId }: Props) {
   const [data, setData] = useState(initialData || getDefaultData(type));
   const [uploading, setUploading] = useState(false);
   const [teacherNote, setTeacherNote] = useState(initialData?._teacherNote || "");
@@ -99,6 +100,7 @@ export function BlockForm({ type, initialData, onSave, onCancel }: Props) {
     const fd = new FormData();
     fd.append("file", file);
     if (oldUrl) fd.append("oldUrl", oldUrl);
+    if (courseId) fd.append("courseId", courseId);
     try {
       const res = await fetch("/api/upload", { method: "POST", body: fd });
       if (res.ok) {
@@ -129,8 +131,8 @@ export function BlockForm({ type, initialData, onSave, onCancel }: Props) {
       {type === "HTML_EMBED" && <HtmlEmbedForm data={data} set={set} />}
       {type === "SPACER" && <SpacerForm data={data} set={set} />}
       {type === "VOCAB_CARD" && <VocabCardForm data={data} set={set} upload={uploadFile} uploading={uploading} />}
-      {type === "DIALOGUE" && <DialogueForm data={data} set={set} upload={uploadFile} uploading={uploading} />}
-      {type === "SOUND_CARDS" && <SoundCardsForm data={data} set={set} setData={setData} upload={uploadFile} uploading={uploading} />}
+      {type === "DIALOGUE" && <DialogueForm data={data} set={set} upload={uploadFile} uploading={uploading} courseId={courseId} />}
+      {type === "SOUND_CARDS" && <SoundCardsForm data={data} set={set} setData={setData} upload={uploadFile} uploading={uploading} courseId={courseId} />}
 
       {/* Заметка для учителя */}
       {type !== "DIVIDER" && type !== "SPACER" && type !== "TEACHER_NOTE" && (
@@ -339,7 +341,7 @@ function VocabCardForm({ data, set, upload, uploading }: { data: any; set: any; 
 }
 
 // ===== ДИАЛОГ =====
-function DialogueForm({ data, set, upload, uploading }: { data: any; set: any; upload: any; uploading: boolean }) {
+function DialogueForm({ data, set, upload, uploading, courseId }: { data: any; set: any; upload: any; uploading: boolean; courseId?: string }) {
   const speakers: any[] = data.speakers || [];
   const lines: any[] = data.lines || [];
   const speakerAvatars: string[] = data.speakerAvatars || [];
@@ -347,6 +349,42 @@ function DialogueForm({ data, set, upload, uploading }: { data: any; set: any; u
 
   const [avatarPickerFor, setAvatarPickerFor] = useState<number | null>(null);
   const [scenePickerOpen, setScenePickerOpen] = useState(false);
+  const [uploadingLineIdx, setUploadingLineIdx] = useState<number | null>(null);
+
+  // Загрузка аудио для конкретной реплики (с удалением старого при замене)
+  const uploadLineAudio = async (file: File, lineIdx: number, oldUrl?: string) => {
+    setUploadingLineIdx(lineIdx);
+    const fd = new FormData();
+    fd.append("file", file);
+    if (oldUrl) fd.append("oldUrl", oldUrl);
+    if (courseId) fd.append("courseId", courseId);
+    try {
+      const res = await fetch("/api/upload", { method: "POST", body: fd });
+      if (res.ok) {
+        const { url } = await res.json();
+        const updated = [...lines];
+        updated[lineIdx] = { ...updated[lineIdx], audioUrl: url };
+        set("lines", updated);
+      }
+    } catch (e) { console.error("Upload error:", e); }
+    setUploadingLineIdx(null);
+  };
+
+  const removeLineAudio = async (lineIdx: number) => {
+    const oldUrl = lines[lineIdx]?.audioUrl;
+    if (oldUrl) {
+      try {
+        await fetch("/api/upload", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url: oldUrl }),
+        });
+      } catch (e) { console.warn("Delete file error:", e); }
+    }
+    const updated = [...lines];
+    updated[lineIdx] = { ...updated[lineIdx], audioUrl: "" };
+    set("lines", updated);
+  };
 
   const addSpeaker = () => {
     set("speakers", [...speakers, ""]);
@@ -422,16 +460,6 @@ function DialogueForm({ data, set, upload, uploading }: { data: any; set: any; u
           )}
         </div>
       </div>
-
-      {/* Аудио диалога */}
-      <div className="space-y-2 p-4 rounded-xl bg-muted/50 border border-border">
-        <Label className="text-base text-foreground">Dialogue Audio (optional)</Label>
-        <p className="text-sm text-muted-foreground">Upload an audio recording of this dialogue.</p>
-        <FileUploadField label="" accept="audio/*" currentUrl={data.audioUrl} field="audioUrl"
-          upload={upload} uploading={uploading} onRemove={() => set("audioUrl", "")} preview="audio" />
-      </div>
-
-      <Separator />
 
       {/* Speakers */}
       <div className="space-y-3">
@@ -532,6 +560,27 @@ function DialogueForm({ data, set, upload, uploading }: { data: any; set: any; u
                     placeholder="Transcription (optional)" className="text-base h-10 bg-transparent border-white/10" />
                   <Input value={line.translation || ""} onChange={(e) => updateLine(i, "translation", e.target.value)}
                     placeholder="Translation (optional)" className="text-sm h-10 bg-transparent border-white/10 text-muted-foreground" />
+
+                  {/* Аудио реплики */}
+                  <div className="pt-1">
+                    <Label className="text-xs text-muted-foreground">Line Audio (optional)</Label>
+                    {line.audioUrl ? (
+                      <div className="flex items-center gap-2 mt-1">
+                        <audio controls src={line.audioUrl} className="h-8 flex-1" />
+                        <label className="cursor-pointer text-xs px-2 py-1 rounded border border-border bg-card hover:bg-accent transition-colors">
+                          Replace
+                          <input type="file" accept="audio/*" className="hidden"
+                            onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadLineAudio(f, i, line.audioUrl); }} />
+                        </label>
+                        <button onClick={() => removeLineAudio(i)} className="text-xs text-red-500 hover:underline">Remove</button>
+                      </div>
+                    ) : (
+                      <input type="file" accept="audio/*" disabled={uploadingLineIdx === i}
+                        onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadLineAudio(f, i); }}
+                        className="block w-full text-xs text-foreground mt-1 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-primary file:text-primary-foreground file:cursor-pointer" />
+                    )}
+                    {uploadingLineIdx === i && <p className="text-xs text-muted-foreground mt-1">Uploading...</p>}
+                  </div>
                 </div>
               </div>
             );
@@ -568,8 +617,8 @@ const SOUND_CARD_COLORS = [
   { id: "gray",   label: "Gray",   border: "#6B7280", bgHover: "#F3F4F6", borderHover: "#374151" },
 ];
 
-function SoundCardsForm({ data, set, setData, upload, uploading }: {
-  data: any; set: any; setData: any; upload: any; uploading: boolean;
+function SoundCardsForm({ data, set, setData, upload, uploading, courseId }: {
+  data: any; set: any; setData: any; upload: any; uploading: boolean; courseId?: string;
 }) {
   const cards: any[] = data.cards || [];
   const [uploadingIdx, setUploadingIdx] = useState<number | null>(null);
@@ -607,6 +656,7 @@ function SoundCardsForm({ data, set, setData, upload, uploading }: {
     const fd = new FormData();
     fd.append("file", file);
     if (oldUrl) fd.append("oldUrl", oldUrl);
+    if (courseId) fd.append("courseId", courseId);
     try {
       const res = await fetch("/api/upload", { method: "POST", body: fd });
       if (res.ok) {
@@ -768,7 +818,7 @@ function getDefaultData(type: string): any {
         exampleSentence: "", exampleTranslation: "",
       };
     case "DIALOGUE":
-      return { situationTitle: "", speakers: ["", ""], speakerAvatars: ["man", "woman"], sceneId: "none", lines: [], audioUrl: "" };
+      return { situationTitle: "", speakers: ["", ""], speakerAvatars: ["man", "woman"], sceneId: "none", lines: [] };
     case "SOUND_CARDS":
       return { title: "", subtitle: "", cards: [] };
     default:

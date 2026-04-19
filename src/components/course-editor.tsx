@@ -189,8 +189,8 @@ export function CourseEditor({ course: initialCourse }: { course: Course }) {
           {selected.type === "course" && <CourseInfo course={course} onUpdate={reloadCourse} />}
           {selected.type === "unit" && <UnitInfo unit={selected.data} />}
           {selected.type === "lesson" && <LessonInfo lesson={selected.data} />}
-          {selected.type === "textbookSection" && <SectionEditor section={selected.data} kind="textbook" />}
-          {selected.type === "workbookSection" && <SectionEditor section={selected.data} kind="workbook" />}
+          {selected.type === "textbookSection" && <SectionEditor section={selected.data} kind="textbook" courseId={course.id} />}
+          {selected.type === "workbookSection" && <SectionEditor section={selected.data} kind="workbook" courseId={course.id} />}
         </div>
       </div>
 
@@ -325,6 +325,7 @@ function CourseInfo({ course, onUpdate }: { course: Course; onUpdate: () => void
     try {
       const formData = new FormData();
       formData.append("file", file);
+      formData.append("courseId", course.id);
       if ((course as any).coverImageUrl) formData.append("oldUrl", (course as any).coverImageUrl);
       const uploadRes = await fetch("/api/upload", { method: "POST", body: formData });
       if (uploadRes.ok) {

@@ -17,6 +17,7 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
     const oldUrl = formData.get("oldUrl") as string | null;
+    const courseId = formData.get("courseId") as string | null;
 
     if (!file) return apiError("No file selected");
 
@@ -33,6 +34,12 @@ export async function POST(request: NextRequest) {
     if (file.size > 10 * 1024 * 1024) {
       return apiError("File too large (max 10MB)");
     }
+
+    // Санитизируем courseId для безопасности (на всякий случай — чтобы в путь не пролезли "../" и т.п.)
+    const safeCourseId = courseId
+      ? courseId.replace(/[^a-zA-Z0-9_\-]/g, "").slice(0, 64)
+      : "";
+    const folderPrefix = safeCourseId ? `${safeCourseId}/` : "";
 
     // Vercel Blob для продакшена, локальная ФС для dev
     if (process.env.BLOB_READ_WRITE_TOKEN) {
@@ -52,7 +59,7 @@ export async function POST(request: NextRequest) {
         .replace(/^_|_$/g, "")
         .slice(0, 80);
       const prefix = `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
-      const filename = `${prefix}_${baseName || "file"}.${ext}`;
+      const filename = `${folderPrefix}${prefix}_${baseName || "file"}.${ext}`;
 
       const blob = await put(filename, file, {
         access: "public",
@@ -65,7 +72,7 @@ export async function POST(request: NextRequest) {
       const { writeFile, mkdir, unlink } = await import("fs/promises");
       const path = await import("path");
 
-      const uploadDir = path.join(process.cwd(), "public", "uploads");
+      const uploadDir = path.join(process.cwd(), "public", "uploads", safeCourseId);
       await mkdir(uploadDir, { recursive: true });
 
       // Удаляем старый файл если передан oldUrl
@@ -90,7 +97,7 @@ export async function POST(request: NextRequest) {
       const buffer = Buffer.from(await file.arrayBuffer());
       await writeFile(filepath, buffer);
 
-      const url = `/uploads/${filename}`;
+      const url = safeCourseId ? `/uploads/${safeCourseId}/${filename}` : `/uploads/${filename}`;
       return apiSuccess({ url, filename, type: file.type, size: file.size });
     }
   });

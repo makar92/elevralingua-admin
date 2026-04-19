@@ -64,13 +64,13 @@ const typeIcons: Record<string, string> = {};
 BLOCK_TYPES.forEach((b) => { typeNames[b.type] = b.name; typeIcons[b.type] = b.icon; });
 
 // ===== Main Component =====
-export function SectionEditor({ section, kind }: { section: Section; kind: "textbook" | "workbook" }) {
-  if (kind === "textbook") return <TextbookSectionEditor section={section} />;
-  return <WorkbookSectionEditor section={section} />;
+export function SectionEditor({ section, kind, courseId }: { section: Section; kind: "textbook" | "workbook"; courseId?: string }) {
+  if (kind === "textbook") return <TextbookSectionEditor section={section} courseId={courseId} />;
+  return <WorkbookSectionEditor section={section} courseId={courseId} />;
 }
 
 // ===== TEXTBOOK SECTION EDITOR =====
-function TextbookSectionEditor({ section }: { section: Section }) {
+function TextbookSectionEditor({ section, courseId }: { section: Section; courseId?: string }) {
   const [blocks, setBlocks] = useState<ContentBlock[]>([]);
   const [loading, setLoading] = useState(true);
   const [addTypeOpen, setAddTypeOpen] = useState(false);
@@ -148,7 +148,8 @@ function TextbookSectionEditor({ section }: { section: Section }) {
         <Card><CardContent className="p-6">
           <BlockForm type={selectedType} initialData={editingBlock?.contentJson}
             onSave={(d) => editingBlock ? updateBlock(editingBlock.id, d) : createBlock(selectedType, d)}
-            onCancel={() => setEditOpen(false)} />
+            onCancel={() => setEditOpen(false)}
+            courseId={courseId} />
         </CardContent></Card>
       </div>
     );
@@ -224,7 +225,7 @@ function TextbookSectionEditor({ section }: { section: Section }) {
 }
 
 // ===== WORKBOOK SECTION EDITOR =====
-function WorkbookSectionEditor({ section }: { section: Section }) {
+function WorkbookSectionEditor({ section, courseId }: { section: Section; courseId?: string }) {
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [loading, setLoading] = useState(true);
   const [exMode, setExMode] = useState<"list" | "pickType" | "form">("list");
@@ -288,7 +289,8 @@ function WorkbookSectionEditor({ section }: { section: Section }) {
           <ExerciseForm exerciseType={selectedExType} initialData={editingExercise || undefined}
             onSave={editingExercise ? updateExercise : createExercise}
             onCancel={() => { setExMode(editingExercise ? "list" : "pickType"); setEditingExercise(null); }}
-            saveLabel="Save Exercise" />
+            saveLabel="Save Exercise"
+            courseId={courseId} />
         </CardContent></Card>
       </div>
     );

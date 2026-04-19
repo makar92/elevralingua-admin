@@ -106,9 +106,10 @@ interface ExerciseFormProps {
   onSave: (data: any) => void;
   onCancel: () => void;
   saveLabel?: string;  // Текст кнопки сохранения (по умолчанию "Add to Bank")
+  courseId?: string;
 }
 
-export function ExerciseForm({ exerciseType, initialData, onSave, onCancel, saveLabel }: ExerciseFormProps) {
+export function ExerciseForm({ exerciseType, initialData, onSave, onCancel, saveLabel, courseId }: ExerciseFormProps) {
   // Режим: form | preview
   const [viewMode, setViewMode] = useState<"form" | "preview">("form");
 
@@ -139,6 +140,7 @@ export function ExerciseForm({ exerciseType, initialData, onSave, onCancel, save
       const fd = new FormData();
       fd.append("file", file);
       if (oldUrl) fd.append("oldUrl", oldUrl);
+      if (courseId) fd.append("courseId", courseId);
       const res = await fetch("/api/upload", { method: "POST", body: fd });
       if (res.ok) {
         const { url } = await res.json();
