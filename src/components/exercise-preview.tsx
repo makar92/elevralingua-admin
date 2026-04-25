@@ -296,6 +296,7 @@ function TonePlacementPreview({ content, mode, exercise, onSubmit, disabled, sav
           {mode==="teacher"&&char.pinyin&&<span className="text-xs text-amber-600 font-medium">{applyTones(char.pinyin,char.tones||{})}</span>}
           </div>);})}
       </div>
+      {content.translation&&<p className="text-xs text-muted-foreground text-center italic">{content.translation}</p>}
       {!showResult&&!disabled&&(<div className="flex justify-center gap-3">{(["1","2","3","4"] as const).map(t=>(<button key={t} onClick={()=>setActiveTone(t===activeTone?null:t)} className={`w-14 h-12 rounded-xl border-2 text-xl font-bold transition-all shadow-sm ${activeTone===t?"bg-primary text-primary-foreground border-primary shadow-md scale-105":"bg-white border-border text-foreground hover:border-primary/60"}`}>{TONE_SYMBOLS[t]}</button>))}</div>)}
       {!showResult&&!disabled&&<Button size="sm" className="mx-auto block" onClick={async()=>{setShowResult(true);if(onSubmit)await onSubmit(Object.values(studentTones));}}>Submit</Button>}
     </div>

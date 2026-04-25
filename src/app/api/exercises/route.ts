@@ -59,7 +59,6 @@ export async function POST(request: NextRequest) {
 
     if (!workbookSectionId) return apiError("Workbook section ID is required");
     if (!exerciseType) return apiError("Exercise type is required");
-    if (!instructionText) return apiError("Instruction text is required");
     if (!contentJson) return apiError("Content is required");
 
     const last = await prisma.exercise.findFirst({
@@ -72,7 +71,7 @@ export async function POST(request: NextRequest) {
         workbookSectionId,
         exerciseType,
         title: title || "",
-        instructionText,
+        instructionText: instructionText || "",
         difficulty: difficulty || 1,
         contentJson,
         gradingType: gradingType || "AUTO",

@@ -71,7 +71,8 @@ function getDefaultContentJson(type: string): any {
       return { sourceSentence: "", sentence: "", blankAnswer: "" };
     case "TONE_PLACEMENT":
       // characters — массив { hanzi, pinyin, tones: {vowelIdx: "1"|"2"|"3"|"4"} }
-      return { characters: [{ hanzi: "", pinyin: "", tones: {} }] };
+      // translation — необязательный перевод задания (контекст для ученика)
+      return { characters: [{ hanzi: "", pinyin: "", tones: {} }], translation: "" };
     case "WRITE_PINYIN":
       // characters — массив { hanzi }, ученик сам пишет пиньинь
       return { characters: [{ hanzi: "" }], referenceAnswer: "" };
@@ -224,7 +225,9 @@ export function ExerciseForm({ exerciseType, initialData, onSave, onCancel, save
         </div>
 
         <div className="space-y-1.5">
-          <Label className="text-sm font-medium text-foreground">Instructions for the Student *</Label>
+          <Label className="text-sm font-medium text-foreground">
+            Instructions for the Student <span className="text-muted-foreground font-normal">(optional)</span>
+          </Label>
           <Textarea value={instructionText} onChange={(e) => setInstructionText(e.target.value)}
             placeholder="Clearly explain what the student needs to do"
             rows={2} />
@@ -290,7 +293,7 @@ export function ExerciseForm({ exerciseType, initialData, onSave, onCancel, save
       {/* Кнопки */}
       <div className="flex justify-end gap-3 pt-2">
         <Button variant="outline" size="lg" onClick={onCancel}>Cancel</Button>
-        <Button size="lg" onClick={handleSave} disabled={!instructionText.trim()}>
+        <Button size="lg" onClick={handleSave}>
           {initialData ? "Save" : (saveLabel || "Add to Bank")}
         </Button>
       </div>
@@ -552,6 +555,18 @@ function TonePlacementForm({ content, setContent, setCorrectAnswers }: any) {
         );
       })}
       <Button variant="outline" size="sm" onClick={addChar}>+ Add Character</Button>
+
+      {/* Необязательный перевод — контекст упражнения для ученика */}
+      <div className="space-y-1.5 pt-2">
+        <Label className="text-sm font-medium text-foreground">
+          Translation <span className="text-muted-foreground font-normal">(optional)</span>
+        </Label>
+        <Input
+          value={content.translation || ""}
+          onChange={(e) => setContent("translation", e.target.value)}
+          placeholder="Translation of the phrase (shown to the student as context)"
+        />
+      </div>
     </div>
   );
 }
