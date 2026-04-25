@@ -59,10 +59,58 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const classroom = await prisma.classroom.findUnique({ where: { id } });
-  if (!classroom || classroom.teacherId !== session.user.id) {
+  if (!classroom) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (classroom.teacherId !== session.user.id) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  await prisma.classroom.delete({ where: { id } });
-  return NextResponse.json({ success: true });
+  try {
+    // Удаляем всё в одной транзакции, идя от листьев к корню,
+    // чтобы исключить foreign key конфликты по связям без onDelete: Cascade
+    // (Homework.lessonLog и ExerciseAnswer.homework).
+    await prisma.$transaction(async (tx) => {
+      // 1. Ответы учеников по этому классу
+      await tx.exerciseAnswer.deleteMany({ where: { classroomId: id } });
+      // На случай если есть ответы, привязанные к домашкам этого класса,
+      // но без classroomId — удалим их через homeworkId.
+      await tx.exerciseAnswer.deleteMany({
+        where: { homework: { classroomId: id } },
+      });
+
+      // 2. Журнал занятий: явно удаляем дочерние записи и сами LessonLog.
+      // Хотя attendance/topics/grades каскадятся от LessonLog, делаем явно
+      // для предсказуемости порядка.
+      await tx.lessonLogAttendance.deleteMany({ where: { lessonLog: { classroomId: id } } });
+      await tx.lessonLogTopic.deleteMany({ where: { lessonLog: { classroomId: id } } });
+      await tx.lessonLogGrade.deleteMany({ where: { lessonLog: { classroomId: id } } });
+
+      // 3. Домашки и их подмодели (HomeworkLesson/Exercise/Student каскадятся).
+      // Удаляем ДО LessonLog, потому что Homework.lessonLog без cascade.
+      await tx.homework.deleteMany({ where: { classroomId: id } });
+
+      // 4. Теперь можно удалять LessonLog — на них больше никто не ссылается.
+      await tx.lessonLog.deleteMany({ where: { classroomId: id } });
+
+      // 5. Остальные связи — каскадятся от Classroom, но удаляем явно
+      // чтобы транзакция была полностью детерминированной.
+      await tx.exerciseAssignment.deleteMany({ where: { classroomId: id } });
+      await tx.studyAssignment.deleteMany({ where: { classroomId: id } });
+      await tx.textbookSectionVisibility.deleteMany({ where: { classroomId: id } });
+      await tx.lessonProgress.deleteMany({ where: { classroomId: id } });
+      await tx.invitation.deleteMany({ where: { classroomId: id } });
+      await tx.scheduleSlot.deleteMany({ where: { classroomId: id } });
+      await tx.classroomEnrollment.deleteMany({ where: { classroomId: id } });
+
+      // 6. Сам класс
+      await tx.classroom.delete({ where: { id } });
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (err: any) {
+    console.error("[DELETE classroom] failed:", err);
+    return NextResponse.json(
+      { error: err?.message || "Failed to delete class" },
+      { status: 500 },
+    );
+  }
 }
