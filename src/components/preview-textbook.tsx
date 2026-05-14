@@ -243,6 +243,7 @@ function DialoguePreview({ c, blockId }: { c: any; blockId: string }) {
   // чтобы re-render происходил только при изменении нужного поля)
   const currentId = useAudioStore((s) => s.currentId);
   const isPlayingGlobal = useAudioStore((s) => s.isPlaying);
+  const isLoadingGlobal = useAudioStore((s) => s.isLoading);
   const play = useAudioStore((s) => s.play);
   const stop = useAudioStore((s) => s.stop);
 
@@ -277,6 +278,7 @@ function DialoguePreview({ c, blockId }: { c: any; blockId: string }) {
           // Уникальный id этой реплики в пределах всего приложения
           const myAudioId = `dialogue:${blockId}:line:${i}`;
           const isPlaying = isPlayingGlobal && currentId === myAudioId;
+          const isLoading = isLoadingGlobal && currentId === myAudioId;
 
           // Базовые классы реплики
           const bubbleBase = `max-w-[75%] rounded-2xl ${col.bg} border ${col.border} px-5 py-4 relative ${
@@ -291,7 +293,7 @@ function DialoguePreview({ c, blockId }: { c: any; blockId: string }) {
             <>
               {/* Иконка аудио в правом верхнем углу */}
               {hasAudio && (
-                <AudioIndicator isPlaying={isPlaying} onStop={stop} />
+                <AudioIndicator isPlaying={isPlaying} isLoading={isLoading} onStop={stop} />
               )}
               <p className={`text-xl text-foreground leading-relaxed ${hasAudio ? "pr-8" : ""}`}>{text}</p>
               {transcription && <p className="text-base text-emerald-600/70 mt-1.5">{transcription}</p>}
@@ -335,6 +337,7 @@ function SoundCardsPreview({ c, blockId }: { c: any; blockId: string }) {
   // Селекторы из глобального audio-store
   const currentId = useAudioStore((s) => s.currentId);
   const isPlayingGlobal = useAudioStore((s) => s.isPlaying);
+  const isLoadingGlobal = useAudioStore((s) => s.isLoading);
   const play = useAudioStore((s) => s.play);
   const stop = useAudioStore((s) => s.stop);
 
@@ -354,6 +357,7 @@ function SoundCardsPreview({ c, blockId }: { c: any; blockId: string }) {
           // Уникальный id этой карточки в пределах всего приложения
           const myAudioId = `soundcard:${blockId}:card:${i}`;
           const isPlaying = isPlayingGlobal && currentId === myAudioId;
+          const isLoading = isLoadingGlobal && currentId === myAudioId;
 
           return (
             <button
@@ -366,7 +370,7 @@ function SoundCardsPreview({ c, blockId }: { c: any; blockId: string }) {
               }}
             >
               {hasAudio && (
-                <AudioIndicator isPlaying={isPlaying} onStop={stop} />
+                <AudioIndicator isPlaying={isPlaying} isLoading={isLoading} onStop={stop} />
               )}
               {card.text && (
                 <div className="text-3xl font-bold text-foreground leading-none">{card.text}</div>

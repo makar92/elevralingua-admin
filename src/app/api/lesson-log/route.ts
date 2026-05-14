@@ -15,7 +15,21 @@ export async function GET(req: Request) {
     const url = new URL(req.url);
     const classroomId = url.searchParams.get("classroomId");
     const month = url.searchParams.get("month"); // "2026-03"
-    const studentId = url.searchParams.get("studentId"); // для дневника ученика
+    const studentIdParam = url.searchParams.get("studentId"); // для дневника ученика
+
+    // Резолвим studentId.
+    // Фронтенд дневника ученика передаёт литеральную строку "me" —
+    // её нужно превратить в реальный id текущего пользователя.
+    // Также если запрос делает сам студент — всегда подставляем его id,
+    // чтобы он не мог запросить чужие оценки.
+    let studentId: string | null = null;
+    if (studentIdParam === "me") {
+      studentId = user.id;
+    } else if (user.role === "STUDENT") {
+      studentId = user.id;
+    } else if (studentIdParam) {
+      studentId = studentIdParam;
+    }
 
     const where: any = {};
 
@@ -69,9 +83,9 @@ export async function GET(req: Request) {
     // Если запрос от ученика — фильтруем attendance только его
     if (studentId) {
       return NextResponse.json(
-        logs.map(log => ({
+        logs.map((log: any) => ({
           ...log,
-          attendance: log.attendance.filter(a => a.studentId === studentId),
+          attendance: log.attendance.filter((a: any) => a.studentId === studentId),
           // grades уже отфильтрованы через where
         }))
       );

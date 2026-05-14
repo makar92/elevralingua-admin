@@ -3,8 +3,13 @@
 // Путь:  elevralingua-admin/src/components/audio-player.tsx
 //
 // Описание:
-//   Кастомный аудио-плеер. Только play/pause + прогресс.
+//   Кастомный аудио-плеер. Play/pause + прогресс + индикатор загрузки.
 //   Нет кнопки скачивания, нет изменения скорости.
+//
+//   Состояние загрузки:
+//   При клике play, если файл ещё не готов, на месте кнопки play/pause
+//   показывается крутящийся спиннер — пока аудио реально не зазвучит.
+//   Это убирает ложное ощущение "уже играет", пока файл качается.
 // ===========================================
 
 "use client";
@@ -19,11 +24,12 @@ interface Props {
 export function AudioPlayer({ src, title }: Props) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [playing, setPlaying] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
 
-  // Обновляем прогресс при воспроизведении
+  // Обновляем прогресс при воспроизведении + следим за состоянием загрузки
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -33,16 +39,36 @@ export function AudioPlayer({ src, title }: Props) {
       setProgress(audio.duration ? (audio.currentTime / audio.duration) * 100 : 0);
     };
     const onLoadedMetadata = () => setDuration(audio.duration);
-    const onEnded = () => { setPlaying(false); setProgress(0); };
+    const onEnded = () => { setPlaying(false); setLoading(false); setProgress(0); };
+
+    // Аудио реально пошло — снимаем загрузку, ставим playing
+    const onPlaying = () => { setPlaying(true); setLoading(false); };
+    // Буферизация — показываем загрузку
+    const onWaiting = () => setLoading(true);
+    // Готово к воспроизведению — на всякий случай снимаем загрузку
+    const onCanPlay = () => setLoading(false);
+    // Пауза — не играем и не грузим
+    const onPause = () => { setPlaying(false); setLoading(false); };
+    const onError = () => { setPlaying(false); setLoading(false); };
 
     audio.addEventListener("timeupdate", onTimeUpdate);
     audio.addEventListener("loadedmetadata", onLoadedMetadata);
     audio.addEventListener("ended", onEnded);
+    audio.addEventListener("playing", onPlaying);
+    audio.addEventListener("waiting", onWaiting);
+    audio.addEventListener("canplay", onCanPlay);
+    audio.addEventListener("pause", onPause);
+    audio.addEventListener("error", onError);
 
     return () => {
       audio.removeEventListener("timeupdate", onTimeUpdate);
       audio.removeEventListener("loadedmetadata", onLoadedMetadata);
       audio.removeEventListener("ended", onEnded);
+      audio.removeEventListener("playing", onPlaying);
+      audio.removeEventListener("waiting", onWaiting);
+      audio.removeEventListener("canplay", onCanPlay);
+      audio.removeEventListener("pause", onPause);
+      audio.removeEventListener("error", onError);
     };
   }, [src]);
 
@@ -50,8 +76,19 @@ export function AudioPlayer({ src, title }: Props) {
   const togglePlay = () => {
     const audio = audioRef.current;
     if (!audio) return;
-    if (playing) { audio.pause(); } else { audio.play(); }
-    setPlaying(!playing);
+    if (playing || loading) {
+      audio.pause();
+      setPlaying(false);
+      setLoading(false);
+    } else {
+      // Показываем загрузку сразу; событие "playing" снимет её,
+      // когда звук реально пойдёт.
+      setLoading(true);
+      audio.play().catch(() => {
+        setLoading(false);
+        setPlaying(false);
+      });
+    }
   };
 
   // Клик по прогресс-бару — перемотка
@@ -76,10 +113,17 @@ export function AudioPlayer({ src, title }: Props) {
       {/* Скрытый audio элемент */}
       <audio ref={audioRef} src={src} preload="metadata" />
 
-      {/* Кнопка play/pause */}
+      {/* Кнопка play/pause/loading */}
       <button onClick={togglePlay}
-        className="w-10 h-10 flex items-center justify-center rounded-full bg-primary text-primary-foreground hover:opacity-90 transition-opacity flex-shrink-0">
-        {playing ? (
+        className="w-10 h-10 flex items-center justify-center rounded-full bg-primary text-primary-foreground hover:opacity-90 transition-opacity flex-shrink-0"
+        aria-label={loading ? "Loading" : playing ? "Pause" : "Play"}>
+        {loading ? (
+          // Спиннер загрузки
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" strokeWidth="3" strokeLinecap="round" className="animate-spin">
+            <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+          </svg>
+        ) : playing ? (
           <span className="text-lg font-bold">II</span>
         ) : (
           <span className="text-lg ml-0.5">&#9654;</span>

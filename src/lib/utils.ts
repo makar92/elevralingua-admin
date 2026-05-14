@@ -26,3 +26,14 @@ export function formatTime12h(time24: string): string {
   const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
   return `${h12}:${String(m).padStart(2, "0")} ${suffix}`;
 }
+
+// Format date to US order (month.day.year) with dots: 05.16.2026
+// Единый формат дат во всём приложении (журнал, дневник, карточки).
+export function formatDateUS(date: Date | string | number): string {
+  const d = date instanceof Date ? date : new Date(date);
+  if (isNaN(d.getTime())) return "";
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  const yyyy = d.getFullYear();
+  return `${mm}.${dd}.${yyyy}`;
+}

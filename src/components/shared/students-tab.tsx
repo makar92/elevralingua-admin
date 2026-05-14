@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { formatDateUS } from "@/lib/utils";
 
 export function StudentsTab({ classroomId, enrollments }: { classroomId: string; enrollments: any[] }) {
   const [searchQuery, setSearchQuery] = useState("");
@@ -106,7 +107,7 @@ export function StudentsTab({ classroomId, enrollments }: { classroomId: string;
                 {e.status === "ACTIVE" ? "Active" : "Inactive"}
               </Badge>
               <span className="text-xs text-muted-foreground">
-                Joined {new Date(e.joinedAt).toLocaleDateString("en-US")}
+                Joined {formatDateUS(e.joinedAt)}
               </span>
             </div>
           ))}

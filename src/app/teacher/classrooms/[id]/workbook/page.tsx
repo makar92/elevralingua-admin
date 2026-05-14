@@ -68,13 +68,39 @@ export default function TeacherWorkbook() {
   const invalidate = useInvalidate();
   const reload = () => { invalidate("/api/exercise-assignments"); invalidate("/api/answers"); };
 
-  // Первая инициализация секции — по hash или по первой попавшейся
+  // Первая инициализация секции (по hash или первой) + сворачивание сайдбара:
+  // все юниты/уроки collapsed, КРОМЕ пути до текущей секции.
   useEffect(() => {
     if (didInit || loading || !classroom) return;
+    const units = classroom?.course?.units || [];
     const hashSid = typeof window !== "undefined" ? window.location.hash.replace("#sec=", "") : "";
-    const allSecs = classroom?.course?.units?.flatMap((u:any) => u.lessons?.flatMap((l:any) => l.workbookSections || []) || []) || [];
+    const allSecs = units.flatMap((u:any) => u.lessons?.flatMap((l:any) => l.workbookSections || []) || []) || [];
     const fromHash = hashSid && allSecs.find((s:any) => s.id === hashSid);
     const target = fromHash || allSecs[0];
+
+    // Находим юнит и урок target-секции
+    let activeUnitId = "", activeLessonId = "";
+    if (target) {
+      for (const u of units) {
+        for (const l of (u.lessons || [])) {
+          if ((l.workbookSections || []).some((s:any) => s.id === target.id)) {
+            activeUnitId = u.id; activeLessonId = l.id;
+          }
+        }
+      }
+    }
+
+    const collapsedU = new Set<string>();
+    const collapsedL = new Set<string>();
+    for (const u of units) {
+      if (u.id !== activeUnitId) collapsedU.add(u.id);
+      for (const l of (u.lessons || [])) {
+        if (l.id !== activeLessonId) collapsedL.add(l.id);
+      }
+    }
+    setUCol(collapsedU);
+    setLCol(collapsedL);
+
     if (target) loadExBySec(target.id, target.title);
     setDidInit(true);
   }, [loading, classroom, didInit]);

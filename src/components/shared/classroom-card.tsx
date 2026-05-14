@@ -15,7 +15,7 @@ import Link from "next/link";
 import { getLanguage } from "@/lib/languages";
 import { LanguageLabel } from "@/components/shared/language-label";
 import { UserBadge } from "@/components/shared/user-badge";
-import { formatTime12h } from "@/lib/utils";
+import { formatTime12h, formatDateUS } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,13 +29,6 @@ interface ClassroomCardProps {
 }
 
 const dayNamesShort = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-
-function formatDate(date: Date): string {
-  const mm = String(date.getMonth() + 1).padStart(2, "0");
-  const dd = String(date.getDate()).padStart(2, "0");
-  const yy = String(date.getFullYear()).slice(2);
-  return `${mm}/${dd}/${yy}`;
-}
 
 export function ClassroomCard({ classroom, href, showDelete = false, onDeleted }: ClassroomCardProps) {
   const [showAllStudents, setShowAllStudents] = useState(false);
@@ -57,7 +50,7 @@ export function ClassroomCard({ classroom, href, showDelete = false, onDeleted }
     const d = new Date(log.date);
     return {
       dayShort: dayNamesShort[d.getDay()],
-      date: formatDate(d),
+      date: formatDateUS(d),
       time: `${formatTime12h(log.startTime)} – ${formatTime12h(log.endTime)}`,
       location: log.location || "",
     };

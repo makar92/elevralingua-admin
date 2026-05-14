@@ -2,13 +2,14 @@
 // Файл: src/components/shared/audio-indicator.tsx
 // Описание:
 //   Переиспользуемая иконка-индикатор аудио в правом верхнем углу карточки/реплики.
-//   - Когда не играет: показывает динамик (voice icon).
-//   - Когда играет: показывает квадрат (stop icon) + активный фон.
-//   При клике — вызывает onStop (останавливает воспроизведение).
+//   Три состояния:
+//   - не играет: показывает динамик (voice icon).
+//   - загрузка: показывает крутящийся спиннер (аудиофайл качается).
+//   - играет: показывает квадрат (stop icon) + активный фон.
+//   При клике во время play — вызывает onStop (останавливает воспроизведение).
+//   Во время загрузки клик игнорируется (ждём пока начнётся звук).
 //   Клик по самому элементу-носителю (родительской карточке) должен
 //   обрабатываться родителем — например, запуск/перезапуск.
-//   Родитель решает, какой onClick подставить внешне (start/restart),
-//   а onStop срабатывает только по клику на саму иконку во время play.
 // ===========================================
 
 "use client";
@@ -17,12 +18,13 @@ import React from "react";
 
 interface AudioIndicatorProps {
   isPlaying: boolean;
+  isLoading?: boolean;
   onStop: () => void;
   size?: "sm" | "md";
   className?: string;
 }
 
-export function AudioIndicator({ isPlaying, onStop, size = "md", className = "" }: AudioIndicatorProps) {
+export function AudioIndicator({ isPlaying, isLoading = false, onStop, size = "md", className = "" }: AudioIndicatorProps) {
   const dims = size === "sm" ? { box: "w-5 h-5", icon: 10 } : { box: "w-6 h-6", icon: 12 };
 
   const handleClick = (e: React.MouseEvent) => {
@@ -30,22 +32,41 @@ export function AudioIndicator({ isPlaying, onStop, size = "md", className = "" 
     // (родитель обычно делает "запуск/перезапуск" на всю карточку).
     e.stopPropagation();
     e.preventDefault();
+    // Во время загрузки клик ничего не делает — ждём начала воспроизведения.
+    if (isLoading) return;
     if (isPlaying) onStop();
   };
+
+  // Активное состояние (заполненный фон) — и при загрузке, и при игре
+  const active = isPlaying || isLoading;
 
   return (
     <span
       onClick={handleClick}
       role={isPlaying ? "button" : undefined}
-      aria-label={isPlaying ? "Stop audio" : "Has audio"}
-      title={isPlaying ? "Stop" : "Click card to play"}
+      aria-label={isLoading ? "Loading audio" : isPlaying ? "Stop audio" : "Has audio"}
+      title={isLoading ? "Loading…" : isPlaying ? "Stop" : "Click card to play"}
       className={`absolute top-2 right-2 ${dims.box} rounded-full flex items-center justify-center transition-colors ${
-        isPlaying
+        active
           ? "bg-primary text-primary-foreground cursor-pointer hover:bg-primary/80"
           : "bg-white/70 text-primary border-2 border-primary"
       } ${className}`}
     >
-      {isPlaying ? (
+      {isLoading ? (
+        // Спиннер загрузки
+        <svg
+          width={dims.icon}
+          height={dims.icon}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="3"
+          strokeLinecap="round"
+          className="animate-spin"
+        >
+          <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+        </svg>
+      ) : isPlaying ? (
         // Квадрат (stop)
         <svg
           width={dims.icon}

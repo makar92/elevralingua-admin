@@ -15,7 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { GradePicker } from "@/components/shared/grade-badge";
-import { formatTime12h } from "@/lib/utils";
+import { formatTime12h, formatDateUS } from "@/lib/utils";
 import { usePolling, useInvalidate } from "@/lib/use-polling";
 
 const MO = ["January","February","March","April","May","June","July","August","September","October","November","December"];
@@ -323,7 +323,7 @@ export default function TeacherJournal() {
                 <div className="flex items-start justify-between">
                   <div>
                     <h2 className="text-lg font-semibold text-foreground">
-                      {DWF[new Date(selectedLog.date).getDay()]}, {new Date(selectedLog.date).toLocaleDateString("en-US")}
+                      {DWF[new Date(selectedLog.date).getDay()]}, {formatDateUS(selectedLog.date)}
                     </h2>
                     <p className="text-sm text-muted-foreground">
                       {formatTime12h(selectedLog.startTime)} – {formatTime12h(selectedLog.endTime)}{selectedLog.location && ` · ${selectedLog.location}`}

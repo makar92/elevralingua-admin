@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { formatTime12h } from "@/lib/utils";
+import { formatTime12h, formatDateUS } from "@/lib/utils";
 import { useParams } from "next/navigation";
 import { useStudentClassroom } from "../classroom-context";
 import { Badge } from "@/components/ui/badge";
@@ -70,7 +70,7 @@ export default function StudentDiary(){
               {liveDayLogs.length>1&&<div className="flex flex-wrap gap-2 mb-4">{liveDayLogs.map((dl:any,idx:number)=>(<button key={dl.id} onClick={()=>selLog(dl)} className={`px-3 py-1.5 rounded-md text-xs font-medium border ${liveSelectedLog.id===dl.id?"border-primary bg-primary/10 text-primary":"border-border text-muted-foreground hover:bg-accent"}`}>Lesson {idx+1}</button>))}</div>}
               <div className="bg-card border border-border rounded-xl p-5 space-y-4">
                 <div className="flex items-start justify-between">
-                  <div><h2 className="text-lg font-semibold text-foreground">{DWF[new Date(liveSelectedLog.date).getDay()]}, {new Date(liveSelectedLog.date).toLocaleDateString("en-US")}</h2><p className="text-sm text-muted-foreground">{formatTime12h(liveSelectedLog.startTime)} – {formatTime12h(liveSelectedLog.endTime)}{liveSelectedLog.location&&` · ${liveSelectedLog.location}`}</p></div>
+                  <div><h2 className="text-lg font-semibold text-foreground">{DWF[new Date(liveSelectedLog.date).getDay()]}, {formatDateUS(liveSelectedLog.date)}</h2><p className="text-sm text-muted-foreground">{formatTime12h(liveSelectedLog.startTime)} – {formatTime12h(liveSelectedLog.endTime)}{liveSelectedLog.location&&` · ${liveSelectedLog.location}`}</p></div>
                   <Badge className={`text-xs ${liveSelectedLog.status==="COMPLETED"?"bg-emerald-100 text-emerald-700":"bg-blue-100 text-blue-700"}`}>{liveSelectedLog.status==="COMPLETED"?"Completed":"Scheduled"}</Badge>
                 </div>
                 {liveSelectedLog.attendance?.[0]&&<p className="text-sm text-muted-foreground">{liveSelectedLog.attendance[0].status==="PRESENT"?"✓ Present":liveSelectedLog.attendance[0].status==="LATE"?"⏰ Late":"✗ Absent"}</p>}

@@ -36,12 +36,39 @@ export default function StudentTextbook(){
   );
 
   // При первой загрузке — выбираем стартовую секцию (по hash или первую открытую)
+  // и сворачиваем сайдбар: все юниты/уроки collapsed, КРОМЕ пути до текущей секции.
   useEffect(() => {
     if (didInit || loading || !classroom) return;
-    const allSecs = classroom?.course?.units?.flatMap((u:any)=>u.lessons?.flatMap((l:any)=>l.textbookSections||[])||[])||[];
+    const units = classroom?.course?.units || [];
+    const allSecs = units.flatMap((u:any)=>u.lessons?.flatMap((l:any)=>l.textbookSections||[])||[])||[];
     const hashSid = typeof window !== "undefined" ? window.location.hash.replace("#sec=","") : "";
     const fromHash = hashSid && allSecs.find((s:any)=>s.id===hashSid && openIds.has(s.id));
     const target = fromHash || allSecs.find((s:any)=>openIds.has(s.id));
+
+    // Находим юнит и урок, которым принадлежит target-секция
+    let activeUnitId = "", activeLessonId = "";
+    if (target) {
+      for (const u of units) {
+        for (const l of (u.lessons||[])) {
+          if ((l.textbookSections||[]).some((s:any)=>s.id===target.id)) {
+            activeUnitId = u.id; activeLessonId = l.id;
+          }
+        }
+      }
+    }
+
+    // Сворачиваем всё, кроме активного пути
+    const collapsedU = new Set<string>();
+    const collapsedL = new Set<string>();
+    for (const u of units) {
+      if (u.id !== activeUnitId) collapsedU.add(u.id);
+      for (const l of (u.lessons||[])) {
+        if (l.id !== activeLessonId) collapsedL.add(l.id);
+      }
+    }
+    setUCol(collapsedU);
+    setLCol(collapsedL);
+
     if (target) { setSelSec(target.id); setSecTitle(target.title); }
     setDidInit(true);
   }, [loading, classroom, didInit, openIds]);
@@ -64,7 +91,16 @@ export default function StudentTextbook(){
 
   if(loading)return<div className="p-6 text-muted-foreground animate-pulse">Loading textbook...</div>;
 
-  const filtered=(classroom?.course?.units||[]).map((u:any)=>({...u,lessons:(u.lessons||[]).map((l:any)=>({...l,sections:(l.textbookSections||[]).filter((s:any)=>openIds.has(s.id))})).filter((l:any)=>l.textbookSections.length>0)})).filter((u:any)=>u.lessons.length>0);
+  // Фильтруем структуру: показываем только секции, открытые учителем (openIds).
+  // Фильтрованный список секций кладём ОБРАТНО в textbookSections — чтобы и
+  // проверка "урок непустой", и рендер ниже работали с уже отфильтрованными данными.
+  const filtered=(classroom?.course?.units||[]).map((u:any)=>({
+    ...u,
+    lessons:(u.lessons||[]).map((l:any)=>({
+      ...l,
+      textbookSections:(l.textbookSections||[]).filter((s:any)=>openIds.has(s.id))
+    })).filter((l:any)=>l.textbookSections.length>0)
+  })).filter((u:any)=>u.lessons.length>0);
 
   // Lesson progress for student
   const getLessonProgress=(lesson:any)=>{
