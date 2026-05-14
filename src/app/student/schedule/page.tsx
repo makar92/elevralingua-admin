@@ -1,12 +1,13 @@
 // ===========================================
 // Файл: src/app/student/schedule/page.tsx
 // Описание: Общее расписание ученика из всех classrooms.
+//   Реалтайм через polling: изменения учителя видны в течение 4 сек.
 // ===========================================
 
 "use client";
 
-import { useEffect, useState } from "react";
 import { formatTime12h } from "@/lib/utils";
+import { usePolling } from "@/lib/use-polling";
 
 const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const colors = [
@@ -18,19 +19,14 @@ const colors = [
 ];
 
 export default function StudentSchedule() {
-  const [slots, setSlots] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: slots = [], isLoading } = usePolling<any[]>("/api/schedule", { fallback: [] });
 
-  useEffect(() => {
-    fetch("/api/schedule").then(r => r.json()).then(d => { setSlots(d); setLoading(false); });
-  }, []);
-
-  if (loading) return <div className="p-6 text-muted-foreground">Uploading...</div>;
+  if (isLoading) return <div className="p-6 text-muted-foreground">Uploading...</div>;
 
   // Цвет по classroom
-  const classroomIds = [...new Set(slots.map(s => s.classroomId))];
+  const classroomIds = [...new Set(slots.map((s: any) => s.classroomId))];
   const colorMap: Record<string, string> = {};
-  classroomIds.forEach((id, i) => { colorMap[id] = colors[i % colors.length]; });
+  classroomIds.forEach((id: any, i: number) => { colorMap[id] = colors[i % colors.length]; });
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
@@ -44,7 +40,7 @@ export default function StudentSchedule() {
             {dayNames.map((day, dayIdx) => (
               <div key={dayIdx} className="min-h-[120px]">
                 <p className="text-sm font-semibold text-foreground text-center mb-2 pb-1 border-b border-border">{day}</p>
-                {slots.filter(s => s.dayOfWeek === dayIdx).map(slot => (
+                {slots.filter((s: any) => s.dayOfWeek === dayIdx).map((slot: any) => (
                   <div key={slot.id} className={`p-2 rounded-md border text-xs mb-1 ${colorMap[slot.classroomId]}`}>
                     <p className="font-medium">{formatTime12h(slot.startTime)} – {formatTime12h(slot.endTime)}</p>
                     <p className="truncate">{slot.classroom?.name}</p>
@@ -57,8 +53,8 @@ export default function StudentSchedule() {
 
           {/* Legend */}
           <div className="flex gap-4 flex-wrap">
-            {classroomIds.map(cId => {
-              const slot = slots.find(s => s.classroomId === cId);
+            {classroomIds.map((cId: any) => {
+              const slot = slots.find((s: any) => s.classroomId === cId);
               return (
                 <div key={cId} className="flex items-center gap-2 text-xs">
                   <div className={`w-3 h-3 rounded ${colorMap[cId]?.split(" ")[0]}`} />

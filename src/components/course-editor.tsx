@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CourseTree } from "@/components/course-tree";
 import { SectionEditor } from "@/components/section-editor";
 
@@ -48,6 +49,43 @@ export function CourseEditor({ course: initialCourse }: { course: Course }) {
   const [deleteType, setDeleteType] = useState<"unit" | "lesson" | "textbookSection" | "workbookSection">("unit");
   const [deleteId, setDeleteId] = useState("");
   const [deleteTitle, setDeleteTitle] = useState("");
+
+  // Edit Course modal state
+  const [editCourseOpen, setEditCourseOpen] = useState(false);
+  const [editTitle, setEditTitle] = useState("");
+  const [editLanguage, setEditLanguage] = useState("");
+  const [editTargetLanguage, setEditTargetLanguage] = useState("");
+  const [editLevel, setEditLevel] = useState("");
+
+  const openEditCourse = () => {
+    setEditTitle(course.title);
+    setEditLanguage(course.language);
+    setEditTargetLanguage(course.targetLanguage);
+    setEditLevel(course.level);
+    setEditCourseOpen(true);
+  };
+
+  const handleSaveCourse = async () => {
+    if (!editTitle.trim()) return;
+    setSaving(true);
+    const res = await fetch(`/api/courses/${course.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: editTitle.trim(),
+        language: editLanguage,
+        targetLanguage: editTargetLanguage,
+        level: editLevel,
+      }),
+    });
+    if (res.ok) {
+      await reloadCourse();
+      // Если выбран курс — обновим панель справа
+      setSelected((prev) => prev.type === "course" ? { ...prev } : prev);
+      setEditCourseOpen(false);
+    }
+    setSaving(false);
+  };
 
   const reloadCourse = async () => {
     const res = await fetch(`/api/courses/${course.id}`);
@@ -180,6 +218,7 @@ export function CourseEditor({ course: initialCourse }: { course: Course }) {
                 onRename={(type, id, title) => { setRenameType(type); setRenameId(id); setRenameTitle(title); setRenameOpen(true); }}
                 onMove={handleMove}
                 onDelete={(type, id, title) => { setDeleteType(type); setDeleteId(id); setDeleteTitle(title); setDeleteOpen(true); }}
+                onEditCourse={openEditCourse}
               />
             </CardContent>
           </Card>
@@ -295,6 +334,73 @@ export function CourseEditor({ course: initialCourse }: { course: Course }) {
           <DialogFooter>
             <Button variant="outline" size="lg" onClick={() => setRenameOpen(false)}>Cancel</Button>
             <Button size="lg" onClick={handleRename} disabled={saving || !renameTitle.trim()}>
+              {saving ? "..." : "Save"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal: Edit Course */}
+      <Dialog open={editCourseOpen} onOpenChange={setEditCourseOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle className="text-xl text-foreground">Edit Course</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-base text-foreground">Course Title</Label>
+              <Input value={editTitle} onChange={(e) => setEditTitle(e.target.value)}
+                placeholder="Course title" className="text-lg h-12" />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-base text-foreground">Course Language</Label>
+                <Select value={editLanguage} onValueChange={setEditLanguage}>
+                  <SelectTrigger className="h-12"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="zh">Chinese (Mandarin)</SelectItem>
+                    <SelectItem value="es">Spanish</SelectItem>
+                    <SelectItem value="ru">Russian</SelectItem>
+                    <SelectItem value="fr">French</SelectItem>
+                    <SelectItem value="de">German</SelectItem>
+                    <SelectItem value="ja">Japanese</SelectItem>
+                    <SelectItem value="ko">Korean</SelectItem>
+                    <SelectItem value="pt">Portuguese</SelectItem>
+                    <SelectItem value="it">Italian</SelectItem>
+                    <SelectItem value="ar">Arabic</SelectItem>
+                    <SelectItem value="en">English</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-base text-foreground">Target Audience</Label>
+                <Select value={editTargetLanguage} onValueChange={setEditTargetLanguage}>
+                  <SelectTrigger className="h-12"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="en">English Speakers</SelectItem>
+                    <SelectItem value="ru">Russian Speakers</SelectItem>
+                    <SelectItem value="es">Spanish Speakers</SelectItem>
+                    <SelectItem value="zh">Chinese Speakers</SelectItem>
+                    <SelectItem value="fr">French Speakers</SelectItem>
+                    <SelectItem value="de">German Speakers</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-base text-foreground">Level</Label>
+              <Select value={editLevel} onValueChange={setEditLevel}>
+                <SelectTrigger className="h-12"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="beginner">Beginner</SelectItem>
+                  <SelectItem value="elementary">Elementary</SelectItem>
+                  <SelectItem value="intermediate">Intermediate</SelectItem>
+                  <SelectItem value="advanced">Advanced</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" size="lg" onClick={() => setEditCourseOpen(false)}>Cancel</Button>
+            <Button size="lg" onClick={handleSaveCourse} disabled={saving || !editTitle.trim()}>
               {saving ? "..." : "Save"}
             </Button>
           </DialogFooter>

@@ -8,7 +8,7 @@
 
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +16,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { formatTime12h } from "@/lib/utils";
 import { UserMultipleIcon, Mortarboard01Icon, CheckListIcon, BookOpen01Icon, Calendar01Icon, CheckmarkCircle02Icon, MailSend01Icon } from "@hugeicons/core-free-icons";
+import { usePolling } from "@/lib/use-polling";
 
 // ===== Константы =====
 const MO = ["January","February","March","April","May","June","July","August","September","October","November","December"];
@@ -41,43 +42,20 @@ function getGreeting(): string {
 }
 
 export default function TeacherDashboard() {
-  const [classrooms, setClassrooms] = useState<any[]>([]);
-  const [pending, setPending] = useState<any[]>([]);
-  const [logs, setLogs] = useState<any[]>([]);
-  const [userName, setUserName] = useState("");
-  const [loading, setLoading] = useState(true);
-
   const [year, setYear] = useState(new Date().getFullYear());
   const [month, setMonth] = useState(new Date().getMonth());
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
 
   const ms = `${year}-${String(month + 1).padStart(2, "0")}`;
 
-  const safeFetch = (url: string) =>
-    fetch(url).then(r => r.ok ? r.json() : []).catch(() => []);
+  // Реалтайм: классы, ожидающие проверки, пользователь, логи журнала.
+  const { data: classrooms = [], isLoading: cLoading } = usePolling<any[]>("/api/classrooms", { fallback: [] });
+  const { data: pending = [] } = usePolling<any[]>("/api/homework/pending", { fallback: [] });
+  const { data: userData } = usePolling<any>("/api/users", { fallback: null });
+  const { data: logs = [] } = usePolling<any[]>(`/api/lesson-log?month=${ms}`, { fallback: [] });
 
-  // Loading базовых данных
-  useEffect(() => {
-    Promise.all([
-      safeFetch("/api/classrooms"),
-      safeFetch("/api/homework/pending"),
-      safeFetch("/api/users"),
-    ]).then(([c, p, u]) => {
-      setClassrooms(Array.isArray(c) ? c : []);
-      setPending(Array.isArray(p) ? p : []);
-      if (u?.name) setUserName(u.name);
-      setLoading(false);
-    });
-  }, []);
-
-  // Loading логов журнала при смене месяца
-  const loadLogs = useCallback(async () => {
-    // Загружаем логи для всех классов учителя (без classroomId)
-    const data = await safeFetch(`/api/lesson-log?month=${ms}`);
-    setLogs(Array.isArray(data) ? data : []);
-  }, [ms]);
-
-  useEffect(() => { loadLogs(); }, [loadLogs]);
+  const userName = userData?.name || "";
+  const loading = cLoading;
 
   // Навигация по месяцам
   const changeMonth = (delta: number) => {

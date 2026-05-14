@@ -5,25 +5,15 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ClassroomCard } from "@/components/shared/classroom-card";
+import { usePolling, useInvalidate } from "@/lib/use-polling";
 
 export default function TeacherClassrooms() {
-  const [classrooms, setClassrooms] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const loadClassrooms = () => {
-    fetch("/api/classrooms").then(r => r.json()).then(d => {
-      setClassrooms(Array.isArray(d) ? d : []);
-      setLoading(false);
-    });
-  };
-
-  useEffect(() => {
-    loadClassrooms();
-  }, []);
+  const { data: classrooms = [], isLoading: loading } = usePolling<any[]>("/api/classrooms", { fallback: [] });
+  const invalidate = useInvalidate();
+  const loadClassrooms = () => invalidate("/api/classrooms");
 
   if (loading) return <div className="p-6 text-muted-foreground">Uploading...</div>;
 

@@ -7,6 +7,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { StudentNav } from "@/components/shared/student-nav";
+import { Heartbeat } from "@/components/shared/heartbeat";
 
 export default async function StudentLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
@@ -22,6 +23,7 @@ export default async function StudentLayout({ children }: { children: React.Reac
 
   return (
     <div className="h-screen flex flex-col overflow-hidden bg-background">
+      <Heartbeat />
       <StudentNav user={{ ...session.user, role: dbUser.role, image: dbUser.image }} />
       <main className="flex-1 overflow-auto">
         {children}

@@ -5,7 +5,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
@@ -15,6 +15,7 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { usePolling } from "@/lib/use-polling";
 
 const navItems = [
   { name: "Dashboard",        href: "/teacher" },
@@ -25,22 +26,21 @@ const navItems = [
 
 export function TeacherNav({ user }: { user: any }) {
   const pathname = usePathname();
-  const [pendingInvCount, setPendingInvCount] = useState(0);
   const [showDelete, setShowDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  // Реалтайм счётчик заявок от учеников
+  const { data: invs = [] } = usePolling<any[]>(
+    "/api/invitations?direction=received&type=STUDENT_REQUESTS",
+    { fallback: [] }
+  );
+  const pendingInvCount = Array.isArray(invs) ? invs.filter((i: any) => i.status === "PENDING").length : 0;
 
   const handleDeleteAccount = async () => {
     setDeleting(true);
     await fetch("/api/auth/set-role", { method: "DELETE" });
     signOut({ callbackUrl: "/login" });
   };
-
-  useEffect(() => {
-    fetch("/api/invitations?direction=received&type=STUDENT_REQUESTS")
-      .then(r => r.ok ? r.json() : [])
-      .then(d => setPendingInvCount(Array.isArray(d) ? d.filter((i: any) => i.status === "PENDING").length : 0))
-      .catch(() => {});
-  }, [pathname]);
 
   return (
     <header className="bg-card border-b border-border shadow-sm sticky top-0 z-50">

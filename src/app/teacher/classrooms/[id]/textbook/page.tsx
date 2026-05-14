@@ -7,51 +7,59 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { GradeBadge, GradePicker } from "@/components/shared/grade-badge";
+import { usePolling, useInvalidate } from "@/lib/use-polling";
 
 export default function TeacherTextbook() {
   const { id } = useParams();
   const { classroom } = useClassroom();
   const [selSec, setSelSec] = useState("");
-  const [secBlocks, setSecBlocks] = useState<any[]>([]);
   const [secTitle, setSecTitle] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [blocksLoading, setBlocksLoading] = useState(false);
   const [uCol, setUCol] = useState<Set<string>>(new Set());
   const [lCol, setLCol] = useState<Set<string>>(new Set());
   const [checked, setChecked] = useState<Set<string>>(new Set());
-  const [vis, setVis] = useState<any[]>([]);
-  const [assigns, setAssigns] = useState<any[]>([]);
   const [busy, setBusy] = useState(false);
   const [showStudentPicker, setShowStudentPicker] = useState(false);
   const [assignType, setAssignType] = useState("");
   const [pickedStudents, setPickedStudents] = useState<Set<string>>(new Set());
-  const [editingGrade, setEditingGrade] = useState<string | null>(null); // assignmentStudentId
+  const [editingGrade, setEditingGrade] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [didInit, setDidInit] = useState(false);
 
   const sc = classroom?.enrollments?.length || 0;
-  const openIds = new Set(vis.map((v: any) => v.textbookSectionId));
 
+  // Реалтайм: видимость секций, назначения, блоки текущей секции
+  const { data: vis = [], isLoading: vLoading } = usePolling<any[]>(
+    id ? `/api/section-visibility?classroomId=${id}` : null,
+    { fallback: [] }
+  );
+  const { data: assigns = [], isLoading: aLoading } = usePolling<any[]>(
+    id ? `/api/study-assignments?classroomId=${id}` : null,
+    { fallback: [] }
+  );
+  const { data: secBlocks = [], isLoading: blocksLoading } = usePolling<any[]>(
+    selSec ? `/api/textbook-sections/${selSec}/blocks` : null,
+    { fallback: [] }
+  );
+  const loading = vLoading || aLoading;
+  const openIds = new Set((vis as any[]).map((v: any) => v.textbookSectionId));
+
+  const invalidate = useInvalidate();
+  const reload = () => { invalidate("/api/section-visibility"); invalidate("/api/study-assignments"); };
+
+  // Первая инициализация
   useEffect(() => {
-    Promise.all([
-      fetch(`/api/section-visibility?classroomId=${id}`).then(r => r.ok ? r.json() : []),
-      fetch(`/api/study-assignments?classroomId=${id}`).then(r => r.ok ? r.json() : []),
-    ]).then(([v, a]) => {
-      setVis(Array.isArray(v)?v:[]); setAssigns(Array.isArray(a)?a:[]);
-      // Restore section from URL hash or fall back to first
-      const hashSid = window.location.hash.replace("#sec=", "");
-      const allSecs = classroom?.course?.units?.flatMap((u:any) => u.lessons?.flatMap((l:any) => l.textbookSections || []) || []) || [];
-      const fromHash = hashSid && allSecs.find((s:any) => s.id === hashSid);
-      const target = fromHash || allSecs[0];
-      if (target) loadSec(target.id, target.title);
-      setLoading(false);
-    });
-  }, [id, classroom]);
+    if (didInit || loading || !classroom) return;
+    const hashSid = typeof window !== "undefined" ? window.location.hash.replace("#sec=", "") : "";
+    const allSecs = classroom?.course?.units?.flatMap((u:any) => u.lessons?.flatMap((l:any) => l.textbookSections || []) || []) || [];
+    const fromHash = hashSid && allSecs.find((s:any) => s.id === hashSid);
+    const target = fromHash || allSecs[0];
+    if (target) loadSec(target.id, target.title);
+    setDidInit(true);
+  }, [loading, classroom, didInit]);
 
-  const loadSec = async (sid: string, t: string) => {
-    setSelSec(sid); setSecTitle(t); setBlocksLoading(true);
+  const loadSec = (sid: string, t: string) => {
+    setSelSec(sid); setSecTitle(t);
     try { window.location.hash = `sec=${sid}`; } catch {}
-    try { const d = await fetch(`/api/textbook-sections/${sid}/blocks`).then(r=>r.json()); setSecBlocks(Array.isArray(d)?d:[]); } catch { setSecBlocks([]); }
-    setBlocksLoading(false);
   };
 
   const toggleU = (uid:string) => { setUCol(p=>{const n=new Set(p);n.has(uid)?n.delete(uid):n.add(uid);return n;}); };
@@ -62,17 +70,9 @@ export default function TeacherTextbook() {
     setChecked(p=>{const n=new Set(p);const all=sids.every((s:string)=>n.has(s));sids.forEach((s:string)=>all?n.delete(s):n.add(s));return n;});
   };
 
-  const reload = async () => {
-    const [v,a] = await Promise.all([
-      fetch(`/api/section-visibility?classroomId=${id}`).then(r=>r.ok?r.json():[]),
-      fetch(`/api/study-assignments?classroomId=${id}`).then(r=>r.ok?r.json():[]),
-    ]);
-    setVis(Array.isArray(v)?v:[]); setAssigns(Array.isArray(a)?a:[]);
-  };
-
   const updateGrade = async (assignmentStudentId: string, grade: string) => {
     await fetch("/api/study-assignments", { method: "PATCH", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ assignmentStudentId, grade }) });
-    await reload();
+    reload();
     setEditingGrade(null);
   };
 

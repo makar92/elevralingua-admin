@@ -4,7 +4,7 @@ import { createContext, useContext } from "react";
 
 interface ClassroomContextType {
   classroom: any;
-  reloadClassroom: () => Promise<void>;
+  reloadClassroom: () => any;
 }
 
 export const ClassroomContext = createContext<ClassroomContextType>({

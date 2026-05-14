@@ -4,7 +4,7 @@
 // ===========================================
 
 "use client";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useClassroom } from "../classroom-context";
 import { ExercisePreview } from "@/components/exercise-preview";
@@ -15,6 +15,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { GradeBadge, GradePicker } from "@/components/shared/grade-badge";
 import { applyTones } from "@/components/exercise-form";
+import { usePolling, useInvalidate } from "@/lib/use-polling";
 
 type AnswerData = {
   id: string; exerciseId: string; studentId: string; answersJson: any;
@@ -28,15 +29,10 @@ export default function TeacherWorkbook() {
   const { classroom } = useClassroom();
   const [selSection, setSelSection] = useState("");
   const [selSectionTitle, setSelSectionTitle] = useState("");
-  const [exercises, setExercises] = useState<any[]>([]);
   const [checkedSections, setCheckedSections] = useState<Set<string>>(new Set());
   const [checkedExercises, setCheckedExercises] = useState<Set<string>>(new Set());
   const [uCol, setUCol] = useState<Set<string>>(new Set());
   const [lCol, setLCol] = useState<Set<string>>(new Set());
-  const [loading, setLoading] = useState(true);
-  const [exLoading, setExLoading] = useState(false);
-  const [eaList, setEaList] = useState<any[]>([]);
-  const [allAnswers, setAllAnswers] = useState<AnswerData[]>([]);
   const [busy, setBusy] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
   const [assignType, setAssignType] = useState("");
@@ -47,52 +43,56 @@ export default function TeacherWorkbook() {
   const [reviewAnswers, setReviewAnswers] = useState<AnswerData[]>([]);
   const [reviewGrades, setReviewGrades] = useState<Record<string, { grade: string; comment: string }>>({});
   const [saving, setSaving] = useState(false);
+  const [didInit, setDidInit] = useState(false);
 
   const sc = classroom?.enrollments?.length || 0;
   const students: any[] = classroom?.enrollments?.map((e: any) => e.student) || [];
   const hasSelection = checkedSections.size > 0 || checkedExercises.size > 0;
 
-  const loadAll = useCallback(async () => {
-    const [ea, ans] = await Promise.all([
-      fetch(`/api/exercise-assignments?classroomId=${id}`).then(r => r.ok ? r.json() : []),
-      fetch(`/api/answers/by-classroom?classroomId=${id}`).then(r => r.ok ? r.json() : []),
-    ]);
-    setEaList(Array.isArray(ea) ? ea : []); setAllAnswers(Array.isArray(ans) ? ans : []);
-  }, [id]);
+  // Реалтайм: назначения, ответы учеников, упражнения текущей секции
+  const { data: eaList = [], isLoading: eaLoading } = usePolling<any[]>(
+    id ? `/api/exercise-assignments?classroomId=${id}` : null,
+    { fallback: [] }
+  );
+  const { data: allAnswers = [], isLoading: ansLoading } = usePolling<AnswerData[]>(
+    id ? `/api/answers/by-classroom?classroomId=${id}` : null,
+    { fallback: [] }
+  );
+  const { data: rawExercises = [], isLoading: exLoading } = usePolling<any[]>(
+    selSection ? `/api/workbook-sections/${selSection}/exercises` : null,
+    { fallback: [] }
+  );
+  const exercises = Array.isArray(rawExercises) ? rawExercises : [];
+  const loading = eaLoading || ansLoading;
 
-  useEffect(() => { loadAll().then(() => {
-    const hashSid = window.location.hash.replace("#sec=", "");
+  const invalidate = useInvalidate();
+  const reload = () => { invalidate("/api/exercise-assignments"); invalidate("/api/answers"); };
+
+  // Первая инициализация секции — по hash или по первой попавшейся
+  useEffect(() => {
+    if (didInit || loading || !classroom) return;
+    const hashSid = typeof window !== "undefined" ? window.location.hash.replace("#sec=", "") : "";
     const allSecs = classroom?.course?.units?.flatMap((u:any) => u.lessons?.flatMap((l:any) => l.workbookSections || []) || []) || [];
     const fromHash = hashSid && allSecs.find((s:any) => s.id === hashSid);
     const target = fromHash || allSecs[0];
     if (target) loadExBySec(target.id, target.title);
-    setLoading(false);
-  }); }, [loadAll, classroom]);
+    setDidInit(true);
+  }, [loading, classroom, didInit]);
 
-  const loadExBySec = async (secId: string, title: string) => {
-    setSelSection(secId); setSelSectionTitle(title); setExLoading(true);
+  const loadExBySec = (secId: string, title: string) => {
+    setSelSection(secId); setSelSectionTitle(title);
     try { window.location.hash = `sec=${secId}`; } catch {}
-    try { const all = await fetch(`/api/workbook-sections/${secId}/exercises`).then(r => r.json()); setExercises((Array.isArray(all) ? all : [])); } catch { setExercises([]); }
-    setExLoading(false);
   };
 
-  const reload = async () => {
-    const [ea, ans] = await Promise.all([
-      fetch(`/api/exercise-assignments?classroomId=${id}`).then(r => r.ok ? r.json() : []),
-      fetch(`/api/answers/by-classroom?classroomId=${id}`).then(r => r.ok ? r.json() : []),
-    ]);
-    setEaList(Array.isArray(ea) ? ea : []); setAllAnswers(Array.isArray(ans) ? ans : []);
-  };
-
-  const getExAssignments = (eid: string) => eaList.filter((a: any) => a.exerciseId === eid);
-  const getExAnswers = (eid: string) => allAnswers.filter(a => a.exerciseId === eid);
+  const getExAssignments = (eid: string) => (eaList as any[]).filter((a: any) => a.exerciseId === eid);
+  const getExAnswers = (eid: string) => (allAnswers as AnswerData[]).filter((a: AnswerData) => a.exerciseId === eid);
 
   const getSecStats = (secId: string) => {
-    const secExIds = new Set(eaList.filter((a: any) => a.exercise?.workbookSection?.id === secId).map((a: any) => a.exerciseId));
+    const secExIds = new Set((eaList as any[]).filter((a: any) => a.exercise?.workbookSection?.id === secId).map((a: any) => a.exerciseId));
     if (secExIds.size === 0) return null;
-    const secAns = allAnswers.filter(a => secExIds.has(a.exerciseId));
-    const pending = secAns.filter(a => a.status === "PENDING").length;
-    const answered = new Set(secAns.map(a => `${a.exerciseId}_${a.studentId}`)).size;
+    const secAns = (allAnswers as AnswerData[]).filter((a: AnswerData) => secExIds.has(a.exerciseId));
+    const pending = secAns.filter((a: AnswerData) => a.status === "PENDING").length;
+    const answered = new Set(secAns.map((a: AnswerData) => `${a.exerciseId}_${a.studentId}`)).size;
     const total = secExIds.size * students.length;
     return { assigned: secExIds.size, pending, answered, total };
   };
@@ -175,9 +175,8 @@ export default function TeacherWorkbook() {
     const rev = reviewGrades[answerId]; if (!rev) return;
     setSaving(true);
     await fetch("/api/answers", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: answerId, grade: rev.grade || undefined, teacherComment: rev.comment || undefined }) });
-    await reload();
+    reload();
     const fresh = await fetch(`/api/answers/by-classroom?classroomId=${id}`).then(r => r.ok ? r.json() : []);
-    setAllAnswers(fresh);
     const updated = (fresh as AnswerData[]).filter(a => a.exerciseId === reviewExercise?.id);
     const map = new Map<string, AnswerData>(); for (const a of updated) { if (!map.has(a.studentId)) map.set(a.studentId, a); }
     setReviewAnswers(Array.from(map.values())); setSaving(false);

@@ -6,23 +6,18 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { LanguageLabel } from "@/components/shared/language-label";
+import { usePolling } from "@/lib/use-polling";
 
 export default function TeacherCourses() {
-  const [courses, setCourses] = useState<any[]>([]);
+  const { data: courses = [], isLoading: loading } = usePolling<any[]>("/api/courses", { fallback: [] });
   const [search, setSearch] = useState("");
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetch("/api/courses").then(r => r.ok ? r.json() : []).catch(() => [])
-      .then(d => { setCourses(Array.isArray(d) ? d : []); setLoading(false); });
-  }, []);
-
-  const filtered = courses.filter((c: any) =>
+  const filtered = (courses as any[]).filter((c: any) =>
     c.title?.toLowerCase().includes(search.toLowerCase()) ||
     c.language?.toLowerCase().includes(search.toLowerCase())
   );

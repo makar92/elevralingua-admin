@@ -5,29 +5,19 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { usePolling, useInvalidate } from "@/lib/use-polling";
 
 export default function StudentInvitations() {
-  const [incoming, setIncoming] = useState<any[]>([]);
-  const [myRequests, setMyRequests] = useState<any[]>([]);
+  const { data: incoming = [], isLoading: l1 } = usePolling<any[]>("/api/invitations?direction=received&type=TEACHER_INVITES", { fallback: [] });
+  const { data: myRequests = [], isLoading: l2 } = usePolling<any[]>("/api/invitations?direction=sent&type=STUDENT_REQUESTS", { fallback: [] });
+  const invalidate = useInvalidate();
+  const loading = l1 || l2;
+
   const [tab, setTab] = useState<"incoming" | "sent">("incoming");
-  const [loading, setLoading] = useState(true);
-
-  const loadData = async () => {
-    const [inc, sent] = await Promise.all([
-      fetch("/api/invitations?direction=received&type=TEACHER_INVITES").then(r => r.json()),
-      fetch("/api/invitations?direction=sent&type=STUDENT_REQUESTS").then(r => r.json()),
-    ]);
-    setIncoming(inc);
-    setMyRequests(sent);
-    setLoading(false);
-  };
-
-  useEffect(() => { loadData(); }, []);
-
   const [busy, setBusy] = useState(false);
 
   const handleResponse = async (invId: string, status: "ACCEPTED" | "DECLINED") => {
@@ -38,7 +28,8 @@ export default function StudentInvitations() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status }),
     });
-    await loadData();
+    invalidate("/api/invitations");
+    invalidate("/api/classrooms");
     setBusy(false);
   };
 

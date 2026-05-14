@@ -7,11 +7,11 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { ClassroomHeader } from "@/components/shared/classroom-header";
 import { ClassroomTabs, STUDENT_TABS } from "@/components/shared/classroom-tabs";
 import { StudentClassroomContext } from "./classroom-context";
+import { usePolling } from "@/lib/use-polling";
 
 export default function StudentClassroomLayout({
   children,
@@ -19,25 +19,10 @@ export default function StudentClassroomLayout({
   children: React.ReactNode;
 }) {
   const { id } = useParams();
-  const [classroom, setClassroom] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-
-  const loadClassroom = async () => {
-    try {
-      const res = await fetch(`/api/classrooms/${id}`);
-      if (res.ok) {
-        const data = await res.json();
-        setClassroom(data);
-      }
-    } catch (e) {
-      console.error("Failed to load classroom:", e);
-    }
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    loadClassroom();
-  }, [id]);
+  const { data: classroom, isLoading: loading, refetch } = usePolling<any>(
+    id ? `/api/classrooms/${id}` : null,
+    { fallback: null }
+  );
 
   if (loading) {
     return (
@@ -50,7 +35,7 @@ export default function StudentClassroomLayout({
   }
 
   return (
-    <StudentClassroomContext.Provider value={{ classroom, reloadClassroom: loadClassroom }}>
+    <StudentClassroomContext.Provider value={{ classroom, reloadClassroom: refetch }}>
       <div className="flex flex-col h-[calc(100vh-57px)]">
         <div className="flex-shrink-0 px-6 pt-6">
           <ClassroomHeader classroom={classroom} />

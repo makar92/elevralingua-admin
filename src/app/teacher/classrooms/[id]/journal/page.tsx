@@ -7,7 +7,7 @@
 // ===========================================
 
 "use client";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useClassroom } from "../classroom-context";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { GradePicker } from "@/components/shared/grade-badge";
 import { formatTime12h } from "@/lib/utils";
+import { usePolling, useInvalidate } from "@/lib/use-polling";
 
 const MO = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const DW = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
@@ -27,12 +28,10 @@ const greens = ["","bg-emerald-200 text-emerald-900","bg-emerald-400 text-emeral
 export default function TeacherJournal() {
   const { id } = useParams();
   const { classroom } = useClassroom();
-  const [logs, setLogs] = useState<any[]>([]);
-  const [selectedLog, setSelectedLog] = useState<any>(null);
-  const [dayLogs, setDayLogs] = useState<any[]>([]);
+  const [selectedLogId, setSelectedLogId] = useState<string | null>(null);
+  const [dayLogIds, setDayLogIds] = useState<string[]>([]);
   const [year, setYear] = useState(new Date().getFullYear());
   const [month, setMonth] = useState(new Date().getMonth());
-  const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [editingNotes, setEditingNotes] = useState(false);
   const [notes, setNotes] = useState("");
@@ -46,41 +45,45 @@ export default function TeacherJournal() {
   const ms = `${year}-${String(month + 1).padStart(2, "0")}`;
   const sc = classroom?.enrollments?.length || 0;
 
-  const load = useCallback(async () => {
-    const l = await fetch(`/api/lesson-log?classroomId=${id}&month=${ms}`).then(r => r.ok ? r.json() : []);
-    setLogs(Array.isArray(l) ? l : []);
-    setLoading(false);
-  }, [id, ms]);
+  // Реалтайм: список логов и детали выбранного лога
+  const { data: logs = [], isLoading: loading } = usePolling<any[]>(
+    id ? `/api/lesson-log?classroomId=${id}&month=${ms}` : null,
+    { fallback: [] }
+  );
+  const { data: selectedLog } = usePolling<any>(
+    selectedLogId ? `/api/lesson-log/${selectedLogId}` : null,
+    { fallback: null }
+  );
 
-  useEffect(() => { load(); }, [load]);
+  // Live версия dayLogs — берём из общего списка logs по id
+  const dayLogs = dayLogIds.map((lid) => (logs as any[]).find((l: any) => l.id === lid)).filter(Boolean);
+
+  const invalidate = useInvalidate();
+  // Эти две функции остались для совместимости с существующим JSX
+  const load = () => invalidate("/api/lesson-log");
+  const reloadLog = () => invalidate("/api/lesson-log");
 
   const chM = (d: number) => {
     let m = month + d, y = year;
     if (m > 11) { m = 0; y++; }
     if (m < 0) { m = 11; y--; }
-    setMonth(m); setYear(y); setSelectedLog(null); setDayLogs([]);
+    setMonth(m); setYear(y); setSelectedLogId(null); setDayLogIds([]);
   };
 
   const selDay = (day: number) => {
-    const dl = logs.filter(l => new Date(l.date).getDate() === day);
-    setDayLogs(dl);
+    const dl = (logs as any[]).filter((l: any) => new Date(l.date).getDate() === day);
+    setDayLogIds(dl.map((l: any) => l.id));
     if (dl.length > 0) {
-      setSelectedLog(dl[0]);
+      setSelectedLogId(dl[0].id);
       setNotes(dl[0].teacherNotes || "");
       setEditingNotes(false);
     }
   };
 
   const selLog = (log: any) => {
-    setSelectedLog(log);
+    setSelectedLogId(log.id);
     setNotes(log.teacherNotes || "");
     setEditingNotes(false);
-  };
-
-  const reloadLog = async () => {
-    if (!selectedLog) return;
-    const l = await fetch(`/api/lesson-log/${selectedLog.id}`).then(r => r.ok ? r.json() : null);
-    if (l) setSelectedLog(l);
   };
 
   // === Мутации с loading state ===
@@ -185,8 +188,8 @@ export default function TeacherJournal() {
     if (!selectedLog) return;
     if (!confirm("Delete this lesson?")) { setBusy(false); return; }
     await fetch(`/api/lesson-log/${selectedLog.id}`, { method: "DELETE" });
-    setSelectedLog(null);
-    setDayLogs([]);
+    setSelectedLogId(null);
+    setDayLogIds([]);
     await load();
   });
 
@@ -194,7 +197,7 @@ export default function TeacherJournal() {
   const fd = new Date(year, month, 1).getDay();
   const shift = fd;
   const dim = new Date(year, month + 1, 0).getDate();
-  const lfd = (day: number) => logs.filter(l => new Date(l.date).getDate() === day);
+  const lfd = (day: number) => (logs as any[]).filter((l: any) => new Date(l.date).getDate() === day);
 
   if (loading) return <div className="p-6 text-muted-foreground animate-pulse">Loading gradebook...</div>;
 

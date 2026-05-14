@@ -11,70 +11,75 @@ import { useParams } from "next/navigation";
 import { useStudentClassroom } from "../classroom-context";
 import { ExercisePreview } from "@/components/exercise-preview";
 import { Badge } from "@/components/ui/badge";
+import { usePolling, useInvalidate } from "@/lib/use-polling";
 
 export default function StudentWorkbook() {
   const { id } = useParams();
   const { classroom } = useStudentClassroom();
   const [selSection, setSelSection] = useState("");
   const [selSectionTitle, setSelSectionTitle] = useState("");
-  const [exercises, setExercises] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [exLoading, setExLoading] = useState(false);
   const [uCol, setUCol] = useState<Set<string>>(new Set());
   const [lCol, setLCol] = useState<Set<string>>(new Set());
-  const [eaList, setEaList] = useState<any[]>([]);
-  const [answers, setAnswers] = useState<Record<string, any>>({});
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [didInit, setDidInit] = useState(false);
+  const invalidate = useInvalidate();
 
+  // Реалтайм: назначения и ответы поллим
+  const { data: eaList = [], isLoading: eaLoading } = usePolling<any[]>(
+    id ? `/api/exercise-assignments?classroomId=${id}` : null,
+    { fallback: [] }
+  );
+  const { data: rawAnswers = [], isLoading: ansLoading } = usePolling<any[]>(
+    id ? `/api/answers?classroomId=${id}` : null,
+    { fallback: [] }
+  );
+
+  // Сворачиваем ответы в карту: последний ответ для каждого упражнения
+  const answers: Record<string, any> = {};
+  if (Array.isArray(rawAnswers)) {
+    for (const a of rawAnswers) {
+      if (!answers[a.exerciseId] || new Date(a.createdAt) > new Date(answers[a.exerciseId].createdAt)) {
+        answers[a.exerciseId] = a;
+      }
+    }
+  }
+
+  // Упражнения секции — поллим, чтобы новые от учителя сразу появлялись
+  const { data: rawSecEx = [], isLoading: exLoading } = usePolling<any[]>(
+    selSection ? `/api/workbook-sections/${selSection}/exercises` : null,
+    { fallback: [] }
+  );
+
+  const loading = eaLoading || ansLoading;
+
+  // При первой загрузке — выбираем стартовую секцию
   useEffect(() => {
-    Promise.all([
-      fetch(`/api/exercise-assignments?classroomId=${id}`).then(r => r.ok ? r.json() : []),
-      fetch(`/api/answers?classroomId=${id}`).then(r => r.ok ? r.json() : []),
-    ]).then(([ea, ans]) => {
-      setEaList(Array.isArray(ea) ? ea : []);
-      const ansMap: Record<string, any> = {};
-      if (Array.isArray(ans)) {
-        for (const a of ans) {
-          if (!ansMap[a.exerciseId] || new Date(a.createdAt) > new Date(ansMap[a.exerciseId].createdAt)) {
-            ansMap[a.exerciseId] = a;
-          }
-        }
-      }
-      setAnswers(ansMap);
-      const assignedSecIds = new Set((Array.isArray(ea) ? ea : []).map((a: any) => a.exercise?.workbookSection?.id).filter(Boolean));
-      const allSecs = classroom?.course?.units?.flatMap((u: any) => u.lessons?.flatMap((l: any) => l.workbookSections || []) || []) || [];
-      const hashSid = window.location.hash.replace("#sec=", "");
-      const fromHash = hashSid && allSecs.find((s: any) => s.id === hashSid && assignedSecIds.has(s.id));
-      const target = fromHash || allSecs.find((s: any) => assignedSecIds.has(s.id));
-      if (target) loadExBySec(target.id, target.title, ea);
-      setLoading(false);
-    });
-  }, [id, classroom]);
+    if (didInit || loading || !classroom) return;
+    const assignedSecIds = new Set((eaList as any[]).map((a: any) => a.exercise?.workbookSection?.id).filter(Boolean));
+    const allSecs = classroom?.course?.units?.flatMap((u: any) => u.lessons?.flatMap((l: any) => l.workbookSections || []) || []) || [];
+    const hashSid = typeof window !== "undefined" ? window.location.hash.replace("#sec=", "") : "";
+    const fromHash = hashSid && allSecs.find((s: any) => s.id === hashSid && assignedSecIds.has(s.id));
+    const target = fromHash || allSecs.find((s: any) => assignedSecIds.has(s.id));
+    if (target) { setSelSection(target.id); setSelSectionTitle(target.title); }
+    setDidInit(true);
+  }, [loading, classroom, didInit, eaList]);
 
-  const loadExBySec = async (secId: string, title: string, eaOverride?: any[]) => {
-    setSelSection(secId); setSelSectionTitle(title); setExLoading(true);
+  // Формируем итоговый список упражнений секции
+  const allEx = Array.isArray(rawSecEx) ? rawSecEx : [];
+  const assignedIds = new Set((eaList as any[]).map((a: any) => a.exerciseId));
+  const typeMap = new Map<string, Set<string>>();
+  for (const a of eaList as any[]) {
+    const types = typeMap.get(a.exerciseId) || new Set();
+    types.add(a.type || "CLASS_WORK");
+    typeMap.set(a.exerciseId, types);
+  }
+  const exercises = allEx
+    .filter((e: any) => assignedIds.has(e.id))
+    .map((e: any) => ({ ...e, _types: typeMap.get(e.id) || new Set(["CLASS_WORK"]) }));
+
+  const loadExBySec = (secId: string, title: string) => {
+    setSelSection(secId); setSelSectionTitle(title);
     try { window.location.hash = `sec=${secId}`; } catch {}
-    try {
-      const all = await fetch(`/api/workbook-sections/${secId}/exercises`).then(r => r.json());
-      const allEx = Array.isArray(all) ? all : [];
-      const ea = eaOverride || eaList;
-      const assignedIds = new Set(ea.map((a: any) => a.exerciseId));
-      const assigned = allEx.filter((e: any) => assignedIds.has(e.id));
-      
-      // Build type map
-      const typeMap = new Map<string, Set<string>>();
-      for (const a of ea) {
-        const types = typeMap.get(a.exerciseId) || new Set();
-        types.add(a.type || "CLASS_WORK");
-        typeMap.set(a.exerciseId, types);
-      }
-      setExercises(assigned.map((e: any) => ({
-        ...e,
-        
-        _types: typeMap.get(e.id) || new Set(["CLASS_WORK"]),
-      })));
-    } catch { setExercises([]); }
-    setExLoading(false);
   };
 
   const handleAnswer = async (exerciseId: string, answersJson: any) => {
@@ -85,7 +90,7 @@ export default function StudentWorkbook() {
     });
     if (res.ok) {
       const data = await res.json();
-      setAnswers(prev => ({ ...prev, [exerciseId]: data }));
+      invalidate("/api/answers");
       return data;
     }
     return null;
@@ -94,15 +99,15 @@ export default function StudentWorkbook() {
   const toggleU = (uid: string) => { setUCol(p => { const n = new Set(p); n.has(uid) ? n.delete(uid) : n.add(uid); return n; }); };
   const toggleL = (lid: string) => { setLCol(p => { const n = new Set(p); n.has(lid) ? n.delete(lid) : n.add(lid); return n; }); };
 
-  const getSecExCount = (secId: string) => eaList.filter((a: any) => a.exercise?.workbookSection?.id === secId).length;
+  const getSecExCount = (secId: string) => (eaList as any[]).filter((a: any) => a.exercise?.workbookSection?.id === secId).length;
 
   // Section-level answer stats
   const getSecAnswerStats = (secId: string) => {
-    const secExIds = new Set(eaList.filter((a: any) => a.exercise?.workbookSection?.id === secId).map((a: any) => a.exerciseId));
+    const secExIds = new Set((eaList as any[]).filter((a: any) => a.exercise?.workbookSection?.id === secId).map((a: any) => a.exerciseId));
     if (secExIds.size === 0) return null;
     let answered = 0, graded = 0;
     for (const eid of secExIds) {
-      const ans = answers[eid];
+      const ans = answers[eid as string];
       if (ans) { answered++; if (ans.status === "GRADED" || ans.status === "AUTO_GRADED") graded++; }
     }
     return { total: secExIds.size, answered, graded };
@@ -110,7 +115,7 @@ export default function StudentWorkbook() {
 
   if (loading) return <div className="p-6 text-muted-foreground animate-pulse">Loading workbook...</div>;
 
-  const assignedSecIds = new Set(eaList.map((a: any) => a.exercise?.workbookSection?.id).filter(Boolean));
+  const assignedSecIds = new Set((eaList as any[]).map((a: any) => a.exercise?.workbookSection?.id).filter(Boolean));
   const filtered = (classroom?.course?.units || []).map((u: any) => ({
     ...u,
     lessons: (u.lessons || []).map((l: any) => ({

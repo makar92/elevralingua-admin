@@ -33,8 +33,8 @@ export async function GET(req: Request) {
   const invitations = await prisma.invitation.findMany({
     where,
     include: {
-      sender: { select: { id: true, name: true, email: true, image: true } },
-      receiver: { select: { id: true, name: true, email: true, image: true } },
+      sender: { select: { id: true, name: true, email: true, image: true, lastSeenAt: true } },
+      receiver: { select: { id: true, name: true, email: true, image: true, lastSeenAt: true } },
       classroom: {
         select: { id: true, name: true, course: { select: { title: true, language: true } } },
       },

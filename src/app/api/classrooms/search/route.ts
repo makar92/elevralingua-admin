@@ -20,7 +20,7 @@ export async function GET(req: Request) {
     },
     include: {
       course: { select: { title: true, language: true, level: true } },
-      teacher: { select: { id: true, name: true, image: true } },
+      teacher: { select: { id: true, name: true, image: true, lastSeenAt: true } },
       _count: { select: { enrollments: true } },
     },
     take: 20,

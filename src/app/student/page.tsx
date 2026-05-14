@@ -7,7 +7,7 @@
 
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +16,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { formatTime12h } from "@/lib/utils";
 import { UserMultipleIcon, Mortarboard01Icon, CheckListIcon, Calendar01Icon, CheckmarkCircle02Icon } from "@hugeicons/core-free-icons";
+import { usePolling } from "@/lib/use-polling";
+import { useQueries } from "@tanstack/react-query";
 
 const MO = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const DW_CAL = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
@@ -36,51 +38,36 @@ function daysUntil(dateStr: string): number {
 }
 
 export default function StudentDashboard() {
-  const [classrooms, setClassrooms] = useState<any[]>([]);
-  const [userName, setUserName] = useState("");
-  const [homeworks, setHomeworks] = useState<any[]>([]);
-  const [logs, setLogs] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
   const [year, setYear] = useState(new Date().getFullYear());
   const [month, setMonth] = useState(new Date().getMonth());
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
 
   const ms = `${year}-${String(month + 1).padStart(2, "0")}`;
 
-  const safeFetch = (url: string) =>
-    fetch(url).then(r => r.ok ? r.json() : []).catch(() => []);
+  // Реалтайм-данные: classrooms, user, lesson-log — поллим каждые 4 сек.
+  const { data: classrooms = [], isLoading: cLoading } = usePolling<any[]>("/api/classrooms", { fallback: [] });
+  const { data: userData } = usePolling<any>("/api/users", { fallback: null });
+  const { data: logs = [] } = usePolling<any[]>(`/api/lesson-log?month=${ms}`, { fallback: [] });
 
-  useEffect(() => {
-    Promise.all([
-      safeFetch("/api/classrooms"),
-      safeFetch("/api/users"),
-    ]).then(([c, u]) => {
-      const cls = Array.isArray(c) ? c : [];
-      setClassrooms(cls);
-      if (u?.name) setUserName(u.name);
+  const userName = userData?.name || "";
 
-      // Загружаем ДЗ
-      if (cls.length > 0) {
-        Promise.all(
-          cls.map((cl: any) =>
-            safeFetch(`/api/classrooms/${cl.id}/homework`).then((hws: any) =>
-              (Array.isArray(hws) ? hws : []).map((hw: any) => ({ ...hw, classroomName: cl.name, classroomId: cl.id }))
-            )
-          )
-        ).then(results => setHomeworks(results.flat()));
-      }
-      setLoading(false);
-    });
-  }, []);
+  // ДЗ по каждому классу — параллельные запросы с поллингом
+  const homeworkQueries = useQueries({
+    queries: classrooms.map((cl: any) => ({
+      queryKey: [`/api/classrooms/${cl.id}/homework`],
+      queryFn: async () => {
+        const r = await fetch(`/api/classrooms/${cl.id}/homework`);
+        if (!r.ok) return [];
+        const hws = await r.json();
+        return (Array.isArray(hws) ? hws : []).map((hw: any) => ({ ...hw, classroomName: cl.name, classroomId: cl.id }));
+      },
+      refetchInterval: 4000,
+      staleTime: 0,
+    })),
+  });
+  const homeworks: any[] = homeworkQueries.flatMap((q) => (q.data as any[]) || []);
 
-  // Loading логов журнала
-  const loadLogs = useCallback(async () => {
-    const data = await safeFetch(`/api/lesson-log?month=${ms}`);
-    setLogs(Array.isArray(data) ? data : []);
-  }, [ms]);
-
-  useEffect(() => { loadLogs(); }, [loadLogs]);
+  const loading = cLoading;
 
   const changeMonth = (delta: number) => {
     let m = month + delta, y = year;

@@ -16,8 +16,9 @@ interface UserBadgeProps {
 function formatLastSeen(d: string | null | undefined): { online: boolean; compact: string } {
   if (!d) return { online: false, compact: "" };
   const diff = Date.now() - new Date(d).getTime();
-  const m = Math.floor(diff / 60000), h = Math.floor(diff / 3600000), days = Math.floor(diff / 86400000), w = Math.floor(days / 7);
-  if (m < 5) return { online: true, compact: "" };
+  const s = Math.floor(diff / 1000), m = Math.floor(diff / 60000), h = Math.floor(diff / 3600000), days = Math.floor(diff / 86400000), w = Math.floor(days / 7);
+  // online: < 90 секунд (heartbeat шлётся каждые 30 сек + запас на сеть)
+  if (s < 90) return { online: true, compact: "" };
   if (m < 60) return { online: false, compact: `${m}m` };
   if (h < 24) return { online: false, compact: `${h}h` };
   if (days < 7) return { online: false, compact: `${days}d` };

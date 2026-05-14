@@ -18,6 +18,30 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { AudioPlayer } from "@/components/audio-player";
 
+// ===== SafeImage: обработка битых/удалённых картинок =====
+function SafeImage({ src, alt, className }: { src?: string | null; alt?: string; className?: string }) {
+  const [errored, setErrored] = useState(false);
+  if (!src || errored) {
+    return (
+      <div
+        className="flex flex-col items-center justify-center bg-muted/50 border-2 border-dashed border-border rounded-xl text-muted-foreground max-w-lg py-12 px-6"
+        role="img"
+        aria-label="Image not available"
+      >
+        <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-60 mb-2">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+          <circle cx="9" cy="9" r="2" />
+          <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
+          <line x1="3" y1="3" x2="21" y2="21" strokeWidth="2" />
+        </svg>
+        <p className="font-medium text-sm">Image not available</p>
+        <p className="opacity-70 text-xs">Broken link or removed</p>
+      </div>
+    );
+  }
+  return <img src={src} alt={alt || ""} className={className} onError={() => setErrored(true)} />;
+}
+
 // ===== Typeы =====
 interface Exercise {
   id: string; exerciseType: string; title: string;
@@ -421,7 +445,7 @@ function DescribeImageInteractive({ content }: { content: any }) {
   const [answer, setAnswer] = useState("");
   return (
     <div className="space-y-4">
-      {content.imageUrl ? <img src={content.imageUrl} alt="" className="max-w-lg rounded-xl shadow-lg" /> :
+      {content.imageUrl ? <SafeImage src={content.imageUrl} alt="" className="max-w-lg rounded-xl shadow-lg" /> :
         <div className="bg-black/[0.03] rounded-xl p-10 text-center text-muted-foreground">🖼️ Image will be added here</div>}
       {content.promptText && <p className="text-base text-muted-foreground/80">{content.promptText}</p>}
       <Textarea value={answer} onChange={(e) => setAnswer(e.target.value)}

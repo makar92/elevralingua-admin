@@ -7,7 +7,7 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -16,54 +16,47 @@ import { Card, CardContent } from "@/components/ui/card";
 import { PreviewTextbook } from "@/components/preview-textbook";
 import { ExercisePreview } from "@/components/exercise-preview";
 import { LanguageLabel } from "@/components/shared/language-label";
+import { usePolling } from "@/lib/use-polling";
 
 type Tab = "about" | "textbook" | "workbook";
 
 export default function CoursePreviewPage() {
   const { id } = useParams();
   const router = useRouter();
-  const [course, setCourse] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const { data: course, isLoading: loading } = usePolling<any>(
+    id ? `/api/courses/${id}` : null,
+    { fallback: null, interval: 10000 } // курсы редко меняются — реже опрос
+  );
   const [activeTab, setActiveTab] = useState<Tab>("about");
 
   // Textbook state
   const [selTbSec, setSelTbSec] = useState("");
-  const [tbBlocks, setTbBlocks] = useState<any[]>([]);
   const [tbTitle, setTbTitle] = useState("");
-  const [tbLoading, setTbLoading] = useState(false);
 
   // Workbook state
   const [selWbSec, setSelWbSec] = useState("");
-  const [wbExercises, setWbExercises] = useState<any[]>([]);
   const [wbTitle, setWbTitle] = useState("");
-  const [wbLoading, setWbLoading] = useState(false);
 
   // Sidebar collapse
   const [uCol, setUCol] = useState<Set<string>>(new Set());
   const [lCol, setLCol] = useState<Set<string>>(new Set());
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
-  useEffect(() => {
-    fetch(`/api/courses/${id}`).then(r => r.ok ? r.json() : null)
-      .then(d => { setCourse(d); setLoading(false); });
-  }, [id]);
+  const { data: tbBlocks = [], isLoading: tbLoading } = usePolling<any[]>(
+    selTbSec ? `/api/textbook-sections/${selTbSec}/blocks` : null,
+    { fallback: [], interval: 10000 }
+  );
+  const { data: wbExercises = [], isLoading: wbLoading } = usePolling<any[]>(
+    selWbSec ? `/api/workbook-sections/${selWbSec}/exercises` : null,
+    { fallback: [], interval: 10000 }
+  );
 
-  const loadTbSection = async (sid: string, title: string) => {
-    setSelTbSec(sid); setTbTitle(title); setTbLoading(true);
-    try {
-      const d = await fetch(`/api/textbook-sections/${sid}/blocks`).then(r => r.json());
-      setTbBlocks(Array.isArray(d) ? d : []);
-    } catch { setTbBlocks([]); }
-    setTbLoading(false);
+  const loadTbSection = (sid: string, title: string) => {
+    setSelTbSec(sid); setTbTitle(title);
   };
 
-  const loadWbSection = async (sid: string, title: string) => {
-    setSelWbSec(sid); setWbTitle(title); setWbLoading(true);
-    try {
-      const d = await fetch(`/api/workbook-sections/${sid}/exercises`).then(r => r.json());
-      setWbExercises(Array.isArray(d) ? d : []);
-    } catch { setWbExercises([]); }
-    setWbLoading(false);
+  const loadWbSection = (sid: string, title: string) => {
+    setSelWbSec(sid); setWbTitle(title);
   };
 
   const toggleU = (uid: string) => { setUCol(p => { const n = new Set(p); n.has(uid) ? n.delete(uid) : n.add(uid); return n; }); };

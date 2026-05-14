@@ -1,10 +1,11 @@
 "use client";
-import { useEffect, useState, useCallback } from "react";
+import { useState } from "react";
 import { formatTime12h } from "@/lib/utils";
 import { useParams } from "next/navigation";
 import { useStudentClassroom } from "../classroom-context";
 import { Badge } from "@/components/ui/badge";
 import { GradeBadge } from "@/components/shared/grade-badge";
+import { usePolling } from "@/lib/use-polling";
 
 const MO=["January","February","March","April","May","June","July","August","September","October","November","December"];
 const DW=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
@@ -15,18 +16,25 @@ const greens=["","bg-emerald-200 text-emerald-900","bg-emerald-400 text-emerald-
 export default function StudentDiary(){
   const{id}=useParams();
   const{ classroom }=useStudentClassroom();
-  const[logs,setLogs]=useState<any[]>([]);
   const[selectedLog,setSelectedLog]=useState<any>(null);const[dayLogs,setDayLogs]=useState<any[]>([]);
   const[year,setYear]=useState(new Date().getFullYear());const[month,setMonth]=useState(new Date().getMonth());
-  const[loading,setLoading]=useState(true);
   const ms=`${year}-${String(month+1).padStart(2,"0")}`;
 
-  const load=useCallback(async()=>{setLoading(true);const l=await fetch(`/api/lesson-log?classroomId=${id}&month=${ms}&studentId=me`).then(r=>r.ok?r.json():[]);setLogs((Array.isArray(l)?l:[]).filter((x:any)=>x.status!=="CANCELLED"));setLoading(false);},[id,ms]);
-  useEffect(()=>{load();},[load]);
+  const { data: rawLogs = [], isLoading: loading } = usePolling<any[]>(
+    id ? `/api/lesson-log?classroomId=${id}&month=${ms}&studentId=me` : null,
+    { fallback: [] }
+  );
+  const logs = (Array.isArray(rawLogs) ? rawLogs : []).filter((x: any) => x.status !== "CANCELLED");
 
   const chM=(d:number)=>{let m=month+d,y=year;if(m>11){m=0;y++;}if(m<0){m=11;y--;}setMonth(m);setYear(y);setSelectedLog(null);setDayLogs([]);};
   const selDay=(day:number)=>{const dl=logs.filter(l=>new Date(l.date).getDate()===day);setDayLogs(dl);if(dl.length>0)setSelectedLog(dl[0]);};
   const selLog=(log:any)=>setSelectedLog(log);
+
+  // Реалтайм: при обновлении logs через polling — подменяем selectedLog свежей версией
+  const liveSelectedLog = selectedLog ? logs.find((l: any) => l.id === selectedLog.id) || selectedLog : null;
+  const liveDayLogs = dayLogs.length > 0
+    ? dayLogs.map((d: any) => logs.find((l: any) => l.id === d.id) || d).filter(Boolean)
+    : [];
 
   const fd=new Date(year,month,1).getDay();const shift=fd===0?6:fd-1;const dim=new Date(year,month+1,0).getDate();
   const lfd=(day:number)=>logs.filter(l=>new Date(l.date).getDate()===day);
@@ -57,18 +65,18 @@ export default function StudentDiary(){
           </div>
         </div>
         <div className="flex-1 min-w-0 overflow-hidden">
-          {!selectedLog?<div className="text-center py-16 text-muted-foreground"><p className="text-sm">Select a lesson from the calendar</p></div>:(
+          {!liveSelectedLog?<div className="text-center py-16 text-muted-foreground"><p className="text-sm">Select a lesson from the calendar</p></div>:(
             <div>
-              {dayLogs.length>1&&<div className="flex flex-wrap gap-2 mb-4">{dayLogs.map((dl:any,idx:number)=>(<button key={dl.id} onClick={()=>selLog(dl)} className={`px-3 py-1.5 rounded-md text-xs font-medium border ${selectedLog.id===dl.id?"border-primary bg-primary/10 text-primary":"border-border text-muted-foreground hover:bg-accent"}`}>Lesson {idx+1}</button>))}</div>}
+              {liveDayLogs.length>1&&<div className="flex flex-wrap gap-2 mb-4">{liveDayLogs.map((dl:any,idx:number)=>(<button key={dl.id} onClick={()=>selLog(dl)} className={`px-3 py-1.5 rounded-md text-xs font-medium border ${liveSelectedLog.id===dl.id?"border-primary bg-primary/10 text-primary":"border-border text-muted-foreground hover:bg-accent"}`}>Lesson {idx+1}</button>))}</div>}
               <div className="bg-card border border-border rounded-xl p-5 space-y-4">
                 <div className="flex items-start justify-between">
-                  <div><h2 className="text-lg font-semibold text-foreground">{DWF[new Date(selectedLog.date).getDay()]}, {new Date(selectedLog.date).toLocaleDateString("en-US")}</h2><p className="text-sm text-muted-foreground">{formatTime12h(selectedLog.startTime)} – {formatTime12h(selectedLog.endTime)}{selectedLog.location&&` · ${selectedLog.location}`}</p></div>
-                  <Badge className={`text-xs ${selectedLog.status==="COMPLETED"?"bg-emerald-100 text-emerald-700":"bg-blue-100 text-blue-700"}`}>{selectedLog.status==="COMPLETED"?"Completed":"Scheduled"}</Badge>
+                  <div><h2 className="text-lg font-semibold text-foreground">{DWF[new Date(liveSelectedLog.date).getDay()]}, {new Date(liveSelectedLog.date).toLocaleDateString("en-US")}</h2><p className="text-sm text-muted-foreground">{formatTime12h(liveSelectedLog.startTime)} – {formatTime12h(liveSelectedLog.endTime)}{liveSelectedLog.location&&` · ${liveSelectedLog.location}`}</p></div>
+                  <Badge className={`text-xs ${liveSelectedLog.status==="COMPLETED"?"bg-emerald-100 text-emerald-700":"bg-blue-100 text-blue-700"}`}>{liveSelectedLog.status==="COMPLETED"?"Completed":"Scheduled"}</Badge>
                 </div>
-                {selectedLog.attendance?.[0]&&<p className="text-sm text-muted-foreground">{selectedLog.attendance[0].status==="PRESENT"?"✓ Present":selectedLog.attendance[0].status==="LATE"?"⏰ Late":"✗ Absent"}</p>}
-                {selectedLog.grades?.length>0&&<div className="flex gap-1">{selectedLog.grades.map((g:any)=><GradeBadge key={g.id} grade={g.grade} size="sm"/>)}</div>}
-                {selectedLog.topics?.length>0&&<div><h3 className="text-xs font-semibold text-muted-foreground uppercase mb-1">Topics</h3>{selectedLog.topics.map((t:any)=><p key={t.id} className="text-sm text-foreground pl-3 border-l-2 border-emerald-500 mb-1">{t.lesson?.title}</p>)}</div>}
-                {selectedLog.homeworkAssigned?.length>0&&<div><h3 className="text-xs font-semibold text-muted-foreground uppercase mb-1">Homework</h3>{selectedLog.homeworkAssigned.map((hw:any)=><p key={hw.id} className="text-sm text-foreground">{hw.title}</p>)}</div>}
+                {liveSelectedLog.attendance?.[0]&&<p className="text-sm text-muted-foreground">{liveSelectedLog.attendance[0].status==="PRESENT"?"✓ Present":liveSelectedLog.attendance[0].status==="LATE"?"⏰ Late":"✗ Absent"}</p>}
+                {liveSelectedLog.grades?.length>0&&<div className="flex gap-1">{liveSelectedLog.grades.map((g:any)=><GradeBadge key={g.id} grade={g.grade} size="sm"/>)}</div>}
+                {liveSelectedLog.topics?.length>0&&<div><h3 className="text-xs font-semibold text-muted-foreground uppercase mb-1">Topics</h3>{liveSelectedLog.topics.map((t:any)=><p key={t.id} className="text-sm text-foreground pl-3 border-l-2 border-emerald-500 mb-1">{t.lesson?.title}</p>)}</div>}
+                {liveSelectedLog.homeworkAssigned?.length>0&&<div><h3 className="text-xs font-semibold text-muted-foreground uppercase mb-1">Homework</h3>{liveSelectedLog.homeworkAssigned.map((hw:any)=><p key={hw.id} className="text-sm text-foreground">{hw.title}</p>)}</div>}
               </div>
             </div>
           )}

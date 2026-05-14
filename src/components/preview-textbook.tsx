@@ -9,6 +9,7 @@
 
 "use client";
 
+import { useState } from "react";
 import { AudioPlayer } from "@/components/audio-player";
 import { AVATAR_MAP, SCENE_MAP } from "@/lib/dialogue-assets";
 import { TIPTAP_CONTENT_STYLES } from "@/lib/utils";
@@ -24,6 +25,57 @@ interface ContentBlock {
 interface Props {
   blocks: ContentBlock[];
   isTeacher: boolean;
+}
+
+// ===== SafeImage: показывает плашку при битой/отсутствующей ссылке =====
+function SafeImage({ src, alt, className, fallbackSize = "default" }: {
+  src?: string | null;
+  alt?: string;
+  className?: string;
+  fallbackSize?: "default" | "small";
+}) {
+  const [errored, setErrored] = useState(false);
+  const isSmall = fallbackSize === "small";
+
+  if (!src || errored) {
+    return (
+      <div
+        className={`flex flex-col items-center justify-center bg-muted/50 border-2 border-dashed border-border rounded-xl text-muted-foreground ${
+          isSmall ? "max-w-[220px] mx-auto py-8 px-4" : "max-w-[400px] mx-auto py-12 px-6"
+        }`}
+        role="img"
+        aria-label="Image not available"
+      >
+        <svg
+          width={isSmall ? "40" : "56"}
+          height={isSmall ? "40" : "56"}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="opacity-60 mb-2"
+        >
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+          <circle cx="9" cy="9" r="2" />
+          <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
+          <line x1="3" y1="3" x2="21" y2="21" strokeWidth="2" />
+        </svg>
+        <p className={`font-medium ${isSmall ? "text-xs" : "text-sm"}`}>Image not available</p>
+        <p className={`opacity-70 ${isSmall ? "text-[10px]" : "text-xs"}`}>Broken link or removed</p>
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={src}
+      alt={alt || ""}
+      className={className}
+      onError={() => setErrored(true)}
+    />
+  );
 }
 
 // ===== Главный рендер учебника =====
@@ -93,12 +145,16 @@ function PreviewBlock({ block }: { block: ContentBlock }) {
       );
 
     case "IMAGE":
-      return c.url ? (
+      return (
         <figure className="text-center">
-          <img src={c.url} alt={c.alt || ""} className="max-h-[400px] w-auto max-w-full rounded-xl shadow-lg mx-auto object-contain" />
+          <SafeImage
+            src={c.url}
+            alt={c.alt || ""}
+            className="max-h-[400px] w-auto max-w-full rounded-xl shadow-lg mx-auto object-contain"
+          />
           {c.caption && <figcaption className="text-center text-sm text-muted-foreground mt-3 italic">{c.caption}</figcaption>}
         </figure>
-      ) : null;
+      );
 
     case "AUDIO":
       return c.url ? <AudioPlayer src={c.url} title={c.title} /> : null;
@@ -144,7 +200,7 @@ function VocabCardPreview({ c }: { c: any }) {
     <div className="rounded-2xl overflow-hidden bg-white border border-black/8 shadow-xl max-w-[90%] mx-auto">
       <div className="p-7 space-y-3 text-center">
         {/* Картинка — сверху */}
-        {c.imageUrl && <img src={c.imageUrl} alt={word} className="max-w-[220px] rounded-xl mx-auto" />}
+        {c.imageUrl && <SafeImage src={c.imageUrl} alt={word} className="max-w-[220px] rounded-xl mx-auto" fallbackSize="small" />}
         {/* Слово/фраза — крупно */}
         {word && (
           <div className="text-5xl font-bold text-foreground leading-tight">{word}</div>
